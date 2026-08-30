@@ -43,13 +43,15 @@ public class Ps3IntegrationTests
 
                 var root = new FsNode();
                 var udfOk = new UdfParser(reader).Parse(root, track);
-                output.WriteLine($"UnitBytes={unitBytes} Tracks={reader.Tracks.Count} UdfParser={(udfOk ? "OK" : "FAILED")}");
+                output.WriteLine(
+                    $"UnitBytes={unitBytes} Tracks={reader.Tracks.Count} UdfParser={(udfOk ? "OK" : "FAILED")}");
                 Assert.True(udfOk, "UdfParser.Parse failed (PS3 would fall back to ISO9660)");
 
                 int files = 0, dirs = 0, multiExtent = 0;
                 ulong maxSize = 0;
                 Walk(root, ref files, ref dirs, ref multiExtent, ref maxSize);
-                output.WriteLine($"FsNode tree: {files} files, {dirs} dirs, {multiExtent} multi-extent files, largest file {maxSize:N0} bytes");
+                output.WriteLine(
+                    $"FsNode tree: {files} files, {dirs} dirs, {multiExtent} multi-extent files, largest file {maxSize:N0} bytes");
 
                 Assert.True(files > 10, "Suspiciously few files parsed");
                 Assert.Contains(root.Children, static n => n is { Name: "PS3_GAME", IsDirectory: true });
@@ -77,13 +79,16 @@ public class Ps3IntegrationTests
                 var reader = new SectorReader(chd, chd.UnitBytes);
                 var root = new FsNode();
                 var ok = new Iso9660Parser(reader).Parse(root);
-                output.WriteLine($"ISO9660 bridge parse: {(ok ? "OK" : "FAILED")}, top-level entries: {root.Children.Count}");
+                output.WriteLine(
+                    $"ISO9660 bridge parse: {(ok ? "OK" : "FAILED")}, top-level entries: {root.Children.Count}");
                 Assert.True(ok, "Iso9660Parser failed on the PS3 UDF-bridge ISO part");
 
                 foreach (var c in root.Children)
-                    output.WriteLine($"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
+                    output.WriteLine(
+                        $"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
 
-                var sfb = root.Children.FirstOrDefault(static n => string.Equals(n.Name, "PS3_DISC.SFB", StringComparison.Ordinal));
+                var sfb = root.Children.FirstOrDefault(static n =>
+                    string.Equals(n.Name, "PS3_DISC.SFB", StringComparison.Ordinal));
                 Assert.NotNull(sfb);
                 Assert.NotNull(sfb.ModifiedTime);
 
@@ -123,7 +128,8 @@ public class Ps3IntegrationTests
                 int files = 0, dirs = 0, multiExtent = 0;
                 ulong maxSize = 0;
                 Walk(root, ref files, ref dirs, ref multiExtent, ref maxSize);
-                output.WriteLine($"FsNode tree: {files} files, {dirs} dirs, {multiExtent} multi-extent files, largest file {maxSize:N0} bytes");
+                output.WriteLine(
+                    $"FsNode tree: {files} files, {dirs} dirs, {multiExtent} multi-extent files, largest file {maxSize:N0} bytes");
 
                 Assert.True(files > 10, $"Suspiciously few files parsed: {files}");
                 Assert.Contains(root.Children, static n => n is { Name: "PS3_GAME", IsDirectory: true });
@@ -148,7 +154,8 @@ public class Ps3IntegrationTests
                 Assert.True(container.MountAndParse(ConsoleType.Ps3), "MountAndParse failed");
 
                 foreach (var e in container.ListDirectory("\\"))
-                    output.WriteLine($"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
+                    output.WriteLine(
+                        $"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
 
                 var all = CollectEntries(container, "\\").ToList();
                 var fileEntries = all.Where(static e => !e.IsDirectory).ToList();
@@ -204,7 +211,8 @@ public class Ps3IntegrationTests
                 Assert.True(container.MountAndParse(ConsoleType.Ps3), "MountAndParse failed");
 
                 foreach (var e in container.ListDirectory("\\"))
-                    output.WriteLine($"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
+                    output.WriteLine(
+                        $"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
 
                 var all = CollectEntries(container, "\\").ToList();
                 var fileEntries = all.Where(static e => !e.IsDirectory).ToList();
@@ -250,10 +258,7 @@ public class Ps3IntegrationTests
                 foreach (var entry in multi.Take(4))
                 {
                     ulong sum = 0;
-                    foreach (var x in entry.Extents)
-                    {
-                        sum += x.Size;
-                    }
+                    foreach (var x in entry.Extents) sum += x.Size;
 
                     Assert.Equal(entry.Size, sum);
                     VerifyExtentBoundary(container, iso, entry);
@@ -280,7 +285,8 @@ public class Ps3IntegrationTests
         iso.ReadExactly(isoBuf, 0, n);
 
         Assert.True(chdBuf.AsSpan().SequenceEqual(isoBuf), $"Data mismatch in head of {entry.FullPath}");
-        _output.WriteLine($"OK head {n,6} bytes  {entry.FullPath}  (LBA {ext.Lba}, size {entry.Size:N0}, extents {entry.Extents.Count})");
+        _output.WriteLine(
+            $"OK head {n,6} bytes  {entry.FullPath}  (LBA {ext.Lba}, size {entry.Size:N0}, extents {entry.Extents.Count})");
     }
 
     private void VerifyExtentBoundary(ChdContainer container, Stream iso, FileEntry entry)
@@ -299,7 +305,8 @@ public class Ps3IntegrationTests
         iso.ReadExactly(isoBuf, 2048, 2048);
 
         Assert.True(chdBuf.AsSpan().SequenceEqual(isoBuf), $"Data mismatch at extent boundary of {entry.FullPath}");
-        _output.WriteLine($"OK extent boundary  {entry.FullPath}  (ext0 {ext0.Size:N0} @ {ext0.Lba} -> ext1 @ {ext1.Lba})");
+        _output.WriteLine(
+            $"OK extent boundary  {entry.FullPath}  (ext0 {ext0.Size:N0} @ {ext0.Lba} -> ext1 @ {ext1.Lba})");
     }
 
     private static IEnumerable<FileEntry> CollectEntries(ChdContainer container, string path)
@@ -309,10 +316,8 @@ public class Ps3IntegrationTests
             yield return e;
 
             if (e.IsDirectory)
-            {
                 foreach (var sub in CollectEntries(container, e.FullPath))
                     yield return sub;
-            }
         }
     }
 
@@ -336,12 +341,10 @@ public class Ps3IntegrationTests
                 var dataLen = BitConverter.ToUInt32(buf, pos + 12);
 
                 var keyEnd = Array.IndexOf<byte>(buf, 0, (int)(keyTableStart + keyOff));
-                if (keyEnd < 0)
-                {
-                    keyEnd = length;
-                }
+                if (keyEnd < 0) keyEnd = length;
 
-                var key = Encoding.ASCII.GetString(buf, (int)(keyTableStart + keyOff), keyEnd - (int)(keyTableStart + keyOff));
+                var key = Encoding.ASCII.GetString(buf, (int)(keyTableStart + keyOff),
+                    keyEnd - (int)(keyTableStart + keyOff));
 
                 if (string.Equals(key, "TITLE_ID", StringComparison.Ordinal))
                 {
@@ -362,7 +365,6 @@ public class Ps3IntegrationTests
     private static void Walk(FsNode node, ref int files, ref int dirs, ref int multi, ref ulong maxSize)
     {
         foreach (var c in node.Children)
-        {
             if (c.IsDirectory)
             {
                 dirs++;
@@ -371,16 +373,9 @@ public class Ps3IntegrationTests
             else
             {
                 files++;
-                if (c.Extents.Count > 1)
-                {
-                    multi++;
-                }
+                if (c.Extents.Count > 1) multi++;
 
-                if (c.Size > maxSize)
-                {
-                    maxSize = c.Size;
-                }
+                if (c.Size > maxSize) maxSize = c.Size;
             }
-        }
     }
 }

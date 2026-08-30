@@ -110,10 +110,7 @@ public class LoggingServiceThreadSafetyTests
     public void MaxEntriesIsRespected()
     {
         var service = new LoggingService();
-        for (var i = 0; i < 5100; i++)
-        {
-            service.Log($"Message {i}");
-        }
+        for (var i = 0; i < 5100; i++) service.Log($"Message {i}");
 
         Assert.True(service.LogEntries.Count <= 5000);
     }

@@ -30,9 +30,7 @@ public class ParserFactoryTests
     {
         var consoles = ParserFactory.GetAllSupportedConsoles();
         foreach (var console in consoles)
-        {
             Assert.False(string.IsNullOrEmpty(console.Name), $"Console {console.Type} has empty name");
-        }
     }
 
     [Fact]

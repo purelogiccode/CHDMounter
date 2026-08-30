@@ -1,18 +1,18 @@
 namespace CHDMounter.Core.Services;
 
 /// <summary>
-/// Matches file names against Windows directory-query search expressions.
+///     Matches file names against Windows directory-query search expressions.
 /// </summary>
 /// <remarks>
-/// Windows does not pass plain "*.cue" patterns for directory enumeration.
-/// For FileBothDirectoryInformation queries the I/O manager converts the
-/// pattern into the NT "8.3 DOS wildcard" form where '*' becomes '&lt;'
-/// (DOS_STAR), '?' becomes '&gt;' (DOS_QM) and the extension separator is
-/// handled with '"' (DOS_DOT). A matcher that only understands '*' and '?'
-/// therefore silently returns no matches for live queries such as
-/// <c>dir Z:\*.cue</c>. This implementation is a port of Dokan's
-/// <c>DokanIsNameInExpression</c> (dokan/directory.c) and supports the DOS
-/// wildcard characters in addition to the regular '*' and '?'.
+///     Windows does not pass plain "*.cue" patterns for directory enumeration.
+///     For FileBothDirectoryInformation queries the I/O manager converts the
+///     pattern into the NT "8.3 DOS wildcard" form where '*' becomes '&lt;'
+///     (DOS_STAR), '?' becomes '&gt;' (DOS_QM) and the extension separator is
+///     handled with '"' (DOS_DOT). A matcher that only understands '*' and '?'
+///     therefore silently returns no matches for live queries such as
+///     <c>dir Z:\*.cue</c>. This implementation is a port of Dokan's
+///     <c>DokanIsNameInExpression</c> (dokan/directory.c) and supports the DOS
+///     wildcard characters in addition to the regular '*' and '?'.
 /// </remarks>
 public static class FileNameMatcher
 {
@@ -21,9 +21,9 @@ public static class FileNameMatcher
     private const char DosDot = '"';
 
     /// <summary>
-    /// Returns <c>true</c> if <paramref name="name"/> matches
-    /// <paramref name="expression"/> (case-insensitive), using the same rules
-    /// as the Windows file system pattern matcher.
+    ///     Returns <c>true</c> if <paramref name="name" /> matches
+    ///     <paramref name="expression" /> (case-insensitive), using the same rules
+    ///     as the Windows file system pattern matcher.
     /// </summary>
     /// <param name="name">The file or directory name (without path).</param>
     /// <param name="expression">The search expression/pattern.</param>
@@ -51,10 +51,8 @@ public static class FileNameMatcher
                         return true;
 
                     for (var i = 0; i <= name.Length; i++)
-                    {
                         if (IsMatch(name[i..], expression))
                             return true;
-                    }
 
                     return false;
                 }
@@ -70,12 +68,8 @@ public static class FileNameMatcher
                     // pattern the same (non-matching) semantics as the reference.
                     var lastDot = 0;
                     for (var i = 0; i < name.Length; i++)
-                    {
                         if (name[i] == '.')
-                        {
                             lastDot = i;
-                        }
-                    }
 
                     var ni = 0;
                     while (ni < lastDot)
@@ -108,15 +102,9 @@ public static class FileNameMatcher
                     else
                     {
                         var p = 1;
-                        while (p < name.Length && name[p] != '.')
-                        {
-                            p++;
-                        }
+                        while (p < name.Length && name[p] != '.') p++;
 
-                        if (p < name.Length)
-                        {
-                            name = name[1..];
-                        }
+                        if (p < name.Length) name = name[1..];
                     }
 
                     continue;
@@ -125,10 +113,7 @@ public static class FileNameMatcher
                 {
                     // DOS_DOT matches a literal dot if one is present.
                     expression = expression[1..];
-                    if (name.Length > 0 && name[0] == '.')
-                    {
-                        name = name[1..];
-                    }
+                    if (name.Length > 0 && name[0] == '.') name = name[1..];
 
                     continue;
                 }

@@ -8,7 +8,8 @@ public class FileNameMatcherTests
     [InlineData("Xeno Crisis (World) (Unl).cue", "<.bin", false)]
     [InlineData("Xeno Crisis (World) (Unl).cue", "*.cue", true)] // plain form must keep working too
     [InlineData("Xeno Crisis (World) (Unl).bin", "*.cue", false)]
-    [InlineData("Xeno Crisis (World) (Unl).cue", "<", false)] // bare DOS_STAR matches nothing (Dokan reference semantics)
+    [InlineData("Xeno Crisis (World) (Unl).cue", "<",
+        false)] // bare DOS_STAR matches nothing (Dokan reference semantics)
     [InlineData("Xeno Crisis (World) (Unl).cue", "*", true)]
     [InlineData("Xeno Crisis (World) (Unl).cue", "*.*", true)]
     [InlineData("Xeno Crisis (World) (Unl).cue", "<.*", true)]

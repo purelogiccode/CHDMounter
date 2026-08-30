@@ -49,34 +49,31 @@ internal static class SequentialTestRunner
         int passed = 0, skipped = 0;
         var sw = Stopwatch.StartNew();
 
-        Parallel.ForEach(chdPaths, new ParallelOptions { MaxDegreeOfParallelism = DefaultMaxDegreeOfParallelism }, chdPath =>
-        {
-            if (!File.Exists(chdPath))
+        Parallel.ForEach(chdPaths, new ParallelOptions { MaxDegreeOfParallelism = DefaultMaxDegreeOfParallelism },
+            chdPath =>
             {
-                syncOutput.WriteLine($"SKIP: {chdPath} not found");
-                Interlocked.Increment(ref skipped);
-                return;
-            }
+                if (!File.Exists(chdPath))
+                {
+                    syncOutput.WriteLine($"SKIP: {chdPath} not found");
+                    Interlocked.Increment(ref skipped);
+                    return;
+                }
 
-            var fileName = Path.GetFileName(chdPath);
-            try
-            {
-                syncOutput.WriteLine($"--- {fileName} ---");
-                if (testFunc(chdPath, syncOutput))
+                var fileName = Path.GetFileName(chdPath);
+                try
                 {
-                    Interlocked.Increment(ref passed);
+                    syncOutput.WriteLine($"--- {fileName} ---");
+                    if (testFunc(chdPath, syncOutput))
+                        Interlocked.Increment(ref passed);
+                    else
+                        failures.Add((chdPath, $"{testName} returned false for {fileName}"));
                 }
-                else
+                catch (Exception ex)
                 {
-                    failures.Add((chdPath, $"{testName} returned false for {fileName}"));
+                    failures.Add((chdPath, $"{ex.GetType().Name}: {ex.Message}"));
+                    syncOutput.WriteLine($"  FAIL: {ex.GetType().Name}: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                failures.Add((chdPath, $"{ex.GetType().Name}: {ex.Message}"));
-                syncOutput.WriteLine($"  FAIL: {ex.GetType().Name}: {ex.Message}");
-            }
-        });
+            });
 
         sw.Stop();
         output.WriteLine(

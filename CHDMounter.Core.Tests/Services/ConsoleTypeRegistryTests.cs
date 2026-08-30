@@ -1,9 +1,9 @@
 namespace CHDMounter.Core.Tests.Services;
 
 /// <summary>
-/// Tests for <see cref="ConsoleTypeRegistry"/> — the single source of truth
-/// for console aliases. Numeric indexes are not supported; the registry is
-/// the only way to resolve a console type in CHDMounter.
+///     Tests for <see cref="ConsoleTypeRegistry" /> — the single source of truth
+///     for console aliases. Numeric indexes are not supported; the registry is
+///     the only way to resolve a console type in CHDMounter.
 /// </summary>
 public class ConsoleTypeRegistryTests
 {

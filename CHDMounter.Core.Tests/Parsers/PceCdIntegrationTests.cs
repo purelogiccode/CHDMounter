@@ -56,16 +56,11 @@ public class PceCdIntegrationTests
                     var descriptor = Encoding.ASCII.GetString(sec, 0x20, BootSignature.Length);
                     output.WriteLine($"Track {track.Index}: dataStart={dataStart} descriptor='{descriptor}'");
 
-                    if (string.Equals(descriptor, BootSignature, StringComparison.Ordinal))
-                    {
-                        found = true;
-                    }
+                    if (string.Equals(descriptor, BootSignature, StringComparison.Ordinal)) found = true;
                 }
 
                 if (!found)
-                {
                     output.WriteLine("  SKIP: No PC Engine CD-ROM SYSTEM signature found (non-standard disc layout)");
-                }
             }
             finally
             {
@@ -92,7 +87,8 @@ public class PceCdIntegrationTests
                 output.WriteLine($"UnitBytes={chd.UnitBytes} Tracks={reader.Tracks.Count}");
 
                 foreach (var t in reader.Tracks)
-                    output.WriteLine($"  Track {t.Index}: {t.TrackType} data={t.IsDataTrack} frames={t.Frames} pregap={t.Pregap}");
+                    output.WriteLine(
+                        $"  Track {t.Index}: {t.TrackType} data={t.IsDataTrack} frames={t.Frames} pregap={t.Pregap}");
 
                 var root = new FsNode();
                 var parser = new PcEngineCdParser(reader);
@@ -104,10 +100,12 @@ public class PceCdIntegrationTests
                 Assert.True(root.Children.Count > 0, "No nodes produced");
 
                 foreach (var c in root.Children)
-                    output.WriteLine($"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}");
+                    output.WriteLine(
+                        $"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}");
 
                 var dataTrackCount = reader.Tracks.Count(static t => t.IsDataTrack);
-                var isoCount = root.Children.Count(static n => n.Name.EndsWith(".iso", StringComparison.OrdinalIgnoreCase));
+                var isoCount =
+                    root.Children.Count(static n => n.Name.EndsWith(".iso", StringComparison.OrdinalIgnoreCase));
                 output.WriteLine($"Data tracks: {dataTrackCount}, TRACK ISOs: {isoCount}");
             }
             finally
@@ -135,7 +133,8 @@ public class PceCdIntegrationTests
                 output.WriteLine($"Container: {fileEntries.Count} files, {all.Count - fileEntries.Count} dirs");
 
                 foreach (var e in container.ListDirectory("\\"))
-                    output.WriteLine($"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
+                    output.WriteLine(
+                        $"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
 
                 Assert.True(fileEntries.Count > 0, "No files exposed");
 
@@ -144,8 +143,10 @@ public class PceCdIntegrationTests
                     output.WriteLine($"BAD NAME: {bad.FullPath}");
                 Assert.Empty(badNames);
 
-                var cue = fileEntries.FirstOrDefault(static e => e.Name.EndsWith(".cue", StringComparison.OrdinalIgnoreCase));
-                var bin = fileEntries.FirstOrDefault(static e => e.Name.EndsWith(".bin", StringComparison.OrdinalIgnoreCase));
+                var cue = fileEntries.FirstOrDefault(static e =>
+                    e.Name.EndsWith(".cue", StringComparison.OrdinalIgnoreCase));
+                var bin = fileEntries.FirstOrDefault(static e =>
+                    e.Name.EndsWith(".bin", StringComparison.OrdinalIgnoreCase));
                 Assert.NotNull(cue);
                 Assert.NotNull(bin);
 
@@ -158,8 +159,9 @@ public class PceCdIntegrationTests
                 Assert.StartsWith("FILE", cueText, StringComparison.Ordinal);
                 Assert.Contains("TRACK", cueText, StringComparison.Ordinal);
 
-                var trackIso = fileEntries.FirstOrDefault(static e => e.Name.StartsWith("TRACK", StringComparison.OrdinalIgnoreCase) &&
-                                                                      e.Name.EndsWith(".iso", StringComparison.OrdinalIgnoreCase));
+                var trackIso = fileEntries.FirstOrDefault(static e =>
+                    e.Name.StartsWith("TRACK", StringComparison.OrdinalIgnoreCase) &&
+                    e.Name.EndsWith(".iso", StringComparison.OrdinalIgnoreCase));
                 if (trackIso != null)
                 {
                     var buf = new byte[2048];
@@ -170,9 +172,8 @@ public class PceCdIntegrationTests
                     output.WriteLine($"{trackIso.Name} sector 1 descriptor: '{descriptor}'");
 
                     if (!string.Equals(descriptor, BootSignature, StringComparison.Ordinal))
-                    {
-                        output.WriteLine("  SKIP: TRACK ISO does not contain boot signature (non-standard disc layout)");
-                    }
+                        output.WriteLine(
+                            "  SKIP: TRACK ISO does not contain boot signature (non-standard disc layout)");
                 }
                 else
                 {

@@ -4,17 +4,12 @@ using VideoGameFileSystemParser.Parsers;
 namespace CHDMounter.Core.Views;
 
 /// <summary>
-/// A dialog window that prompts the user to select a console type for mounting a CHD file.
+///     A dialog window that prompts the user to select a console type for mounting a CHD file.
 /// </summary>
 public partial class ConsoleSelectionWindow
 {
     /// <summary>
-    /// Gets the console type selected by the user.
-    /// </summary>
-    public ConsoleType SelectedConsoleType { get; private set; } = ConsoleType.Unknown;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ConsoleSelectionWindow"/> class.
+    ///     Initializes a new instance of the <see cref="ConsoleSelectionWindow" /> class.
     /// </summary>
     public ConsoleSelectionWindow()
     {
@@ -29,7 +24,7 @@ public partial class ConsoleSelectionWindow
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ConsoleSelectionWindow"/> class with the specified CHD file path.
+    ///     Initializes a new instance of the <see cref="ConsoleSelectionWindow" /> class with the specified CHD file path.
     /// </summary>
     /// <param name="chdPath">The path to the CHD file being mounted.</param>
     public ConsoleSelectionWindow(string chdPath) : this()
@@ -38,6 +33,11 @@ public partial class ConsoleSelectionWindow
         ChdPathTextBlock.Text = !string.IsNullOrEmpty(fileName) ? fileName : chdPath;
         ChdPathTextBlock.ToolTip = chdPath;
     }
+
+    /// <summary>
+    ///     Gets the console type selected by the user.
+    /// </summary>
+    public ConsoleType SelectedConsoleType { get; private set; } = ConsoleType.Unknown;
 
     private void Ok_Click(object sender, RoutedEventArgs e)
     {

@@ -1,14 +1,16 @@
+using Serilog;
+
 namespace CHDMounter.Core.Services;
 
 /// <summary>
-/// A simple static service locator for registering and resolving application services.
+///     A simple static service locator for registering and resolving application services.
 /// </summary>
 public static class ServiceProvider
 {
     private static readonly ConcurrentDictionary<Type, object> Services = new();
 
     /// <summary>
-    /// Registers a service implementation for the specified type.
+    ///     Registers a service implementation for the specified type.
     /// </summary>
     /// <typeparam name="T">The service type to register.</typeparam>
     /// <param name="implementation">The implementation instance.</param>
@@ -18,7 +20,7 @@ public static class ServiceProvider
     }
 
     /// <summary>
-    /// Gets the registered service implementation for the specified type.
+    ///     Gets the registered service implementation for the specified type.
     /// </summary>
     /// <typeparam name="T">The service type to resolve.</typeparam>
     /// <returns>The registered service instance.</returns>
@@ -32,7 +34,7 @@ public static class ServiceProvider
     }
 
     /// <summary>
-    /// Attempts to get the registered service implementation, returning <c>null</c> if not found.
+    ///     Attempts to get the registered service implementation, returning <c>null</c> if not found.
     /// </summary>
     /// <typeparam name="T">The service type to resolve.</typeparam>
     /// <returns>The registered service instance, or <c>null</c> if not registered.</returns>
@@ -45,24 +47,20 @@ public static class ServiceProvider
     }
 
     /// <summary>
-    /// Disposes all registered services that implement <see cref="IDisposable"/> and clears the registry.
+    ///     Disposes all registered services that implement <see cref="IDisposable" /> and clears the registry.
     /// </summary>
     public static void DisposeAllServices()
     {
         foreach (var kvp in Services)
-        {
             if (kvp.Value is IDisposable disposable)
-            {
                 try
                 {
                     disposable.Dispose();
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Warning(ex, "ServiceProvider: Failed to dispose {ServiceType}", kvp.Key.Name);
+                    Log.Warning(ex, "ServiceProvider: Failed to dispose {ServiceType}", kvp.Key.Name);
                 }
-            }
-        }
 
         Services.Clear();
     }

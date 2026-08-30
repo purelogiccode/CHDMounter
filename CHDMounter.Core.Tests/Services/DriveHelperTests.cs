@@ -49,13 +49,8 @@ public class DriveHelperTests
         var letter = result[0];
 
         if (!drives.Contains('M'))
-        {
             Assert.Equal('M', letter);
-        }
-        else if (!drives.Contains('N'))
-        {
-            Assert.Equal('N', letter);
-        }
+        else if (!drives.Contains('N')) Assert.Equal('N', letter);
     }
 
     [Fact]

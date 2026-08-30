@@ -57,5 +57,3 @@ public class FsNodeTypeTests
         Assert.Equal(12, (int)FsNodeType.Symlink);
     }
 }
-
-

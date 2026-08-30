@@ -1,14 +1,15 @@
 using System.Security.AccessControl;
 using System.Security.Principal;
-using DokanNet;
 using CHDMounter.Core.Interfaces;
+using DokanNet;
+using Serilog;
 using VideoGameFileSystemParser.Parsers;
 using DokanFileAccess = DokanNet.FileAccess;
 
 namespace CHDMounter;
 
 /// <summary>
-/// Implements the Dokan file system interface to expose a CHD container as a read-only virtual drive.
+///     Implements the Dokan file system interface to expose a CHD container as a read-only virtual drive.
 /// </summary>
 internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
 {
@@ -17,7 +18,7 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ChdFs"/> class.
+    ///     Initializes a new instance of the <see cref="ChdFs" /> class.
     /// </summary>
     /// <param name="container">The parsed CHD container to serve files from.</param>
     /// <param name="loggingService">The logging service for recording mount/unmount events.</param>
@@ -25,6 +26,20 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
     {
         _container = container;
         _loggingService = loggingService;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        Dispose();
+        return ValueTask.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+
+        _disposed = true;
+        _container.Dispose();
     }
 
     public NtStatus CreateFile(string fileName, DokanFileAccess access, FileShare share, FileMode mode,
@@ -111,13 +126,11 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
         var entries = _container.ListDirectory(fileName).ToList();
 
         if (entries.Count == 0)
-        {
             if (_container.FindFile(fileName) is null)
             {
                 files = Array.Empty<FileInformation>();
                 return DokanResult.FileNotFound;
             }
-        }
 
         var result = new List<FileInformation>
         {
@@ -126,23 +139,24 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
         };
 
         foreach (var entry in entries)
-        {
             result.Add(new FileInformation
             {
                 FileName = entry.Name,
-                Attributes = entry.IsDirectory ? FileAttributes.Directory : (FileAttributes.Archive | FileAttributes.ReadOnly),
+                Attributes = entry.IsDirectory
+                    ? FileAttributes.Directory
+                    : FileAttributes.Archive | FileAttributes.ReadOnly,
                 Length = (long)entry.Size,
                 LastWriteTime = entry.ModifiedTime,
                 CreationTime = entry.ModifiedTime,
                 LastAccessTime = entry.ModifiedTime
             });
-        }
 
         files = result;
         return DokanResult.Success;
     }
 
-    public NtStatus FindFilesWithPattern(string fileName, string searchPattern, out IList<FileInformation> files, IDokanFileInfo info)
+    public NtStatus FindFilesWithPattern(string fileName, string searchPattern, out IList<FileInformation> files,
+        IDokanFileInfo info)
     {
         var result = FindFiles(fileName, out var allFiles, info);
         if (result != DokanResult.Success)
@@ -167,7 +181,8 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
         out string fileSystemName, out uint maximumComponentLength, IDokanFileInfo info)
     {
         volumeLabel = _container.VolumeName;
-        features = FileSystemFeatures.ReadOnlyVolume | FileSystemFeatures.CasePreservedNames | FileSystemFeatures.UnicodeOnDisk;
+        features = FileSystemFeatures.ReadOnlyVolume | FileSystemFeatures.CasePreservedNames |
+                   FileSystemFeatures.UnicodeOnDisk;
         fileSystemName = "CHDFS";
         maximumComponentLength = 255;
         return DokanResult.Success;
@@ -219,7 +234,8 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
         return DokanResult.AccessDenied;
     }
 
-    public NtStatus SetFileTime(string fileName, DateTime? creationTime, DateTime? lastAccessTime, DateTime? lastWriteTime, IDokanFileInfo info)
+    public NtStatus SetFileTime(string fileName, DateTime? creationTime, DateTime? lastAccessTime,
+        DateTime? lastWriteTime, IDokanFileInfo info)
     {
         return DokanResult.AccessDenied;
     }
@@ -265,7 +281,8 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
         return DokanResult.NotImplemented;
     }
 
-    public NtStatus GetFileSecurity(string fileName, out FileSystemSecurity security, AccessControlSections sections, IDokanFileInfo info)
+    public NtStatus GetFileSecurity(string fileName, out FileSystemSecurity security, AccessControlSections sections,
+        IDokanFileInfo info)
     {
         try
         {
@@ -291,7 +308,8 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
             else
             {
                 var fs = new FileSecurity();
-                fs.AddAccessRule(new FileSystemAccessRule(everyoneSid, FileSystemRights.ReadAndExecute, AccessControlType.Allow));
+                fs.AddAccessRule(new FileSystemAccessRule(everyoneSid, FileSystemRights.ReadAndExecute,
+                    AccessControlType.Allow));
                 fs.SetOwner(everyoneSid);
                 fs.SetGroup(everyoneSid);
                 security = fs;
@@ -301,28 +319,15 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
         }
         catch (Exception ex)
         {
-            Serilog.Log.Error(ex, "GetFileSecurity error for {FileName}", fileName);
+            Log.Error(ex, "GetFileSecurity error for {FileName}", fileName);
             security = null!;
             return DokanResult.Error;
         }
     }
 
-    public NtStatus SetFileSecurity(string fileName, FileSystemSecurity security, AccessControlSections sections, IDokanFileInfo info)
+    public NtStatus SetFileSecurity(string fileName, FileSystemSecurity security, AccessControlSections sections,
+        IDokanFileInfo info)
     {
         return DokanResult.AccessDenied;
-    }
-
-    public void Dispose()
-    {
-        if (_disposed) return;
-
-        _disposed = true;
-        _container.Dispose();
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        Dispose();
-        return ValueTask.CompletedTask;
     }
 }

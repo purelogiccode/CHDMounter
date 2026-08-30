@@ -3,19 +3,14 @@ using VideoGameFileSystemParser.Interfaces;
 namespace VideoGameFileSystemParser.Parsers.Systems;
 
 /// <summary>
-/// Parses PlayStation 1 disc images using ISO 9660 on the first data track.
+///     Parses PlayStation 1 disc images using ISO 9660 on the first data track.
 /// </summary>
 public class PlayStation1Parser : IConsoleParser
 {
     private readonly SectorReader _reader;
 
     /// <summary>
-    /// Gets or sets whether to force parsing even when verification fails.
-    /// </summary>
-    public bool ForceMode { get; set; }
-
-    /// <summary>
-    /// Initializes a new instance of the PlayStation1Parser class.
+    ///     Initializes a new instance of the PlayStation1Parser class.
     /// </summary>
     /// <param name="reader">The SectorReader to read sectors from.</param>
     public PlayStation1Parser(SectorReader reader)
@@ -24,7 +19,12 @@ public class PlayStation1Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the ConsoleType that this parser handles.
+    ///     Gets or sets whether to force parsing even when verification fails.
+    /// </summary>
+    public bool ForceMode { get; set; }
+
+    /// <summary>
+    ///     Returns the ConsoleType that this parser handles.
     /// </summary>
     /// <returns>ConsoleType.Ps1</returns>
     public ConsoleType GetConsoleType()
@@ -33,7 +33,7 @@ public class PlayStation1Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the human-readable console name.
+    ///     Returns the human-readable console name.
     /// </summary>
     /// <returns>"PS1"</returns>
     public string GetConsoleName()
@@ -42,7 +42,7 @@ public class PlayStation1Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses the first data track using ISO 9660.
+    ///     Parses the first data track using ISO 9660.
     /// </summary>
     /// <param name="rootNode">The root FsNode to populate.</param>
     /// <returns>true if parsing succeeded.</returns>
@@ -52,7 +52,7 @@ public class PlayStation1Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses a specific track using ISO 9660.
+    ///     Parses a specific track using ISO 9660.
     /// </summary>
     /// <param name="track">The track to parse.</param>
     /// <param name="rootNode">The root FsNode to populate.</param>
@@ -74,16 +74,11 @@ public class PlayStation1Parser : IConsoleParser
 }
 
 /// <summary>
-/// Auto-detect parser for PlayStation discs. Uses ISO 9660 on the first data track.
+///     Auto-detect parser for PlayStation discs. Uses ISO 9660 on the first data track.
 /// </summary>
 internal class PlayStationAutoDetectParser : IConsoleParser
 {
     private readonly SectorReader _reader;
-
-    /// <summary>
-    /// Gets or sets whether to force parsing even when verification fails.
-    /// </summary>
-    public bool ForceMode { get; set; }
 
     internal PlayStationAutoDetectParser(SectorReader reader)
     {
@@ -91,7 +86,12 @@ internal class PlayStationAutoDetectParser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the ConsoleType that this parser handles.
+    ///     Gets or sets whether to force parsing even when verification fails.
+    /// </summary>
+    public bool ForceMode { get; set; }
+
+    /// <summary>
+    ///     Returns the ConsoleType that this parser handles.
     /// </summary>
     /// <returns>ConsoleType.Ps1</returns>
     public ConsoleType GetConsoleType()
@@ -100,7 +100,7 @@ internal class PlayStationAutoDetectParser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the human-readable console name.
+    ///     Returns the human-readable console name.
     /// </summary>
     /// <returns>"PS1"</returns>
     public string GetConsoleName()
@@ -109,7 +109,7 @@ internal class PlayStationAutoDetectParser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses the first data track using ISO 9660.
+    ///     Parses the first data track using ISO 9660.
     /// </summary>
     /// <param name="rootNode">The root FsNode to populate.</param>
     /// <returns>true if parsing succeeded.</returns>
@@ -119,7 +119,7 @@ internal class PlayStationAutoDetectParser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses a specific track using ISO 9660.
+    ///     Parses a specific track using ISO 9660.
     /// </summary>
     /// <param name="track">The track to parse.</param>
     /// <param name="rootNode">The root FsNode to populate.</param>
@@ -141,19 +141,14 @@ internal class PlayStationAutoDetectParser : IConsoleParser
 }
 
 /// <summary>
-/// Parses PlayStation 2 disc images using ISO 9660 on the first data track.
+///     Parses PlayStation 2 disc images using ISO 9660 on the first data track.
 /// </summary>
 public class PlayStation2Parser : IConsoleParser
 {
     private readonly SectorReader _reader;
 
     /// <summary>
-    /// Gets or sets whether to force parsing even when verification fails.
-    /// </summary>
-    public bool ForceMode { get; set; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PlayStation2Parser"/> class.
+    ///     Initializes a new instance of the <see cref="PlayStation2Parser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public PlayStation2Parser(SectorReader reader)
@@ -162,7 +157,12 @@ public class PlayStation2Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the ConsoleType that this parser handles.
+    ///     Gets or sets whether to force parsing even when verification fails.
+    /// </summary>
+    public bool ForceMode { get; set; }
+
+    /// <summary>
+    ///     Returns the ConsoleType that this parser handles.
     /// </summary>
     /// <returns>ConsoleType.Ps1</returns>
     public ConsoleType GetConsoleType()
@@ -171,7 +171,7 @@ public class PlayStation2Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the human-readable console name.
+    ///     Returns the human-readable console name.
     /// </summary>
     /// <returns>"PS1"</returns>
     public string GetConsoleName()
@@ -180,7 +180,7 @@ public class PlayStation2Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses the first data track using ISO 9660.
+    ///     Parses the first data track using ISO 9660.
     /// </summary>
     /// <param name="rootNode">The root FsNode to populate.</param>
     /// <returns>true if parsing succeeded.</returns>
@@ -190,7 +190,7 @@ public class PlayStation2Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses a specific track using ISO 9660.
+    ///     Parses a specific track using ISO 9660.
     /// </summary>
     /// <param name="track">The track to parse.</param>
     /// <param name="rootNode">The root FsNode to populate.</param>
@@ -212,19 +212,14 @@ public class PlayStation2Parser : IConsoleParser
 }
 
 /// <summary>
-/// Parses PlayStation 3 disc images using UDF, falling back to ISO 9660 if UDF fails.
+///     Parses PlayStation 3 disc images using UDF, falling back to ISO 9660 if UDF fails.
 /// </summary>
 public class PlayStation3Parser : IConsoleParser
 {
     private readonly SectorReader _reader;
 
     /// <summary>
-    /// Gets or sets whether to force parsing even when verification fails.
-    /// </summary>
-    public bool ForceMode { get; set; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PlayStation3Parser"/> class.
+    ///     Initializes a new instance of the <see cref="PlayStation3Parser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public PlayStation3Parser(SectorReader reader)
@@ -233,7 +228,12 @@ public class PlayStation3Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the ConsoleType that this parser handles.
+    ///     Gets or sets whether to force parsing even when verification fails.
+    /// </summary>
+    public bool ForceMode { get; set; }
+
+    /// <summary>
+    ///     Returns the ConsoleType that this parser handles.
     /// </summary>
     /// <returns>ConsoleType.Ps3</returns>
     public ConsoleType GetConsoleType()
@@ -242,7 +242,7 @@ public class PlayStation3Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the human-readable console name.
+    ///     Returns the human-readable console name.
     /// </summary>
     /// <returns>"PS3"</returns>
     public string GetConsoleName()
@@ -251,7 +251,7 @@ public class PlayStation3Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses the first data track using ISO 9660.
+    ///     Parses the first data track using ISO 9660.
     /// </summary>
     /// <param name="rootNode">The root FsNode to populate.</param>
     /// <returns>true if parsing succeeded.</returns>
@@ -261,7 +261,7 @@ public class PlayStation3Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses a specific track using ISO 9660.
+    ///     Parses a specific track using ISO 9660.
     /// </summary>
     /// <param name="track">The track to parse.</param>
     /// <param name="rootNode">The root FsNode to populate.</param>
@@ -285,5 +285,3 @@ public class PlayStation3Parser : IConsoleParser
         return _reader.Tracks.Count > 0 ? _reader.Tracks[0] : new TrackInfo();
     }
 }
-
-

@@ -66,7 +66,8 @@ public class PspIntegrationTests
 
                 var topTwenty = root.Children.OrderByDescending(static n => n.Size).Take(20);
                 foreach (var c in topTwenty)
-                    output.WriteLine($"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
+                    output.WriteLine(
+                        $"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
 
                 Assert.True(files > 5, $"Suspiciously few files parsed: {files}");
             }
@@ -116,8 +117,10 @@ public class PspIntegrationTests
                 Assert.True(files > 5, $"Suspiciously few files parsed: {files}");
 
                 var hasPspGame = root.Children.Any(static n => n is { Name: "PSP_GAME", IsDirectory: true });
-                var hasUmdDataBin = root.Children.Any(static n => string.Equals(n.Name, "UMD_DATA.BIN", StringComparison.Ordinal));
-                output.WriteLine($"PSP_GAME: {(hasPspGame ? "YES" : "NO")}  UMD_DATA.BIN: {(hasUmdDataBin ? "YES" : "NO")}");
+                var hasUmdDataBin = root.Children.Any(static n =>
+                    string.Equals(n.Name, "UMD_DATA.BIN", StringComparison.Ordinal));
+                output.WriteLine(
+                    $"PSP_GAME: {(hasPspGame ? "YES" : "NO")}  UMD_DATA.BIN: {(hasUmdDataBin ? "YES" : "NO")}");
             }
             finally
             {
@@ -148,7 +151,8 @@ public class PspIntegrationTests
                 Assert.True(parsed, "MountAndParse failed");
 
                 foreach (var e in container.ListDirectory("\\"))
-                    output.WriteLine($"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
+                    output.WriteLine(
+                        $"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
 
                 var all = CollectEntries(container, "\\").ToList();
                 var fileEntries = all.Where(static e => !e.IsDirectory).ToList();
@@ -187,7 +191,6 @@ public class PspIntegrationTests
     private static void Walk(FsNode node, ref int files, ref int dirs, ref ulong maxSize)
     {
         foreach (var c in node.Children)
-        {
             if (c.IsDirectory)
             {
                 dirs++;
@@ -196,12 +199,8 @@ public class PspIntegrationTests
             else
             {
                 files++;
-                if (c.Size > maxSize)
-                {
-                    maxSize = c.Size;
-                }
+                if (c.Size > maxSize) maxSize = c.Size;
             }
-        }
     }
 
     private static IEnumerable<FileEntry> CollectEntries(ChdContainer container, string path)

@@ -21,7 +21,6 @@ public class AppLoggerExtendedTests
             var dir = Path.GetDirectoryName(tempPath)!;
             var baseName = Path.GetFileNameWithoutExtension(tempPath);
             foreach (var file in Directory.GetFiles(dir, baseName + "*"))
-            {
                 try
                 {
                     File.Delete(file);
@@ -30,7 +29,6 @@ public class AppLoggerExtendedTests
                 {
                     // ignored
                 }
-            }
         }
     }
 
@@ -86,9 +84,7 @@ public class AppLoggerExtendedTests
             var dir = Path.GetDirectoryName(path)!;
             var baseName = Path.GetFileNameWithoutExtension(path);
             if (Directory.Exists(dir))
-            {
                 foreach (var file in Directory.GetFiles(dir, baseName + "*"))
-                {
                     try
                     {
                         File.Delete(file);
@@ -97,8 +93,6 @@ public class AppLoggerExtendedTests
                     {
                         // ignored
                     }
-                }
-            }
         }
         catch
         {

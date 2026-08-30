@@ -60,7 +60,8 @@ public class CDiIntegrationTests
                 Assert.True(files > 2, $"Suspiciously few files parsed: {files}");
 
                 foreach (var c in root.Children.OrderByDescending(static n => n.Size).Take(15))
-                    output.WriteLine($"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}");
+                    output.WriteLine(
+                        $"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}");
             }
             finally
             {
@@ -148,7 +149,8 @@ public class CDiIntegrationTests
                 Assert.Empty(badNames);
 
                 foreach (var e in container.ListDirectory("\\"))
-                    output.WriteLine($"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
+                    output.WriteLine(
+                        $"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
             }
             finally
             {
@@ -162,7 +164,6 @@ public class CDiIntegrationTests
     private static void Walk(FsNode node, ref int files, ref int dirs, ref ulong maxSize)
     {
         foreach (var c in node.Children)
-        {
             if (c.IsDirectory)
             {
                 dirs++;
@@ -171,12 +172,8 @@ public class CDiIntegrationTests
             else
             {
                 files++;
-                if (c.Size > maxSize)
-                {
-                    maxSize = c.Size;
-                }
+                if (c.Size > maxSize) maxSize = c.Size;
             }
-        }
     }
 
     private static IEnumerable<FileEntry> CollectEntries(ChdContainer container, string path)

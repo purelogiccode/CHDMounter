@@ -1,10 +1,11 @@
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Serilog;
 
 namespace CHDMounter.Core.Services;
 
 /// <summary>
-/// Checks for application updates by querying the GitHub releases API.
+///     Checks for application updates by querying the GitHub releases API.
 /// </summary>
 public static class UpdateChecker
 {
@@ -16,15 +17,6 @@ public static class UpdateChecker
 
     private static UpdateCheckResult? _result;
 
-    /// <summary>
-    /// Gets the result of the last update check, or <c>null</c> if no check has completed.
-    /// </summary>
-    public static UpdateCheckResult? Result
-    {
-        get => Volatile.Read(ref _result);
-        private set => Volatile.Write(ref _result, value);
-    }
-
     static UpdateChecker()
     {
         Client.DefaultRequestHeaders.UserAgent.ParseAdd("CHDMounter");
@@ -32,7 +24,16 @@ public static class UpdateChecker
     }
 
     /// <summary>
-    /// Initiates an asynchronous update check. Only the first call per process lifetime takes effect.
+    ///     Gets the result of the last update check, or <c>null</c> if no check has completed.
+    /// </summary>
+    public static UpdateCheckResult? Result
+    {
+        get => Volatile.Read(ref _result);
+        private set => Volatile.Write(ref _result, value);
+    }
+
+    /// <summary>
+    ///     Initiates an asynchronous update check. Only the first call per process lifetime takes effect.
     /// </summary>
     public static void CheckForUpdates()
     {
@@ -91,7 +92,7 @@ public static class UpdateChecker
             // A failed update check is transient/environmental (network outage, GitHub
             // rate limiting, release not published yet). It is not a bug in this
             // application, so log below Warning to keep it out of bug reports.
-            Serilog.Log.Information(ex, "UpdateChecker: Failed to check for updates: {Message}", ex.Message);
+            Log.Information(ex, "UpdateChecker: Failed to check for updates: {Message}", ex.Message);
 
             Result = new UpdateCheckResult
             {

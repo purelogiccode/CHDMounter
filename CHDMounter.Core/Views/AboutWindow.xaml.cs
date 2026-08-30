@@ -3,16 +3,17 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Navigation;
+using Serilog;
 
 namespace CHDMounter.Core.Views;
 
 /// <summary>
-/// A dialog window that displays application information, version, and update availability.
+///     A dialog window that displays application information, version, and update availability.
 /// </summary>
 public partial class AboutWindow
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="AboutWindow"/> class.
+    ///     Initializes a new instance of the <see cref="AboutWindow" /> class.
     /// </summary>
     public AboutWindow()
     {
@@ -50,16 +51,14 @@ public partial class AboutWindow
     private void UpdateLink_Click(object sender, MouseButtonEventArgs e)
     {
         if (sender is FrameworkElement { Tag: string url })
-        {
             try
             {
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
             catch (Exception ex)
             {
-                Serilog.Log.Warning(ex, "Failed to open update URL: {Url}", url);
+                Log.Warning(ex, "Failed to open update URL: {Url}", url);
             }
-        }
     }
 
     private void Ok_Click(object sender, RoutedEventArgs e)
@@ -75,7 +74,7 @@ public partial class AboutWindow
         }
         catch (Exception ex)
         {
-            Serilog.Log.Warning(ex, "Failed to open hyperlink: {Uri}", e.Uri.AbsoluteUri);
+            Log.Warning(ex, "Failed to open hyperlink: {Uri}", e.Uri.AbsoluteUri);
         }
 
         e.Handled = true;

@@ -1,7 +1,7 @@
 namespace VideoGameFileSystemParser.Models;
 
 /// <summary>
-/// Identifies the target console or disc image format.
+///     Identifies the target console or disc image format.
 /// </summary>
 public enum ConsoleType
 {

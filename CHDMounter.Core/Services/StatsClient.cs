@@ -1,10 +1,9 @@
-using System.Text;
 using System.Text.Json;
 
 namespace CHDMounter.Core.Services;
 
 /// <summary>
-/// Sends anonymous application usage statistics to a remote analytics endpoint.
+///     Sends anonymous application usage statistics to a remote analytics endpoint.
 /// </summary>
 public static class StatsClient
 {
@@ -13,7 +12,7 @@ public static class StatsClient
     private static int _sent;
 
     /// <summary>
-    /// Sends application statistics once per process lifetime. Subsequent calls are ignored.
+    ///     Sends application statistics once per process lifetime. Subsequent calls are ignored.
     /// </summary>
     public static void SendStats()
     {

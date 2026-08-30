@@ -1,40 +1,26 @@
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace VideoGameFileSystemParser.Parsers;
 
 /// <summary>
-/// Parses UDF (Universal Disk Format) file systems. Supports metadata partitions, allocation descriptors, embedded data, and symlinks.
+///     Parses UDF (Universal Disk Format) file systems. Supports metadata partitions, allocation descriptors, embedded
+///     data, and symlinks.
 /// </summary>
 public class UdfParser
 {
     private const int MaxDirectoryBytes = 64 * 1024 * 1024;
     private const int MaxDirectoryDepth = 64;
+    private readonly List<FsExtent> _metaExtents = [];
+
+    private readonly Dictionary<ushort, uint> _physicalPartitions = [];
 
     private readonly SectorReader _reader;
     private uint _blockSize = 2048;
-
-    private readonly Dictionary<ushort, uint> _physicalPartitions = [];
     private PartitionMapRef[] _maps = [];
-    private readonly List<FsExtent> _metaExtents = [];
-
-    private enum MapKind
-    {
-        Physical,
-        Metadata,
-        Virtual,
-        Unsupported
-    }
-
-    private struct PartitionMapRef
-    {
-        public MapKind Kind;
-        public ushort PartitionNumber;
-        public uint MetadataFileLoc;
-        public uint MetadataMirrorLoc;
-    }
 
     /// <summary>
-    /// Initializes a new instance of the UdfParser class.
+    ///     Initializes a new instance of the UdfParser class.
     /// </summary>
     /// <param name="reader">The SectorReader to read sectors from.</param>
     public UdfParser(SectorReader reader)
@@ -43,7 +29,7 @@ public class UdfParser
     }
 
     /// <summary>
-    /// Parses the UDF file system, locating the AVDP and building the directory tree.
+    ///     Parses the UDF file system, locating the AVDP and building the directory tree.
     /// </summary>
     /// <param name="track">Optional track.</param>
     /// <param name="rootNode">The root FsNode to populate.</param>
@@ -138,7 +124,8 @@ public class UdfParser
         vdsLen = 0;
 
         var totalSectors = _reader.UnitBytes > 0 ? (uint)(_reader.TotalBytes / _reader.UnitBytes) : 0u;
-        Span<uint> candidates = [256, totalSectors >= 257 ? totalSectors - 257 : 0, totalSectors > 0 ? totalSectors - 1 : 0];
+        Span<uint> candidates =
+            [256, totalSectors >= 257 ? totalSectors - 257 : 0, totalSectors > 0 ? totalSectors - 1 : 0];
 
         foreach (var lba in candidates)
         {
@@ -312,13 +299,11 @@ public class UdfParser
 
         var allZero = true;
         for (var i = 0; i < 16; i++)
-        {
             if (sector[i] != 0)
             {
                 allZero = false;
                 break;
             }
-        }
 
         if (allZero) return false;
 
@@ -358,10 +343,7 @@ public class UdfParser
                     if (!ResolveLba(loc, partRef, out var extLba)) continue;
 
                     node.Extents.Add(new FsExtent { Lba = extLba, Size = len });
-                    if (node.Lba == 0)
-                    {
-                        node.Lba = extLba;
-                    }
+                    if (node.Lba == 0) node.Lba = extLba;
                 }
 
                 break;
@@ -380,10 +362,7 @@ public class UdfParser
                     if (!ResolveLba(loc, part, out var extLba)) continue;
 
                     node.Extents.Add(new FsExtent { Lba = extLba, Size = len });
-                    if (node.Lba == 0)
-                    {
-                        node.Lba = extLba;
-                    }
+                    if (node.Lba == 0) node.Lba = extLba;
                 }
 
                 break;
@@ -469,10 +448,7 @@ public class UdfParser
         }
 
         ulong totalSize = 0;
-        foreach (var extent in dirNode.Extents)
-        {
-            totalSize += extent.Size;
-        }
+        foreach (var extent in dirNode.Extents) totalSize += extent.Size;
 
         if (totalSize is 0 or > MaxDirectoryBytes) return null;
 
@@ -497,7 +473,8 @@ public class UdfParser
         return data;
     }
 
-    private static bool GetAllocDescriptors(byte[] sector, bool isEfe, out byte[] allocDesc, out ushort icbFlags, out uint adOffset)
+    private static bool GetAllocDescriptors(byte[] sector, bool isEfe, out byte[] allocDesc, out ushort icbFlags,
+        out uint adOffset)
     {
         // FE (ECMA-167 4/14.9): L_EA @ 168, L_AD @ 172, ADs @ 176 + L_EA
         // EFE (ECMA-167 4/14.17): L_EA @ 208, L_AD @ 212, ADs @ 216 + L_EA
@@ -542,27 +519,19 @@ public class UdfParser
 
         var allZero = true;
         for (var i = 0; i < 12; i++)
-        {
             if (d[off + i] != 0)
             {
                 allZero = false;
                 break;
             }
-        }
 
         if (allZero) return null;
 
         var typeAndTz = LeU16(d, off);
         var tz = typeAndTz & 0x0FFF;
-        if ((tz & 0x800) != 0)
-        {
-            tz -= 0x1000;
-        }
+        if ((tz & 0x800) != 0) tz -= 0x1000;
 
-        if (tz is < -14 * 60 or > 14 * 60)
-        {
-            tz = 0;
-        }
+        if (tz is < -14 * 60 or > 14 * 60) tz = 0;
 
         int year = LeU16(d, off + 2);
         int month = d[off + 4], day = d[off + 5], hour = d[off + 6], minute = d[off + 7], second = d[off + 8];
@@ -589,12 +558,8 @@ public class UdfParser
 
         byte sum = 0;
         for (var i = 0; i < 16; i++)
-        {
             if (i != 4)
-            {
                 sum = (byte)(sum + d[o + i]);
-            }
-        }
 
         return sum == d[o + 4];
     }
@@ -613,5 +578,22 @@ public class UdfParser
     {
         return d[o] | ((ulong)d[o + 1] << 8) | ((ulong)d[o + 2] << 16) | ((ulong)d[o + 3] << 24) |
                ((ulong)d[o + 4] << 32) | ((ulong)d[o + 5] << 40) | ((ulong)d[o + 6] << 48) | ((ulong)d[o + 7] << 56);
+    }
+
+    private enum MapKind
+    {
+        Physical,
+        Metadata,
+        Virtual,
+        Unsupported
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct PartitionMapRef
+    {
+        public MapKind Kind;
+        public ushort PartitionNumber;
+        public uint MetadataFileLoc;
+        public uint MetadataMirrorLoc;
     }
 }

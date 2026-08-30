@@ -1,7 +1,7 @@
 namespace Tester.Models;
 
 /// <summary>
-/// Aggregates the results of a batch CHD parsing test run, providing summary statistics.
+///     Aggregates the results of a batch CHD parsing test run, providing summary statistics.
 /// </summary>
 internal sealed class TestSummary
 {

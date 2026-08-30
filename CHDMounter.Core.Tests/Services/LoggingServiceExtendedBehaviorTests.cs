@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 namespace CHDMounter.Core.Tests.Services;
 
 public class LoggingServiceExtendedBehaviorTests
@@ -6,7 +8,7 @@ public class LoggingServiceExtendedBehaviorTests
     public void LogEntriesIsObservableCollection()
     {
         var service = new LoggingService();
-        Assert.IsAssignableFrom<System.Collections.ObjectModel.ObservableCollection<LogEntry>>(service.LogEntries);
+        Assert.IsAssignableFrom<ObservableCollection<LogEntry>>(service.LogEntries);
     }
 
     [Fact]
@@ -94,10 +96,7 @@ public class LoggingServiceExtendedBehaviorTests
     public void LogEntriesCountIsCorrectAfterMultipleLogs()
     {
         var service = new LoggingService();
-        for (var i = 0; i < 50; i++)
-        {
-            service.Log($"message {i}");
-        }
+        for (var i = 0; i < 50; i++) service.Log($"message {i}");
 
         Assert.Equal(50, service.LogEntries.Count);
     }

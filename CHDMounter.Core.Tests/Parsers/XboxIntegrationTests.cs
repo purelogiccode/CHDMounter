@@ -70,7 +70,8 @@ public class XboxIntegrationTests
 
                 var topTwenty = root.Children.OrderByDescending(static n => n.Size).Take(20);
                 foreach (var c in topTwenty)
-                    output.WriteLine($"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
+                    output.WriteLine(
+                        $"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
 
                 Assert.True(files > 10, $"Suspiciously few files parsed: {files}");
             }
@@ -86,7 +87,6 @@ public class XboxIntegrationTests
     private static void Walk(FsNode node, ref int files, ref int dirs, ref ulong maxSize)
     {
         foreach (var c in node.Children)
-        {
             if (c.IsDirectory)
             {
                 dirs++;
@@ -95,12 +95,8 @@ public class XboxIntegrationTests
             else
             {
                 files++;
-                if (c.Size > maxSize)
-                {
-                    maxSize = c.Size;
-                }
+                if (c.Size > maxSize) maxSize = c.Size;
             }
-        }
     }
 
     [Fact]
@@ -153,15 +149,18 @@ public class XboxIntegrationTests
 
                 var totalSize = (ulong)0;
                 CountTotal(root, ref totalSize);
-                output.WriteLine($"FsNode tree: {files} files, {dirs} dirs, total={totalSize:N0} bytes, largest file {maxSize:N0} bytes");
+                output.WriteLine(
+                    $"FsNode tree: {files} files, {dirs} dirs, total={totalSize:N0} bytes, largest file {maxSize:N0} bytes");
 
                 var topTwenty = root.Children.OrderByDescending(static n => n.Size).Take(20);
                 foreach (var c in topTwenty)
-                    output.WriteLine($"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
+                    output.WriteLine(
+                        $"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
 
                 Assert.True(files > 10, $"Suspiciously few files parsed: {files}");
 
-                var xexFiles = FindNodes(root).Count(static n => !n.IsDirectory && n.Name.EndsWith(".xex", StringComparison.OrdinalIgnoreCase));
+                var xexFiles = FindNodes(root).Count(static n =>
+                    !n.IsDirectory && n.Name.EndsWith(".xex", StringComparison.OrdinalIgnoreCase));
                 output.WriteLine($"XEX files found: {xexFiles}");
             }
             finally
@@ -185,10 +184,7 @@ public class XboxIntegrationTests
     {
         foreach (var c in node.Children)
         {
-            if (!c.IsDirectory)
-            {
-                total += c.Size;
-            }
+            if (!c.IsDirectory) total += c.Size;
 
             CountTotal(c, ref total);
         }

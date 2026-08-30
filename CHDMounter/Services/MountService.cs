@@ -2,35 +2,26 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Windows;
+using CHDMounter.Core.Interfaces;
 using DokanNet;
 using DokanNet.Logging;
-using CHDMounter.Core.Interfaces;
 using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Services;
 
 /// <summary>
-/// Mounts and unmounts CHD disc images as virtual drives using the Dokan file system driver.
+///     Mounts and unmounts CHD disc images as virtual drives using the Dokan file system driver.
 /// </summary>
 internal class MountService : IMountService
 {
     private readonly ILoggingService _loggingService;
     private readonly Lock _mountLock = new();
-    private DokanInstance? _dokanInstance;
-    private ChdFs? _currentFs;
     private ChdContainer? _container;
-
-    /// <inheritdoc/>
-    public bool IsMounted { get; private set; }
-
-    /// <inheritdoc/>
-    public string MountPoint { get; private set; } = "";
-
-    [DllImport("dokan2.dll", ExactSpelling = true)]
-    private static extern uint DokanVersion();
+    private ChdFs? _currentFs;
+    private DokanInstance? _dokanInstance;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MountService"/> class.
+    ///     Initializes a new instance of the <see cref="MountService" /> class.
     /// </summary>
     /// <param name="loggingService">The logging service for recording mount operations.</param>
     public MountService(ILoggingService loggingService)
@@ -38,13 +29,19 @@ internal class MountService : IMountService
         _loggingService = loggingService;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
+    public bool IsMounted { get; private set; }
+
+    /// <inheritdoc />
+    public string MountPoint { get; private set; } = "";
+
+    /// <inheritdoc />
     public bool CanMount()
     {
         return IsDokanInstalled();
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public void Mount(string chdPath, string? mountPoint, ConsoleType consoleType)
     {
         lock (_mountLock)
@@ -66,7 +63,8 @@ internal class MountService : IMountService
                 _container = new ChdContainer(chdPath);
                 if (!_container.MountAndParse(consoleType))
                 {
-                    _loggingService.LogError($"Failed to open or parse CHD as {consoleType}.");
+                    _loggingService.LogError(
+                        $"Failed to open or parse CHD as {consoleType}: {_container.LastError ?? "unknown reason"}.");
                     return;
                 }
 
@@ -83,6 +81,12 @@ internal class MountService : IMountService
                     : IsDriveLetterMountPoint(mountPoint)
                         ? [mountPoint, .. DriveHelper.GetAvailableDriveLetters()]
                         : [mountPoint];
+
+                // Folder mount points must exist before Dokan can attach to them;
+                // a missing directory produces "Can't assign a drive letter or mount point".
+                foreach (var candidate in candidates)
+                    if (!IsDriveLetterMountPoint(candidate))
+                        Directory.CreateDirectory(candidate);
 
                 _currentFs = new ChdFs(_container, _loggingService);
 
@@ -117,7 +121,9 @@ internal class MountService : IMountService
                     }
                 }
 
-                throw lastError ?? new InvalidOperationException("No available drive letter found. All drive letters are in use.");
+                throw lastError is not null
+                    ? TranslateMountFailure(lastError)
+                    : new InvalidOperationException("No available drive letter found. All drive letters are in use.");
             }
             finally
             {
@@ -135,7 +141,7 @@ internal class MountService : IMountService
         }
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public void Unmount()
     {
         lock (_mountLock)
@@ -144,7 +150,6 @@ internal class MountService : IMountService
 
             _loggingService.Log($"Unmounting {MountPoint}...");
             if (_dokanInstance is not null)
-            {
                 try
                 {
                     _dokanInstance.Dispose();
@@ -153,7 +158,6 @@ internal class MountService : IMountService
                 {
                     _loggingService.LogError($"Error during unmount: {ex.Message}");
                 }
-            }
 
             _dokanInstance = null;
             _currentFs?.Dispose();
@@ -165,19 +169,22 @@ internal class MountService : IMountService
         }
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public void Dispose()
     {
         Unmount();
         GC.SuppressFinalize(this);
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public ValueTask DisposeAsync()
     {
         Dispose();
         return ValueTask.CompletedTask;
     }
+
+    [DllImport("dokan2.dll", ExactSpelling = true)]
+    private static extern uint DokanVersion();
 
     private static bool IsDokanInstalled()
     {
@@ -201,44 +208,60 @@ internal class MountService : IMountService
                                           && (mountPoint.Length == 2 || mountPoint is [_, _, '\\']);
     }
 
+    private static Exception TranslateMountFailure(Exception lastError)
+    {
+        if (lastError.Message.Contains("drive letter or mount point", StringComparison.OrdinalIgnoreCase))
+            return new InvalidOperationException(
+                "Dokan could not assign any drive letter or mount point. The Dokan driver may not be running or " +
+                "may be installed incorrectly; check that the Dokan service is active and that requested mount " +
+                "points are not already in use. Try again after restarting the driver or reinstalling Dokan.",
+                lastError);
+
+        if (lastError.Message.Contains("Dokan", StringComparison.OrdinalIgnoreCase) &&
+            lastError.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            return new InvalidOperationException(
+                $"Dokan driver is not available ({lastError.Message}). Install Dokan to mount CHD files.", lastError);
+
+        return lastError;
+    }
+
     private static void ShowDokanNotInstalledDialog()
     {
-        const string message = "The Dokan file system driver (dokan2.dll) is required to mount CHD files as virtual drives. " +
-                               "It does not appear to be installed on this system.\n\n" +
-                               "Would you like to open the Dokan download page?";
+        const string message =
+            "The Dokan file system driver (dokan2.dll) is required to mount CHD files as virtual drives. " +
+            "It does not appear to be installed on this system.\n\n" +
+            "Would you like to open the Dokan download page?";
 
         var result = MessageBox.Show(message, "Dokan Driver Not Found",
             MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
         if (result == MessageBoxResult.Yes)
-        {
             Process.Start(new ProcessStartInfo
             {
                 FileName = "https://github.com/dokan-dev/dokany/releases",
                 UseShellExecute = true
             });
-        }
     }
 }
 
 /// <summary>
-/// An adapter that routes Dokan log messages to the application's <see cref="ILoggingService"/>.
+///     An adapter that routes Dokan log messages to the application's <see cref="ILoggingService" />.
 /// </summary>
 internal class DokanPrefixedLogger : ILogger
 {
     private readonly ILoggingService _loggingService;
 
-    /// <inheritdoc/>
-    public bool DebugEnabled => false;
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="DokanPrefixedLogger"/> class.
+    ///     Initializes a new instance of the <see cref="DokanPrefixedLogger" /> class.
     /// </summary>
     /// <param name="loggingService">The logging service to write messages to.</param>
     internal DokanPrefixedLogger(ILoggingService loggingService)
     {
         _loggingService = loggingService;
     }
+
+    /// <inheritdoc />
+    public bool DebugEnabled => false;
 
     public void Debug(string message, params object[] args)
     {

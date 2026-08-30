@@ -1,16 +1,26 @@
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace VideoGameFileSystemParser.Parsers;
 
 internal class HfsParser
 {
+    private const sbyte KBtLeafNode = -1;
+    private const sbyte KBtHeaderNode = 1;
+
+    private const ushort KHfsFolderRecord = 0x100;
+    private const ushort KHfsFileRecord = 0x200;
+    private const ushort KHfsFolderThreadRecord = 0x300;
+    private const ushort KHfsFileThreadRecord = 0x400;
+
+    private const uint KHfsRootFolderId = 2;
+    private readonly List<HfsCatalogEntry> _entries = [];
+    private readonly Dictionary<uint, HfsFolderRecord> _folders = [];
     private readonly SectorReader _reader;
-    private uint _hfsStartLba;
-    private uint _hfsPartitionByteOffset;
     private uint _allocationBlockSize;
     private uint _allocationBlockStart;
-    private readonly Dictionary<uint, HfsFolderRecord> _folders = [];
-    private readonly List<HfsCatalogEntry> _entries = [];
+    private uint _hfsPartitionByteOffset;
+    private uint _hfsStartLba;
 
     internal HfsParser(SectorReader reader)
     {
@@ -185,7 +195,6 @@ internal class HfsParser
 
                 // Check for Apple Partition Map "ER"
                 if (sec[hdrOff] == 0x45 && sec[hdrOff + 1] == 0x52)
-                {
                     for (var entry = 0; entry < 64; entry++)
                     {
                         var byteOffset = hdrOff + 512 * entry;
@@ -212,7 +221,6 @@ internal class HfsParser
                         if (TryReadHfsPlusHeader(out catalogStartBlock, out catalogBlockCount))
                             return true;
                     }
-                }
             }
         }
 
@@ -243,7 +251,6 @@ internal class HfsParser
         ];
 
         foreach (var candidateOffset in candidateOffsets)
-        {
             for (var sectorOffset = 0; sectorOffset <= 2; sectorOffset++)
             {
                 var mdbLba = _hfsStartLba + (uint)sectorOffset;
@@ -271,7 +278,6 @@ internal class HfsParser
 
                 return catalogBlockCount > 0;
             }
-        }
 
         return false;
     }
@@ -409,9 +415,7 @@ internal class HfsParser
 
             var leafDesc = ReadBtNodeDescriptor(nodeData, leafOffset);
             if (leafDesc.Kind == KBtLeafNode)
-            {
                 ProcessHfsPlusLeafNode(nodeData, leafOffset, leafDesc.NumRecords, nodeSize);
-            }
 
             currentLeaf = leafDesc.FLink;
         }
@@ -555,7 +559,8 @@ internal class HfsParser
 
     private uint BlockToAbsoluteLba(uint allocationBlock)
     {
-        var byteOffset = _hfsPartitionByteOffset + (ulong)_allocationBlockStart * 512 + (ulong)allocationBlock * _allocationBlockSize;
+        var byteOffset = _hfsPartitionByteOffset + (ulong)_allocationBlockStart * 512 +
+                         (ulong)allocationBlock * _allocationBlockSize;
         return _hfsStartLba + (uint)(byteOffset / 2048);
     }
 
@@ -569,7 +574,8 @@ internal class HfsParser
             if (extStartBlock == 0 || extBlockCount == 0)
                 continue;
 
-            var bytePos = _hfsPartitionByteOffset + (ulong)_allocationBlockStart * 512 + (ulong)extStartBlock * _allocationBlockSize;
+            var bytePos = _hfsPartitionByteOffset + (ulong)_allocationBlockStart * 512 +
+                          (ulong)extStartBlock * _allocationBlockSize;
             var totalBytes = (ulong)extBlockCount * _allocationBlockSize;
 
             ulong totalRead = 0;
@@ -624,10 +630,7 @@ internal class HfsParser
             if (headerRecOff == 0 && nodeSizeBtree < 2048)
             {
                 headerRecOff = BeU16(nodeData, 512 - 2);
-                if (headerRecOff == 0 || headerRecOff + 30 > nodeData.Length)
-                {
-                    headerRecOff = BeU16(nodeData, 1024 - 2);
-                }
+                if (headerRecOff == 0 || headerRecOff + 30 > nodeData.Length) headerRecOff = BeU16(nodeData, 1024 - 2);
             }
 
             if (headerRecOff <= 0 || headerRecOff + 30 > nodeData.Length)
@@ -660,10 +663,7 @@ internal class HfsParser
 
             var leafDesc = ReadBtNodeDescriptor(nodeData, leafOffset);
 
-            if (leafDesc.Kind == KBtLeafNode)
-            {
-                ProcessLeafNode(nodeData, leafOffset, leafDesc.NumRecords, nodeSize);
-            }
+            if (leafDesc.Kind == KBtLeafNode) ProcessLeafNode(nodeData, leafOffset, leafDesc.NumRecords, nodeSize);
 
             currentLeaf = leafDesc.FLink;
         }
@@ -703,10 +703,7 @@ internal class HfsParser
                 : "";
 
             var dataOff = nodeOffset + off + 7 + nameLength;
-            if ((nameLength & 1) == 0)
-            {
-                dataOff++;
-            }
+            if ((nameLength & 1) == 0) dataOff++;
 
             if (dataOff + 2 > nodeOffset + nodeSize)
                 continue;
@@ -808,7 +805,7 @@ internal class HfsParser
         rootNode.Lba = _hfsStartLba;
         rootNode.NodeType = FsNodeType.Directory;
 
-        var seen = new HashSet<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (var i = _entries.Count - 1; i >= 0; i--)
         {
             var e = _entries[i];
@@ -828,7 +825,6 @@ internal class HfsParser
             .ToList();
 
         foreach (var entry in children)
-        {
             switch (entry.RecordType)
             {
                 case HfsRecordType.Folder when entry.Folder != null:
@@ -883,7 +879,6 @@ internal class HfsParser
                     break;
                 }
             }
-        }
     }
 
     private FsNode CreateFileNode(string name,
@@ -986,10 +981,8 @@ internal class HfsParser
 
         var result = new byte[count * 2048];
         for (var i = 0; i < count; i++)
-        {
             if (!_reader.ReadSector(lba + (uint)i, result, i * 2048))
                 return null;
-        }
 
         return result;
     }
@@ -1032,16 +1025,7 @@ internal class HfsParser
                                     | (data[offset + 2] << 8) | data[offset + 3];
     }
 
-    private const sbyte KBtLeafNode = -1;
-    private const sbyte KBtHeaderNode = 1;
-
-    private const ushort KHfsFolderRecord = 0x100;
-    private const ushort KHfsFileRecord = 0x200;
-    private const ushort KHfsFolderThreadRecord = 0x300;
-    private const ushort KHfsFileThreadRecord = 0x400;
-
-    private const uint KHfsRootFolderId = 2;
-
+    [StructLayout(LayoutKind.Sequential)]
     private struct BtNodeDescriptor
     {
         public uint FLink;
@@ -1073,20 +1057,20 @@ internal class HfsParser
 
     private sealed class HfsFolderRecord
     {
+        public uint CreateDate;
         public uint FolderId;
+        public uint ModifyDate;
         public uint ParentId;
         public string Name { get; set; } = "";
-        public uint CreateDate;
-        public uint ModifyDate;
     }
 
     private sealed class HfsFileRecord
     {
-        public int DataLogicalSize;
-        public int ResourceLogicalSize;
-        public uint CreateDate;
-        public uint ModifyDate;
         public readonly (uint startBlock, uint blockCount)[] DataExtents = new (uint, uint)[3];
         public readonly (uint startBlock, uint blockCount)[] RsrcExtents = new (uint, uint)[3];
+        public uint CreateDate;
+        public int DataLogicalSize;
+        public uint ModifyDate;
+        public int ResourceLogicalSize;
     }
 }

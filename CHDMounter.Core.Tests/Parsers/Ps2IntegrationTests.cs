@@ -58,7 +58,8 @@ public class Ps2IntegrationTests
 
                 var topTwenty = root.Children.OrderByDescending(static n => n.Size).Take(20);
                 foreach (var c in topTwenty)
-                    output.WriteLine($"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
+                    output.WriteLine(
+                        $"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
 
                 Assert.True(files > 10, $"Suspiciously few files parsed: {files}");
                 return true;
@@ -98,9 +99,12 @@ public class Ps2IntegrationTests
 
                 Assert.True(files > 10, $"Suspiciously few files parsed: {files}");
 
-                var hasSystemCnf = root.Children.Any(static n => string.Equals(n.Name, "SYSTEM.CNF", StringComparison.Ordinal));
-                var hasIop = root.Children.Any(static n => n.Name.StartsWith("IOP", StringComparison.OrdinalIgnoreCase));
-                output.WriteLine($"SYSTEM.CNF: {(hasSystemCnf ? "YES" : "NO")}  IOP modules: {(hasIop ? "YES" : "NO")}");
+                var hasSystemCnf = root.Children.Any(static n =>
+                    string.Equals(n.Name, "SYSTEM.CNF", StringComparison.Ordinal));
+                var hasIop =
+                    root.Children.Any(static n => n.Name.StartsWith("IOP", StringComparison.OrdinalIgnoreCase));
+                output.WriteLine(
+                    $"SYSTEM.CNF: {(hasSystemCnf ? "YES" : "NO")}  IOP modules: {(hasIop ? "YES" : "NO")}");
                 return true;
             }
             finally
@@ -122,7 +126,8 @@ public class Ps2IntegrationTests
                 Assert.True(container.MountAndParse(ConsoleType.Ps2), "MountAndParse failed");
 
                 foreach (var e in container.ListDirectory("\\"))
-                    output.WriteLine($"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
+                    output.WriteLine(
+                        $"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
 
                 var all = CollectEntries(container, "\\").ToList();
                 var fileEntries = all.Where(static e => !e.IsDirectory).ToList();
@@ -142,7 +147,8 @@ public class Ps2IntegrationTests
                     {
                         var bytesRead = container.ReadFile(systemCnf, 0, buf, 0, buf.Length);
                         var text = Encoding.ASCII.GetString(buf, 0, bytesRead);
-                        output.WriteLine($"SYSTEM.CNF ({bytesRead} bytes): {text[..Math.Min(text.Length, 200)].Replace("\r", "", StringComparison.Ordinal).Replace("\n", " / ", StringComparison.Ordinal)}");
+                        output.WriteLine(
+                            $"SYSTEM.CNF ({bytesRead} bytes): {text[..Math.Min(text.Length, 200)].Replace("\r", "", StringComparison.Ordinal).Replace("\n", " / ", StringComparison.Ordinal)}");
                     }
                 }
                 return true;
@@ -157,7 +163,6 @@ public class Ps2IntegrationTests
     private static void Walk(FsNode node, ref int files, ref int dirs, ref ulong maxSize)
     {
         foreach (var c in node.Children)
-        {
             if (c.IsDirectory)
             {
                 dirs++;
@@ -166,12 +171,8 @@ public class Ps2IntegrationTests
             else
             {
                 files++;
-                if (c.Size > maxSize)
-                {
-                    maxSize = c.Size;
-                }
+                if (c.Size > maxSize) maxSize = c.Size;
             }
-        }
     }
 
     private static IEnumerable<FileEntry> CollectEntries(ChdContainer container, string path)
@@ -181,10 +182,8 @@ public class Ps2IntegrationTests
             yield return e;
 
             if (e.IsDirectory)
-            {
                 foreach (var sub in CollectEntries(container, e.FullPath))
                     yield return sub;
-            }
         }
     }
 }

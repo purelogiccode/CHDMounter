@@ -1,3 +1,5 @@
+using CHDMounter.Core.Logging;
+
 namespace CHDMounter.Core.Tests.Logging;
 
 public class LogTextWriterTests
@@ -8,7 +10,7 @@ public class LogTextWriterTests
     [Fact]
     public void LogTextWriterIsInternal()
     {
-        var type = typeof(CHDMounter.Core.Logging.DiagnosticLogger).Assembly
+        var type = typeof(DiagnosticLogger).Assembly
             .GetType("CHDMounter.Core.Logging.LogTextWriter");
         // The class should exist but be internal
         Assert.NotNull(type);

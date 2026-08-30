@@ -3,19 +3,14 @@ using VideoGameFileSystemParser.Interfaces;
 namespace VideoGameFileSystemParser.Parsers.Systems;
 
 /// <summary>
-/// Parses original Xbox disc images using the XDVDFS file system.
+///     Parses original Xbox disc images using the XDVDFS file system.
 /// </summary>
 internal class XboxParser : IConsoleParser
 {
     private readonly SectorReader _reader;
 
     /// <summary>
-    /// Gets or sets whether to force parsing even when verification fails.
-    /// </summary>
-    public bool ForceMode { get; set; }
-
-    /// <summary>
-    /// Initializes a new instance of the XboxParser class.
+    ///     Initializes a new instance of the XboxParser class.
     /// </summary>
     /// <param name="reader">The SectorReader to read sectors from.</param>
     internal XboxParser(SectorReader reader)
@@ -24,7 +19,12 @@ internal class XboxParser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the ConsoleType that this parser handles.
+    ///     Gets or sets whether to force parsing even when verification fails.
+    /// </summary>
+    public bool ForceMode { get; set; }
+
+    /// <summary>
+    ///     Returns the ConsoleType that this parser handles.
     /// </summary>
     /// <returns>ConsoleType.Xbox</returns>
     public ConsoleType GetConsoleType()
@@ -33,7 +33,7 @@ internal class XboxParser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the human-readable console name.
+    ///     Returns the human-readable console name.
     /// </summary>
     /// <returns>"Xbox"</returns>
     public string GetConsoleName()
@@ -42,7 +42,7 @@ internal class XboxParser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses the first data track using the XDVDFS parser.
+    ///     Parses the first data track using the XDVDFS parser.
     /// </summary>
     /// <param name="rootNode">The root FsNode to populate.</param>
     /// <returns>true if parsing succeeded.</returns>
@@ -52,7 +52,7 @@ internal class XboxParser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses a specific track using the XDVDFS parser.
+    ///     Parses a specific track using the XDVDFS parser.
     /// </summary>
     /// <param name="track">The track to parse.</param>
     /// <param name="rootNode">The root FsNode to populate.</param>
@@ -75,16 +75,11 @@ internal class XboxParser : IConsoleParser
 }
 
 /// <summary>
-/// Parses Xbox 360 disc images using the XDVDFS file system.
+///     Parses Xbox 360 disc images using the XDVDFS file system.
 /// </summary>
 internal class Xbox360Parser : IConsoleParser
 {
     private readonly SectorReader _reader;
-
-    /// <summary>
-    /// Gets or sets whether to force parsing even when verification fails.
-    /// </summary>
-    public bool ForceMode { get; set; }
 
     internal Xbox360Parser(SectorReader reader)
     {
@@ -92,7 +87,12 @@ internal class Xbox360Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the ConsoleType that this parser handles.
+    ///     Gets or sets whether to force parsing even when verification fails.
+    /// </summary>
+    public bool ForceMode { get; set; }
+
+    /// <summary>
+    ///     Returns the ConsoleType that this parser handles.
     /// </summary>
     /// <returns>ConsoleType.Xbox</returns>
     public ConsoleType GetConsoleType()
@@ -101,7 +101,7 @@ internal class Xbox360Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the human-readable console name.
+    ///     Returns the human-readable console name.
     /// </summary>
     /// <returns>"Xbox"</returns>
     public string GetConsoleName()
@@ -110,7 +110,7 @@ internal class Xbox360Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses the first data track using the XDVDFS parser.
+    ///     Parses the first data track using the XDVDFS parser.
     /// </summary>
     /// <param name="rootNode">The root FsNode to populate.</param>
     /// <returns>true if parsing succeeded.</returns>
@@ -120,7 +120,7 @@ internal class Xbox360Parser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses a specific track using the XDVDFS parser.
+    ///     Parses a specific track using the XDVDFS parser.
     /// </summary>
     /// <param name="track">The track to parse.</param>
     /// <param name="rootNode">The root FsNode to populate.</param>
@@ -141,5 +141,3 @@ internal class Xbox360Parser : IConsoleParser
         return _reader.Tracks.Count > 0 ? _reader.Tracks[0] : new TrackInfo();
     }
 }
-
-

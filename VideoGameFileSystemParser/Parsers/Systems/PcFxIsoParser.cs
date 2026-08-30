@@ -3,9 +3,9 @@ using System.Text;
 namespace VideoGameFileSystemParser.Parsers.Systems;
 
 /// <summary>
-/// Dedicated NEC PC-FX ISO 9660 parser.
-/// Handles byte-offset VD signatures within raw sectors and uses tolerant
-/// continue-on-error directory record parsing for discs with unusual layouts.
+///     Dedicated NEC PC-FX ISO 9660 parser.
+///     Handles byte-offset VD signatures within raw sectors and uses tolerant
+///     continue-on-error directory record parsing for discs with unusual layouts.
 /// </summary>
 public class PcFxIsoParser
 {
@@ -15,7 +15,7 @@ public class PcFxIsoParser
     private bool _isJoliet;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PcFxIsoParser"/> class.
+    ///     Initializes a new instance of the <see cref="PcFxIsoParser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public PcFxIsoParser(SectorReader reader)
@@ -24,7 +24,7 @@ public class PcFxIsoParser
     }
 
     /// <summary>
-    /// Parses the PC-FX ISO 9660 file system and builds the directory tree.
+    ///     Parses the PC-FX ISO 9660 file system and builds the directory tree.
     /// </summary>
     /// <param name="rootNode">The root FsNode to populate.</param>
     /// <param name="track">Optional track to restrict parsing to.</param>
@@ -57,13 +57,13 @@ public class PcFxIsoParser
         var pvdOffsetInSector = 0;
 
         foreach (var offset in vdOffsets)
-        {
             if (_reader.ReadSector(effectiveTrackStart + offset, sectorData))
             {
                 var vdType = CheckVdInSector(sectorData, out var currentOffsetInSector);
                 if (vdType > 0)
                 {
-                    _isHighSierra = vdType == 2 || (vdType == 3 && CheckMagic(sectorData, currentOffsetInSector + 9, "CDROM"));
+                    _isHighSierra = vdType == 2 ||
+                                    (vdType == 3 && CheckMagic(sectorData, currentOffsetInSector + 9, "CDROM"));
                     _isJoliet = !_isHighSierra && sectorData[currentOffsetInSector] == 2;
                     foundPvd = true;
                     bestVdData = (byte[])sectorData.Clone();
@@ -71,13 +71,11 @@ public class PcFxIsoParser
                     break;
                 }
             }
-        }
 
         if (!foundPvd && effectiveTrackStart != 0)
         {
             _reader.SetTrack(null);
             foreach (var offset in vdOffsets)
-            {
                 if (_reader.ReadSector(offset, sectorData))
                 {
                     var vdType = CheckVdInSector(sectorData, out var currentOffsetInSector);
@@ -85,7 +83,8 @@ public class PcFxIsoParser
                     {
                         effectiveTrackStart = 0;
                         _reader.SetTrack(null);
-                        _isHighSierra = vdType == 2 || (vdType == 3 && CheckMagic(sectorData, currentOffsetInSector + 9, "CDROM"));
+                        _isHighSierra = vdType == 2 ||
+                                        (vdType == 3 && CheckMagic(sectorData, currentOffsetInSector + 9, "CDROM"));
                         _isJoliet = !_isHighSierra && sectorData[currentOffsetInSector] == 2;
                         foundPvd = true;
                         bestVdData = (byte[])sectorData.Clone();
@@ -93,20 +92,19 @@ public class PcFxIsoParser
                         break;
                     }
                 }
-            }
         }
 
         if (!foundPvd)
         {
             var scanLimit = track is { Frames: > 0 } ? Math.Min(track.Frames, 5000u) : 5000u;
             for (uint i = 0; i < scanLimit; i++)
-            {
                 if (_reader.ReadSector(effectiveTrackStart + i, sectorData))
                 {
                     var vdType = CheckVdInSector(sectorData, out var currentOffsetInSector);
                     if (vdType > 0)
                     {
-                        _isHighSierra = vdType == 2 || (vdType == 3 && CheckMagic(sectorData, currentOffsetInSector + 9, "CDROM"));
+                        _isHighSierra = vdType == 2 ||
+                                        (vdType == 3 && CheckMagic(sectorData, currentOffsetInSector + 9, "CDROM"));
                         _isJoliet = !_isHighSierra && sectorData[currentOffsetInSector] == 2;
                         foundPvd = true;
                         bestVdData = (byte[])sectorData.Clone();
@@ -114,7 +112,6 @@ public class PcFxIsoParser
                         break;
                     }
                 }
-            }
         }
 
         if (!foundPvd)
@@ -140,10 +137,8 @@ public class PcFxIsoParser
         uint[] candidates = [trackStart, 150, 0];
 
         foreach (var candidate in candidates)
-        {
             if (IsRootDirectorySector(candidate + rootRelLba, rootRelLba, true))
                 return candidate;
-        }
 
         if (track != null)
         {
@@ -157,10 +152,8 @@ public class PcFxIsoParser
         }
 
         foreach (var candidate in candidates)
-        {
             if (IsRootDirectorySector(candidate + rootRelLba, rootRelLba, false))
                 return candidate;
-        }
 
         return trackStart;
     }
@@ -192,9 +185,9 @@ public class PcFxIsoParser
     }
 
     /// <summary>
-    /// Checks a sector for a valid Volume Descriptor signature (CD001 or CDROM).
-    /// First checks at standard positions, then scans the entire sector for
-    /// byte-offset occurrences (handles raw-sector images with un-stripped headers).
+    ///     Checks a sector for a valid Volume Descriptor signature (CD001 or CDROM).
+    ///     First checks at standard positions, then scans the entire sector for
+    ///     byte-offset occurrences (handles raw-sector images with un-stripped headers).
     /// </summary>
     private static int CheckVdInSector(byte[] data, out int foundOffset)
     {
@@ -212,21 +205,19 @@ public class PcFxIsoParser
         }
 
         for (var i = 0; i < data.Length - 16; i++)
-        {
             if (CheckMagic(data, i + 1, "CD001") || CheckMagic(data, i + 9, "CDROM"))
             {
                 foundOffset = i;
                 return 3;
             }
-        }
 
         return 0;
     }
 
     /// <summary>
-    /// Parses a directory sector chain. Uses continue (not break) for invalid
-    /// records, matching the C++ DiscImageCreator behavior. This is more tolerant
-    /// of discs with unusual record layouts.
+    ///     Parses a directory sector chain. Uses continue (not break) for invalid
+    ///     records, matching the C++ DiscImageCreator behavior. This is more tolerant
+    ///     of discs with unusual record layouts.
     /// </summary>
     private bool ParseDirectory(FsNode dirNode, uint baseLba)
     {
@@ -251,10 +242,7 @@ public class PcFxIsoParser
                 if (pos + recordLen > 2048 || recordLen < 34)
                 {
                     pos += recordLen;
-                    if ((pos & 1) != 0)
-                    {
-                        pos++;
-                    }
+                    if ((pos & 1) != 0) pos++;
 
                     continue;
                 }
@@ -275,22 +263,21 @@ public class PcFxIsoParser
                 if (nameOff + nameLen > recordLen || pos + nameOff + nameLen > 2048)
                 {
                     pos += recordLen;
-                    if ((pos & 1) != 0)
-                    {
-                        pos++;
-                    }
+                    if ((pos & 1) != 0) pos++;
 
                     continue;
                 }
 
                 var name = DecodeName(sectorData, (int)(pos + nameOff), nameLen);
 
-                if (name != "." && name != "..")
+                if (!string.Equals(name, ".", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(name, "..", StringComparison.OrdinalIgnoreCase))
                 {
                     var absoluteLba = baseLba + relLba + xattrLen;
                     var last = dirNode.Children.Count > 0 ? dirNode.Children[^1] : null;
 
-                    if (last != null && isMultiExtent && !last.IsDirectory && last.Name == name)
+                    if (last != null && isMultiExtent && !last.IsDirectory &&
+                        string.Equals(last.Name, name, StringComparison.OrdinalIgnoreCase))
                     {
                         last.Size += extentSize;
                         last.Extents.Add(new FsExtent { Lba = absoluteLba, Size = extentSize });
@@ -317,10 +304,7 @@ public class PcFxIsoParser
                 }
 
                 pos += recordLen;
-                if ((pos & 1) != 0)
-                {
-                    pos++;
-                }
+                if ((pos & 1) != 0) pos++;
             }
         }
 
@@ -342,15 +326,9 @@ public class PcFxIsoParser
 
         var name = Encoding.ASCII.GetString(data, offset, nameLen);
         var semi = name.IndexOf(';');
-        if (semi >= 0)
-        {
-            name = name[..semi];
-        }
+        if (semi >= 0) name = name[..semi];
 
-        if (name.EndsWith('.'))
-        {
-            name = name[..^1];
-        }
+        if (name.EndsWith('.')) name = name[..^1];
 
         return name;
     }
@@ -367,10 +345,7 @@ public class PcFxIsoParser
 
         var name = Encoding.BigEndianUnicode.GetString(data, offset, len & ~1);
         var nul = name.IndexOf('\0');
-        if (nul >= 0)
-        {
-            name = name[..nul];
-        }
+        if (nul >= 0) name = name[..nul];
 
         var semi = name.IndexOf(';');
         return semi >= 0 ? name[..semi] : name;
@@ -380,13 +355,11 @@ public class PcFxIsoParser
     {
         var allZero = true;
         for (var i = 0; i < 7; i++)
-        {
             if (d[off + i] != 0)
             {
                 allZero = false;
                 break;
             }
-        }
 
         if (allZero) return null;
 
@@ -397,14 +370,12 @@ public class PcFxIsoParser
         if (hour > 23 || minute > 59 || second > 59) return null;
 
         var tzMinutes = _isHighSierra ? 0 : 15 * (sbyte)d[off + 6];
-        if (tzMinutes is < -14 * 60 or > 14 * 60)
-        {
-            tzMinutes = 0;
-        }
+        if (tzMinutes is < -14 * 60 or > 14 * 60) tzMinutes = 0;
 
         try
         {
-            return new DateTimeOffset(year, month, day, hour, minute, second, TimeSpan.FromMinutes(tzMinutes)).UtcDateTime;
+            return new DateTimeOffset(year, month, day, hour, minute, second, TimeSpan.FromMinutes(tzMinutes))
+                .UtcDateTime;
         }
         catch (ArgumentOutOfRangeException)
         {
@@ -417,9 +388,8 @@ public class PcFxIsoParser
         if (offset + magic.Length > data.Length) return false;
 
         for (var i = 0; i < magic.Length; i++)
-        {
-            if (data[offset + i] != magic[i]) return false;
-        }
+            if (data[offset + i] != magic[i])
+                return false;
 
         return true;
     }

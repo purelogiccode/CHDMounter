@@ -10,17 +10,21 @@ using FileInfo = Fsp.Interop.FileInfo;
 namespace CHDMounter_WinFsp;
 
 /// <summary>
-/// Implements the WinFsp file system interface to expose a CHD container as a read-only virtual drive.
+///     Implements the WinFsp file system interface to expose a CHD container as a read-only virtual drive.
 /// </summary>
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
 {
+    private static long _nextIndexNumber;
     private readonly ChdContainer _container;
     private readonly bool _persistentAcls;
-    private static long _nextIndexNumber;
+
+    private byte[]? _cachedSecurityDescriptor;
+
+    private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ChdFs"/> class.
+    ///     Initializes a new instance of the <see cref="ChdFs" /> class.
     /// </summary>
     /// <param name="container">The parsed CHD container to serve files from.</param>
     /// <param name="persistentAcls">If <c>true</c>, enables persistent ACL support for cross-integrity mounts.</param>
@@ -28,6 +32,20 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
     {
         _container = container;
         _persistentAcls = persistentAcls;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        Dispose();
+        return ValueTask.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+
+        _disposed = true;
+        _container.Dispose();
     }
 
     public override int Init(object host)
@@ -127,14 +145,12 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
             return STATUS_OBJECT_NAME_NOT_FOUND;
 
         foreach (var child in _container.ListDirectory(ResolvePath(FileNode)))
-        {
             if (string.Equals(child.Name, FileName, StringComparison.OrdinalIgnoreCase))
             {
                 NormalizedName = child.Name;
                 FileInfo = EntryToFileInfo(child);
                 return STATUS_SUCCESS;
             }
-        }
 
         return STATUS_OBJECT_NAME_NOT_FOUND;
     }
@@ -176,13 +192,11 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
                 else
                 {
                     for (var i = 0; i < entries.Count; i++)
-                    {
                         if (string.Equals(entries[i].Name, Marker, StringComparison.OrdinalIgnoreCase))
                         {
                             index = i + 3;
                             break;
                         }
-                    }
 
                     if (index == 0)
                         return false;
@@ -214,11 +228,10 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
             index++;
             Context = (entries, index);
 
-            if (!string.IsNullOrEmpty(Pattern) && !string.Equals(Pattern, "*", StringComparison.Ordinal) && !string.Equals(Pattern, "*.*", StringComparison.Ordinal))
-            {
+            if (!string.IsNullOrEmpty(Pattern) && !string.Equals(Pattern, "*", StringComparison.Ordinal) &&
+                !string.Equals(Pattern, "*.*", StringComparison.Ordinal))
                 if (!MatchesPattern(entry.Name, Pattern))
                     continue;
-            }
 
             FileName = entry.Name;
             FileInfo = EntryToFileInfo(entry);
@@ -257,17 +270,13 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
         {
             var sd = CreateDefaultSecurityDescriptor();
             if (SecurityDescriptor is null || SecurityDescriptor.Length < sd.Length)
-            {
                 SecurityDescriptor = new byte[sd.Length];
-            }
 
             Array.Copy(sd, SecurityDescriptor, sd.Length);
         }
 
         return STATUS_SUCCESS;
     }
-
-    private byte[]? _cachedSecurityDescriptor;
 
     private byte[] CreateDefaultSecurityDescriptor()
     {
@@ -286,7 +295,9 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
     {
         return new FileInfo
         {
-            FileAttributes = (uint)(entry.IsDirectory ? FileAttributes.Directory : FileAttributes.Archive | FileAttributes.ReadOnly),
+            FileAttributes = (uint)(entry.IsDirectory
+                ? FileAttributes.Directory
+                : FileAttributes.Archive | FileAttributes.ReadOnly),
             FileSize = entry.Size,
             AllocationSize = entry.Size,
             CreationTime = DateTimeToFileTimeUtc(entry.ModifiedTime),
@@ -312,21 +323,5 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
         {
             return 0;
         }
-    }
-
-    private bool _disposed;
-
-    public void Dispose()
-    {
-        if (_disposed) return;
-
-        _disposed = true;
-        _container.Dispose();
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        Dispose();
-        return ValueTask.CompletedTask;
     }
 }

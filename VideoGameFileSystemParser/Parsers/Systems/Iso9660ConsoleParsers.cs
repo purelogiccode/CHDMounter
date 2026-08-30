@@ -3,12 +3,12 @@ using VideoGameFileSystemParser.Interfaces;
 namespace VideoGameFileSystemParser.Parsers.Systems;
 
 /// <summary>
-/// Parses Sony PSP disc images using ISO 9660 on the first data track.
+///     Parses Sony PSP disc images using ISO 9660 on the first data track.
 /// </summary>
 public class PspParser : Iso9660Wrapper
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="PspParser"/> class.
+    ///     Initializes a new instance of the <see cref="PspParser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public PspParser(SectorReader reader) : base(reader)
@@ -29,15 +29,15 @@ public class PspParser : Iso9660Wrapper
 }
 
 /// <summary>
-/// Parses NEC PC-FX disc images using the dedicated PcFxIsoParser.
+///     Parses NEC PC-FX disc images using the dedicated PcFxIsoParser.
 /// </summary>
 public class PcFxParser : IConsoleParser
 {
-    private readonly SectorReader _reader;
     private readonly PcFxIsoParser _isoParser;
+    private readonly SectorReader _reader;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PcFxParser"/> class.
+    ///     Initializes a new instance of the <see cref="PcFxParser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public PcFxParser(SectorReader reader)
@@ -65,10 +65,8 @@ public class PcFxParser : IConsoleParser
     public bool Parse(FsNode rootNode)
     {
         foreach (var t in _reader.Tracks)
-        {
             if (t.IsDataTrack && _isoParser.Parse(rootNode, t))
                 return true;
-        }
 
         if (_isoParser.Parse(rootNode))
             return true;
@@ -125,12 +123,12 @@ public class PcFxParser : IConsoleParser
 }
 
 /// <summary>
-/// Parses Sega Genesis CD / Mega CD disc images using ISO 9660.
+///     Parses Sega Genesis CD / Mega CD disc images using ISO 9660.
 /// </summary>
 public class SegaGenesisCdParser : Iso9660Wrapper
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="SegaGenesisCdParser"/> class.
+    ///     Initializes a new instance of the <see cref="SegaGenesisCdParser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public SegaGenesisCdParser(SectorReader reader) : base(reader)
@@ -151,12 +149,12 @@ public class SegaGenesisCdParser : Iso9660Wrapper
 }
 
 /// <summary>
-/// Parses Sega Saturn disc images using ISO 9660.
+///     Parses Sega Saturn disc images using ISO 9660.
 /// </summary>
 public class SegaSaturnParser : Iso9660Wrapper
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="SegaSaturnParser"/> class.
+    ///     Initializes a new instance of the <see cref="SegaSaturnParser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public SegaSaturnParser(SectorReader reader) : base(reader)
@@ -177,12 +175,12 @@ public class SegaSaturnParser : Iso9660Wrapper
 }
 
 /// <summary>
-/// Parses SNK NeoGeo CD disc images using ISO 9660.
+///     Parses SNK NeoGeo CD disc images using ISO 9660.
 /// </summary>
 public class NeoGeoCdParser : Iso9660Wrapper
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="NeoGeoCdParser"/> class.
+    ///     Initializes a new instance of the <see cref="NeoGeoCdParser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public NeoGeoCdParser(SectorReader reader) : base(reader)
@@ -203,12 +201,12 @@ public class NeoGeoCdParser : Iso9660Wrapper
 }
 
 /// <summary>
-/// Parses Commodore Amiga CD32 disc images using ISO 9660.
+///     Parses Commodore Amiga CD32 disc images using ISO 9660.
 /// </summary>
 public class AmigaCd32Parser : Iso9660Wrapper
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="AmigaCd32Parser"/> class.
+    ///     Initializes a new instance of the <see cref="AmigaCd32Parser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public AmigaCd32Parser(SectorReader reader) : base(reader)
@@ -229,12 +227,12 @@ public class AmigaCd32Parser : Iso9660Wrapper
 }
 
 /// <summary>
-/// Parses Commodore Amiga CD disc images using ISO 9660.
+///     Parses Commodore Amiga CD disc images using ISO 9660.
 /// </summary>
 public class AmigaCdParser : Iso9660Wrapper
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="AmigaCdParser"/> class.
+    ///     Initializes a new instance of the <see cref="AmigaCdParser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public AmigaCdParser(SectorReader reader) : base(reader)
@@ -255,7 +253,7 @@ public class AmigaCdParser : Iso9660Wrapper
 }
 
 /// <summary>
-/// Parses Sharp X68000 disc images using ISO 9660, falling back to UDF if ISO 9660 fails.
+///     Parses Sharp X68000 disc images using ISO 9660, falling back to UDF if ISO 9660 fails.
 /// </summary>
 internal class X68000Parser : IConsoleParser
 {
@@ -309,12 +307,12 @@ internal class X68000Parser : IConsoleParser
 }
 
 /// <summary>
-/// Parses NEC PC-98 disc images using ISO 9660.
+///     Parses NEC PC-98 disc images using ISO 9660.
 /// </summary>
 public class Pc98Parser : Iso9660Wrapper
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="Pc98Parser"/> class.
+    ///     Initializes a new instance of the <see cref="Pc98Parser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public Pc98Parser(SectorReader reader) : base(reader)
@@ -335,12 +333,12 @@ public class Pc98Parser : Iso9660Wrapper
 }
 
 /// <summary>
-/// Parses Fujitsu FM Towns disc images using ISO 9660.
+///     Parses Fujitsu FM Towns disc images using ISO 9660.
 /// </summary>
 public class FmTownsParser : Iso9660Wrapper
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="FmTownsParser"/> class.
+    ///     Initializes a new instance of the <see cref="FmTownsParser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public FmTownsParser(SectorReader reader) : base(reader)
@@ -361,7 +359,7 @@ public class FmTownsParser : Iso9660Wrapper
 }
 
 /// <summary>
-/// Parses Sega Pico disc images using ISO 9660.
+///     Parses Sega Pico disc images using ISO 9660.
 /// </summary>
 internal class PicoParser : Iso9660Wrapper
 {
@@ -383,21 +381,21 @@ internal class PicoParser : Iso9660Wrapper
 }
 
 /// <summary>
-/// Parses Apple Bandai Pippin disc images using HFS (Macintosh Hierarchical File System),
-/// falling back to HFS+, UDF, and ISO 9660 if HFS parsing fails.
+///     Parses Apple Bandai Pippin disc images using HFS (Macintosh Hierarchical File System),
+///     falling back to HFS+, UDF, and ISO 9660 if HFS parsing fails.
 /// </summary>
 internal class PippinParser : IConsoleParser
 {
     private readonly SectorReader _reader;
     private HfsParser? _hfsParser;
 
-    /// <inheritdoc />
-    public bool ForceMode { get; set; }
-
     internal PippinParser(SectorReader reader)
     {
         _reader = reader;
     }
+
+    /// <inheritdoc />
+    public bool ForceMode { get; set; }
 
     /// <inheritdoc />
     public ConsoleType GetConsoleType()
@@ -415,10 +413,8 @@ internal class PippinParser : IConsoleParser
     public bool Parse(FsNode rootNode)
     {
         foreach (var t in _reader.Tracks)
-        {
             if (t.IsDataTrack && ParseTrack(rootNode, t))
                 return true;
-        }
 
         return ParseTrack(rootNode, FindDataTrack());
     }
@@ -450,20 +446,12 @@ internal class PippinParser : IConsoleParser
 }
 
 /// <summary>
-/// Base class for console parsers that use ISO 9660 file system parsing.
+///     Base class for console parsers that use ISO 9660 file system parsing.
 /// </summary>
 public abstract class Iso9660Wrapper : IConsoleParser
 {
     /// <summary>
-    /// The sector reader used by this parser.
-    /// </summary>
-    private SectorReader Reader { get; }
-
-    /// <inheritdoc />
-    public bool ForceMode { get; set; }
-
-    /// <summary>
-    /// Initializes a new instance of the Iso9660Wrapper class.
+    ///     Initializes a new instance of the Iso9660Wrapper class.
     /// </summary>
     /// <param name="reader">The SectorReader to read sectors from.</param>
     protected Iso9660Wrapper(SectorReader reader)
@@ -472,19 +460,27 @@ public abstract class Iso9660Wrapper : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the ConsoleType that this parser handles.
+    ///     The sector reader used by this parser.
+    /// </summary>
+    private SectorReader Reader { get; }
+
+    /// <inheritdoc />
+    public bool ForceMode { get; set; }
+
+    /// <summary>
+    ///     Returns the ConsoleType that this parser handles.
     /// </summary>
     /// <returns>The console type.</returns>
     public abstract ConsoleType GetConsoleType();
 
     /// <summary>
-    /// Returns the human-readable console name.
+    ///     Returns the human-readable console name.
     /// </summary>
     /// <returns>The display name.</returns>
     public abstract string GetConsoleName();
 
     /// <summary>
-    /// Parses the first data track found in the reader using ISO 9660.
+    ///     Parses the first data track found in the reader using ISO 9660.
     /// </summary>
     /// <param name="rootNode">The root FsNode to populate.</param>
     /// <returns>true if parsing succeeded.</returns>
@@ -498,7 +494,7 @@ public abstract class Iso9660Wrapper : IConsoleParser
     }
 
     /// <summary>
-    /// Parses the specified track using ISO 9660.
+    ///     Parses the specified track using ISO 9660.
     /// </summary>
     /// <param name="rootNode">The root FsNode to populate.</param>
     /// <param name="track">The track to parse.</param>
@@ -510,7 +506,7 @@ public abstract class Iso9660Wrapper : IConsoleParser
     }
 
     /// <summary>
-    /// Finds the first data track in the reader.
+    ///     Finds the first data track in the reader.
     /// </summary>
     /// <returns>The first data TrackInfo, or null.</returns>
     private TrackInfo? FindDataTrack()

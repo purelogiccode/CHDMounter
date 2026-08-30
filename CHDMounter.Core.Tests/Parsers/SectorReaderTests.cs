@@ -1,3 +1,4 @@
+using System.Reflection;
 using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Core.Tests.Parsers;
@@ -78,7 +79,7 @@ public class SectorReaderTests
     [Fact]
     public void BcdToByteConvertsCorrectly()
     {
-        var method = typeof(SectorReader).GetMethod("BcdToByte", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        var method = typeof(SectorReader).GetMethod("BcdToByte", BindingFlags.NonPublic | BindingFlags.Static);
         Assert.NotNull(method);
 
         Assert.Equal((byte)0, method.Invoke(null, [(byte)0x00]));

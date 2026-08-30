@@ -3,21 +3,21 @@ using System.Collections.Frozen;
 namespace VideoGameFileSystemParser.Models;
 
 /// <summary>
-/// Single source of truth for console type display names and CLI aliases.
+///     Single source of truth for console type display names and CLI aliases.
 /// </summary>
 /// <remarks>
-/// Host applications (e.g. CHDMounter) must resolve console types exclusively
-/// through this registry — numeric indexes are not supported. The registry is
-/// built from the supported-console table and is case-insensitive for aliases.
-/// Multiple display entries may resolve to the same <see cref="ConsoleType"/>
-/// (e.g. "PS3 ISO RAW 2352", "Xbox ISO RAW 2352" and "ISO RAW 2352"
-/// all map to <see cref="ConsoleType.GenericIsoRaw2352"/>); alias lookup
-/// always returns the canonical type.
+///     Host applications (e.g. CHDMounter) must resolve console types exclusively
+///     through this registry — numeric indexes are not supported. The registry is
+///     built from the supported-console table and is case-insensitive for aliases.
+///     Multiple display entries may resolve to the same <see cref="ConsoleType" />
+///     (e.g. "PS3 ISO RAW 2352", "Xbox ISO RAW 2352" and "ISO RAW 2352"
+///     all map to <see cref="ConsoleType.GenericIsoRaw2352" />); alias lookup
+///     always returns the canonical type.
 /// </remarks>
 public static class ConsoleTypeRegistry
 {
     /// <summary>
-    /// All supported console/format entries, ordered as displayed in the UI and help text.
+    ///     All supported console/format entries, ordered as displayed in the UI and help text.
     /// </summary>
     public static IReadOnlyList<ConsoleTypeInfo> All { get; } =
     [
@@ -69,21 +69,17 @@ public static class ConsoleTypeRegistry
     {
         var map = new Dictionary<string, ConsoleType>(StringComparer.OrdinalIgnoreCase);
         foreach (var entry in All)
-        {
-            foreach (var alias in entry.Aliases)
-            {
-                map.TryAdd(alias, entry.Type);
-            }
-        }
+        foreach (var alias in entry.Aliases)
+            map.TryAdd(alias, entry.Type);
 
         return map.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
-    /// Resolves a console type from a CLI alias (case-insensitive).
+    ///     Resolves a console type from a CLI alias (case-insensitive).
     /// </summary>
     /// <param name="alias">The alias, e.g. "ps2", "cuebin2352".</param>
-    /// <returns>The matching <see cref="ConsoleType"/>, or <see cref="ConsoleType.Unknown"/> if not recognized.</returns>
+    /// <returns>The matching <see cref="ConsoleType" />, or <see cref="ConsoleType.Unknown" /> if not recognized.</returns>
     public static ConsoleType Parse(string? alias)
     {
         if (string.IsNullOrWhiteSpace(alias))
@@ -93,30 +89,26 @@ public static class ConsoleTypeRegistry
     }
 
     /// <summary>
-    /// Returns the primary display name for a console type (the first registered entry).
+    ///     Returns the primary display name for a console type (the first registered entry).
     /// </summary>
     public static string GetDisplayName(ConsoleType type)
     {
         foreach (var entry in All)
-        {
             if (entry.Type == type)
                 return entry.DisplayName;
-        }
 
         return type.ToString();
     }
 
     /// <summary>
-    /// Returns all aliases registered for a console type.
+    ///     Returns all aliases registered for a console type.
     /// </summary>
     public static IReadOnlyList<string> GetAliases(ConsoleType type)
     {
         var aliases = new List<string>();
         foreach (var entry in All)
-        {
             if (entry.Type == type)
                 aliases.AddRange(entry.Aliases);
-        }
 
         return aliases.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }

@@ -3,14 +3,24 @@ using System.Text;
 namespace VideoGameFileSystemParser.Parsers;
 
 /// <summary>
-/// Parses the XDVDFS file system used on original Xbox and Xbox 360 discs.
+///     Parses the XDVDFS file system used on original Xbox and Xbox 360 discs.
 /// </summary>
 public class XdvdfsParser
 {
+    private static readonly Encoding XdvdfsEncoding = CreateXdvdfsEncoding();
+
+    private static readonly byte[] XdvdfsMagic = "MICROSOFT*XBOX*MEDIA"u8.ToArray();
     private readonly SectorReader _reader;
     private TrackInfo? _currentTrack;
 
-    private static readonly Encoding XdvdfsEncoding = CreateXdvdfsEncoding();
+    /// <summary>
+    ///     Initializes a new instance of the XdvdfsParser class.
+    /// </summary>
+    /// <param name="reader">The SectorReader to read sectors from.</param>
+    public XdvdfsParser(SectorReader reader)
+    {
+        _reader = reader;
+    }
 
     private static Encoding CreateXdvdfsEncoding()
     {
@@ -26,16 +36,7 @@ public class XdvdfsParser
     }
 
     /// <summary>
-    /// Initializes a new instance of the XdvdfsParser class.
-    /// </summary>
-    /// <param name="reader">The SectorReader to read sectors from.</param>
-    public XdvdfsParser(SectorReader reader)
-    {
-        _reader = reader;
-    }
-
-    /// <summary>
-    /// Sets the track for parsing and locks the reader to that track.
+    ///     Sets the track for parsing and locks the reader to that track.
     /// </summary>
     /// <param name="track">The track to parse.</param>
     public void SetTrack(TrackInfo track)
@@ -46,10 +47,8 @@ public class XdvdfsParser
         _reader.SetTrack(track, true);
     }
 
-    private static readonly byte[] XdvdfsMagic = "MICROSOFT*XBOX*MEDIA"u8.ToArray();
-
     /// <summary>
-    /// Parses the XDVDFS file system and builds the directory tree.
+    ///     Parses the XDVDFS file system and builds the directory tree.
     /// </summary>
     /// <param name="rootNode">The root FsNode to populate.</param>
     /// <returns>true if parsing succeeded.</returns>
@@ -68,9 +67,7 @@ public class XdvdfsParser
         uint[] offsets = [32, 129856, 16672, 198176, 0];
 
         foreach (var offset in offsets)
-        {
             if (_reader.ReadSector(offset, sectorData))
-            {
                 if (CheckMagic(sectorData, 0, XdvdfsMagic) && CheckMagic(sectorData, 0x7EC, XdvdfsMagic))
                 {
                     rootDirSector = LeU32(sectorData, 20);
@@ -87,8 +84,6 @@ public class XdvdfsParser
                     found = true;
                     break;
                 }
-            }
-        }
 
         if (!found)
         {
@@ -98,7 +93,6 @@ public class XdvdfsParser
                 if (offsets.Contains(offset)) continue;
 
                 if (_reader.ReadSector(offset, sectorData2))
-                {
                     if (CheckMagic(sectorData2, 0, XdvdfsMagic) && CheckMagic(sectorData2, 0x7EC, XdvdfsMagic))
                     {
                         rootDirSector = LeU32(sectorData2, 20);
@@ -108,7 +102,6 @@ public class XdvdfsParser
                         found = true;
                         break;
                     }
-                }
             }
         }
 
@@ -121,10 +114,12 @@ public class XdvdfsParser
 
         var visited = new HashSet<ulong>();
         var llCompat = true;
-        return ParseDirectoryTree(rootNode.Lba, 0, rootNode, volumeOffsetSectors, rootDirExtentSize, 0, visited, ref llCompat);
+        return ParseDirectoryTree(rootNode.Lba, 0, rootNode, volumeOffsetSectors, rootDirExtentSize, 0, visited,
+            ref llCompat);
     }
 
-    private bool ParseDirectoryTree(uint dirSector, uint dirOffset, FsNode parentNode, uint volumeOffsetSectors, uint dirExtentSize, int depth, HashSet<ulong> visited, ref bool llCompat)
+    private bool ParseDirectoryTree(uint dirSector, uint dirOffset, FsNode parentNode, uint volumeOffsetSectors,
+        uint dirExtentSize, int depth, HashSet<ulong> visited, ref bool llCompat)
     {
         while (true)
         {
@@ -153,15 +148,9 @@ public class XdvdfsParser
             for (var i = 0; i < 14; i++)
             {
                 var b = sectorData[offsetInSector + i];
-                if (b != 0xFF)
-                {
-                    allFf = false;
-                }
+                if (b != 0xFF) allFf = false;
 
-                if (b != 0x00)
-                {
-                    allZero = false;
-                }
+                if (b != 0x00) allZero = false;
             }
 
             if (allFf || allZero)
@@ -195,19 +184,25 @@ public class XdvdfsParser
             if (leftSubTree != 0 && leftSubTree != 0xFFFF)
             {
                 llCompat = false;
-                ParseDirectoryTree(dirSector, (uint)(leftSubTree * 4), parentNode, volumeOffsetSectors, dirExtentSize, depth + 1, visited, ref llCompat);
+                ParseDirectoryTree(dirSector, (uint)(leftSubTree * 4), parentNode, volumeOffsetSectors, dirExtentSize,
+                    depth + 1, visited, ref llCompat);
             }
 
             if (nameLen > 0)
             {
-                var node = new FsNode { Name = XdvdfsEncoding.GetString(sectorData, (int)(offsetInSector + 14), nameLen), Lba = volumeOffsetSectors + startSector, Size = fileSize, IsDirectory = (attributes & 0x10) != 0 };
+                var node = new FsNode
+                {
+                    Name = XdvdfsEncoding.GetString(sectorData, (int)(offsetInSector + 14), nameLen),
+                    Lba = volumeOffsetSectors + startSector, Size = fileSize, IsDirectory = (attributes & 0x10) != 0
+                };
                 node.Extents.Add(new FsExtent { Lba = node.Lba, Size = node.Size });
 
                 if (node is { IsDirectory: true, Size: > 0 })
                 {
                     var subVisited = new HashSet<ulong>();
                     var subLlCompat = llCompat;
-                    ParseDirectoryTree(node.Lba, 0, node, volumeOffsetSectors, fileSize, depth + 1, subVisited, ref subLlCompat);
+                    ParseDirectoryTree(node.Lba, 0, node, volumeOffsetSectors, fileSize, depth + 1, subVisited,
+                        ref subLlCompat);
                 }
 
                 parentNode.Children.Add(node);
@@ -219,10 +214,7 @@ public class XdvdfsParser
                 if (llCompat)
                 {
                     var currentSector = (dirOffset + 14u + nameLen) / 2048;
-                    if (rightOffset / 2048 > currentSector)
-                    {
-                        rightOffset = (currentSector + 1) * 2048;
-                    }
+                    if (rightOffset / 2048 > currentSector) rightOffset = (currentSector + 1) * 2048;
                 }
 
                 dirOffset = rightOffset;

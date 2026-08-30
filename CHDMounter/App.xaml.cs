@@ -2,24 +2,24 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using CHDMounter.Core.Interfaces;
+using Serilog;
 
 namespace CHDMounter;
 
 /// <summary>
-/// Application entry point for the Dokan-based CHD mounter. Handles service registration,
-/// logging initialization, and application lifecycle.
+///     Application entry point for the Dokan-based CHD mounter. Handles service registration,
+///     logging initialization, and application lifecycle.
 /// </summary>
 public partial class App
 {
-    internal static string[] StartupArgs { get; private set; } = [];
-
     private static TextWriter? _originalConsoleOut;
     private static TextWriter? _originalConsoleError;
     private static LogTextWriter? _logTextWriter;
+    internal static string[] StartupArgs { get; private set; } = [];
 
     /// <summary>
-    /// Handles application startup: captures command-line arguments, initializes logging,
-    /// configures global exception handlers, and registers shared services.
+    ///     Handles application startup: captures command-line arguments, initializes logging,
+    ///     configures global exception handlers, and registers shared services.
     /// </summary>
     /// <param name="e">The startup event arguments.</param>
     protected override void OnStartup(StartupEventArgs e)
@@ -31,6 +31,7 @@ public partial class App
             StartupArgs = e.Args;
 
             DiagnosticLogger.Initialize();
+            BugReportClient.IsSendingEnabled = true;
             DiagnosticLogger.CleanupOldLogs();
             DiagnosticLogger.LogSection("APPLICATION STARTUP");
             DiagnosticLogger.Log($"  Version: {Assembly.GetExecutingAssembly().GetName().Version}");
@@ -60,7 +61,8 @@ public partial class App
             loggingService.Log("Usage: CHDMounter.exe [/l] [/a] [/s:<alias>] <chd_file> [mount_point]");
             loggingService.Log("Example: CHDMounter.exe /s:ps2 game.chd");
             loggingService.Log("Example: CHDMounter.exe /l /s:segadreamcast game.chd M:");
-            loggingService.Log("Console aliases: see the Console Type Reference in the README (e.g. neogeocd, cuebin2352, cueisowav2352).");
+            loggingService.Log(
+                "Console aliases: see the Console Type Reference in the README (e.g. neogeocd, cuebin2352, cueisowav2352).");
             loggingService.Log("Run without args to open the UI and select filesystem type.");
             loggingService.Log("");
 
@@ -73,7 +75,7 @@ public partial class App
         {
             try
             {
-                Serilog.Log.Error(ex, "Critical error during application startup");
+                Log.Error(ex, "Critical error during application startup");
             }
             catch
             {
@@ -101,8 +103,8 @@ public partial class App
     }
 
     /// <summary>
-    /// Handles application shutdown: logs the shutdown section, flushes logging output,
-    /// and disposes all registered services.
+    ///     Handles application shutdown: logs the shutdown section, flushes logging output,
+    ///     and disposes all registered services.
     /// </summary>
     /// <param name="e">The exit event arguments.</param>
     protected override void OnExit(ExitEventArgs e)
@@ -142,7 +144,7 @@ public partial class App
         }
         catch (Exception ex)
         {
-            Serilog.Log.Warning(ex, "Failed to flush loggers during shutdown");
+            Log.Warning(ex, "Failed to flush loggers during shutdown");
         }
 
         base.OnExit(e);

@@ -1,11 +1,11 @@
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json;
+using Serilog;
 
 namespace CHDMounter.Core.Services;
 
 /// <summary>
-/// Sends bug reports and warnings to a remote API endpoint with rate-limited queuing.
+///     Sends bug reports and warnings to a remote API endpoint with rate-limited queuing.
 /// </summary>
 public static class BugReportClient
 {
@@ -15,10 +15,12 @@ public static class BugReportClient
     private static int _isProcessing;
 
     /// <summary>
-    /// Gets or sets a value indicating whether bug reports are actually sent to the API.
-    /// Disabled in the test suite so unit tests never pollute the production bug database.
+    ///     Gets or sets a value indicating whether bug reports are actually sent to the API.
+    ///     Defaults to <c>false</c> (fail-closed) so tests and any code that does not
+    ///     explicitly opt in never pollute the production bug-report database.
+    ///     Production entry points must set this to <c>true</c> once during startup.
     /// </summary>
-    internal static bool IsSendingEnabled { get; set; } = true;
+    internal static bool IsSendingEnabled { get; set; }
 
     internal static void SendException(Exception ex, string context)
     {
@@ -27,15 +29,15 @@ public static class BugReportClient
         var exceptionDetails = BuildExceptionDetails(ex);
 
         var message = $"""
-            === Environment Details ===
-            {envDetails}
+                       === Environment Details ===
+                       {envDetails}
 
-            === Error Details ===
-            {errorDetails}
+                       === Error Details ===
+                       {errorDetails}
 
-            === Exception Details ===
-            {exceptionDetails}
-            """;
+                       === Exception Details ===
+                       {exceptionDetails}
+                       """;
 
         Enqueue(message, ex.StackTrace ?? "");
     }
@@ -45,15 +47,15 @@ public static class BugReportClient
         var envDetails = BuildEnvironmentDetails();
 
         var formatted = $"""
-            === Environment Details ===
-            {envDetails}
+                         === Environment Details ===
+                         {envDetails}
 
-            === Error Details ===
-            {message}
+                         === Error Details ===
+                         {message}
 
-            === Exception Details ===
-            No exception - this is a warning
-            """;
+                         === Exception Details ===
+                         No exception - this is a warning
+                         """;
 
         Enqueue(formatted, "");
     }
@@ -66,15 +68,15 @@ public static class BugReportClient
             : $"Type: Unknown\nMessage: {message}\nSource: Unknown\nStackTrace: {stackTrace}";
 
         var formatted = $"""
-            === Environment Details ===
-            {envDetails}
+                         === Environment Details ===
+                         {envDetails}
 
-            === Error Details ===
-            {message}
+                         === Error Details ===
+                         {message}
 
-            === Exception Details ===
-            {exceptionDetails}
-            """;
+                         === Exception Details ===
+                         {exceptionDetails}
+                         """;
 
         Enqueue(formatted, stackTrace ?? "");
     }
@@ -85,10 +87,7 @@ public static class BugReportClient
             return;
 
         PendingReports.Enqueue(() => SendAsync(message, stackTrace));
-        if (Interlocked.CompareExchange(ref _isProcessing, 1, 0) == 0)
-        {
-            _ = Task.Run(ProcessQueueAsync);
-        }
+        if (Interlocked.CompareExchange(ref _isProcessing, 1, 0) == 0) _ = Task.Run(ProcessQueueAsync);
     }
 
     private static async Task ProcessQueueAsync()
@@ -103,7 +102,7 @@ public static class BugReportClient
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Warning(ex, "BugReportClient: Failed to send bug report");
+                    Log.Warning(ex, "BugReportClient: Failed to send bug report");
                 }
 
                 await Task.Delay(6000);
@@ -114,10 +113,8 @@ public static class BugReportClient
             while (true)
             {
                 if (PendingReports.IsEmpty)
-                {
                     if (Interlocked.CompareExchange(ref _isProcessing, 0, 1) == 1)
                         break;
-                }
 
                 if (Interlocked.CompareExchange(ref _isProcessing, 1, 0) == 0)
                 {
@@ -153,7 +150,7 @@ public static class BugReportClient
         }
         catch (Exception ex)
         {
-            Serilog.Log.Warning(ex, "BugReportClient: Failed to send bug report to API");
+            Log.Warning(ex, "BugReportClient: Failed to send bug report to API");
         }
     }
 

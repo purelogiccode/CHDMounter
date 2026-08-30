@@ -1,38 +1,20 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using Serilog;
 
 namespace CHDMounter.Core.Services;
 
 /// <summary>
-/// Captures screenshots of the foreground window and saves them as PNG files.
+///     Captures screenshots of the foreground window and saves them as PNG files.
 /// </summary>
 public class ScreenshotService : IScreenshotService
 {
+    private const int DwmwaExtendedFrameBounds = 9;
     private readonly ILoggingService _loggingService;
 
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern IntPtr GetForegroundWindow();
-
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern bool GetWindowRect(IntPtr hWnd, out Rect lpRect);
-
-    [DllImport("dwmapi.dll")]
-    private static extern int DwmGetWindowAttribute(IntPtr hwnd, int dwAttribute, out Rect pvAttribute, int cbAttribute);
-
-    private const int DwmwaExtendedFrameBounds = 9;
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct Rect
-    {
-        public int Left;
-        public int Top;
-        public int Right;
-        public int Bottom;
-    }
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="ScreenshotService"/> class.
+    ///     Initializes a new instance of the <see cref="ScreenshotService" /> class.
     /// </summary>
     /// <param name="loggingService">The logging service for recording screenshot results.</param>
     public ScreenshotService(ILoggingService loggingService)
@@ -41,7 +23,7 @@ public class ScreenshotService : IScreenshotService
     }
 
     /// <summary>
-    /// Takes a screenshot of the current foreground window and saves it to the local application data folder.
+    ///     Takes a screenshot of the current foreground window and saves it to the local application data folder.
     /// </summary>
     public void TakeScreenshot()
     {
@@ -99,6 +81,16 @@ public class ScreenshotService : IScreenshotService
         }
     }
 
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool GetWindowRect(IntPtr hWnd, out Rect lpRect);
+
+    [DllImport("dwmapi.dll")]
+    private static extern int
+        DwmGetWindowAttribute(IntPtr hwnd, int dwAttribute, out Rect pvAttribute, int cbAttribute);
+
     private static string? TrySaveImage(Image image, string fileName)
     {
         try
@@ -114,7 +106,7 @@ public class ScreenshotService : IScreenshotService
         }
         catch (Exception ex)
         {
-            Serilog.Log.Warning(ex, "ScreenshotService: Failed to save screenshot to AppData");
+            Log.Warning(ex, "ScreenshotService: Failed to save screenshot to AppData");
         }
 
         try
@@ -128,9 +120,18 @@ public class ScreenshotService : IScreenshotService
         }
         catch (Exception ex)
         {
-            Serilog.Log.Warning(ex, "ScreenshotService: Failed to save screenshot to app folder");
+            Log.Warning(ex, "ScreenshotService: Failed to save screenshot to app folder");
         }
 
         return null;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Rect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
     }
 }

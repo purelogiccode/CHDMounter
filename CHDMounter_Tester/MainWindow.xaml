@@ -31,7 +31,8 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="Help" ToolTip="Help and information">
-                <MenuItem Header="Open AppData Folder" Click="OpenAppDataFolder_Click" ToolTip="Open the application data folder in Explorer">
+                <MenuItem Header="Open AppData Folder" Click="OpenAppDataFolder_Click"
+                          ToolTip="Open the application data folder in Explorer">
                     <MenuItem.Icon>
                         <wpfui:SymbolIcon Symbol="FolderOpen24" />
                     </MenuItem.Icon>
@@ -182,9 +183,11 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <StatusBar Grid.Column="0" Background="Transparent" Foreground="{StaticResource TextMutedBrush}" ToolTip="Current application status">
+                <StatusBar Grid.Column="0" Background="Transparent" Foreground="{StaticResource TextMutedBrush}"
+                           ToolTip="Current application status">
                     <StatusBarItem>
-                        <TextBlock x:Name="StatusText" Text="Ready" ToolTip="Displays the current status of the application" />
+                        <TextBlock x:Name="StatusText" Text="Ready"
+                                   ToolTip="Displays the current status of the application" />
                     </StatusBarItem>
                 </StatusBar>
 

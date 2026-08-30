@@ -1,26 +1,25 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
-using Microsoft.Win32;
 using CHDMounter.Core.Interfaces;
+using Serilog;
 
 namespace CHDMounter_WinFsp;
 
 /// <summary>
-/// Application entry point for the WinFsp-based CHD mounter. Handles service registration,
-/// logging initialization, WinFsp path configuration, and application lifecycle.
+///     Application entry point for the WinFsp-based CHD mounter. Handles service registration,
+///     logging initialization, WinFsp path configuration, and application lifecycle.
 /// </summary>
 public partial class App
 {
-    internal static string[] StartupArgs { get; private set; } = [];
-
     private static TextWriter _originalConsoleOut = null!;
     private static TextWriter _originalConsoleError = null!;
     private static LogTextWriter _logTextWriter = null!;
+    internal static string[] StartupArgs { get; private set; } = [];
 
     /// <summary>
-    /// Handles application startup: captures command-line arguments, initializes logging,
-    /// configures global exception handlers, and registers shared services.
+    ///     Handles application startup: captures command-line arguments, initializes logging,
+    ///     configures global exception handlers, and registers shared services.
     /// </summary>
     /// <param name="e">The startup event arguments.</param>
     protected override void OnStartup(StartupEventArgs e)
@@ -32,6 +31,7 @@ public partial class App
             StartupArgs = e.Args;
 
             DiagnosticLogger.Initialize("CHDMounter_WinFsp");
+            BugReportClient.IsSendingEnabled = true;
             DiagnosticLogger.CleanupOldLogs();
             DiagnosticLogger.LogSection("APPLICATION STARTUP");
             DiagnosticLogger.Log($"  Version: {Assembly.GetExecutingAssembly().GetName().Version}");
@@ -63,7 +63,8 @@ public partial class App
             loggingService.Log("Usage: CHDMounter_WinFsp.exe [/l] [/a] [/s:<alias>] <chd_file> [mount_point]");
             loggingService.Log("Example: CHDMounter_WinFsp.exe /s:ps2 game.chd");
             loggingService.Log("Example: CHDMounter_WinFsp.exe /l /s:segadreamcast game.chd M:");
-            loggingService.Log("Console aliases: see the Console Type Reference in the README (e.g. neogeocd, cuebin2352, cueisowav2352).");
+            loggingService.Log(
+                "Console aliases: see the Console Type Reference in the README (e.g. neogeocd, cuebin2352, cueisowav2352).");
             loggingService.Log("Run without args to open the UI and select filesystem type.");
             loggingService.Log("");
 
@@ -76,7 +77,7 @@ public partial class App
         {
             try
             {
-                Serilog.Log.Error(ex, "Critical error during application startup");
+                Log.Error(ex, "Critical error during application startup");
             }
             catch
             {
@@ -90,36 +91,14 @@ public partial class App
 
     private static void EnsureWinFspOnPath()
     {
-        try
+        if (WinFspEnvironment.EnsureWinFspLoadable(out var reason))
         {
-            var currentPath = Environment.GetEnvironmentVariable("PATH") ?? "";
-            if (currentPath.Contains("WinFsp", StringComparison.OrdinalIgnoreCase))
-                return;
-
-            string? binDir = null;
-
-            using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\WinFsp")
-                            ?? Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WinFsp");
-            var sxsDir = key?.GetValue("SxsDir") as string;
-            if (!string.IsNullOrEmpty(sxsDir))
-            {
-                var sxsBin = Path.Combine(sxsDir, "bin");
-                if (Directory.Exists(sxsBin))
-                {
-                    binDir = sxsBin;
-                }
-            }
-
-            if (binDir is null)
-                return;
-
-            Environment.SetEnvironmentVariable("PATH", binDir + ";" + currentPath, EnvironmentVariableTarget.Process);
-            DiagnosticLogger.Log($"  WinFsp PATH set to: {binDir}");
+            DiagnosticLogger.Log("  WinFsp native DLL is loadable.");
+            return;
         }
-        catch (Exception ex)
-        {
-            Serilog.Log.Warning(ex, "Failed to configure WinFsp PATH");
-        }
+
+        DiagnosticLogger.Log($"  WinFsp native DLL is NOT loadable: {reason}");
+        Log.Warning("WinFsp native DLL is not loadable: {Reason}", reason);
     }
 
     private static void RegisterServices()
@@ -138,8 +117,8 @@ public partial class App
     }
 
     /// <summary>
-    /// Handles application shutdown: logs the shutdown section, flushes logging output,
-    /// and disposes all registered services.
+    ///     Handles application shutdown: logs the shutdown section, flushes logging output,
+    ///     and disposes all registered services.
     /// </summary>
     /// <param name="e">The exit event arguments.</param>
     protected override void OnExit(ExitEventArgs e)
@@ -179,7 +158,7 @@ public partial class App
         }
         catch (Exception ex)
         {
-            Serilog.Log.Warning(ex, "Failed to flush loggers during shutdown");
+            Log.Warning(ex, "Failed to flush loggers during shutdown");
         }
 
         base.OnExit(e);

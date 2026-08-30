@@ -42,7 +42,8 @@ public class AmigaCdIntegrationTests
                 var reader = new SectorReader(chd, unitBytes);
                 var track = reader.Tracks.FirstOrDefault(static t => t.IsDataTrack) ?? reader.Tracks.FirstOrDefault();
 
-                output.WriteLine($"UnitBytes={unitBytes} Tracks={reader.Tracks.Count} TrackType={track?.TrackType ?? "N/A"}");
+                output.WriteLine(
+                    $"UnitBytes={unitBytes} Tracks={reader.Tracks.Count} TrackType={track?.TrackType ?? "N/A"}");
 
                 var root = new FsNode();
                 var parser = new Iso9660Parser(reader);
@@ -60,7 +61,8 @@ public class AmigaCdIntegrationTests
                 Assert.True(files > 2, $"Suspiciously few files parsed: {files}");
 
                 foreach (var c in root.Children.OrderByDescending(static n => n.Size).Take(15))
-                    output.WriteLine($"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
+                    output.WriteLine(
+                        $"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
             }
             finally
             {
@@ -133,7 +135,8 @@ public class AmigaCdIntegrationTests
                 Assert.Empty(badNames);
 
                 foreach (var e in container.ListDirectory("\\"))
-                    output.WriteLine($"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
+                    output.WriteLine(
+                        $"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
             }
             finally
             {
@@ -168,7 +171,8 @@ public class AmigaCdIntegrationTests
                 ulong maxSize = 0;
                 Walk(root, ref files, ref dirs, ref maxSize);
 
-                output.WriteLine($"[{(ok ? "OK" : "FAIL")}] {fileName}  UnitBytes={chd.UnitBytes}  Tracks={reader.Tracks.Count}  Files={files}  Dirs={dirs}  MaxFile={maxSize:N0}");
+                output.WriteLine(
+                    $"[{(ok ? "OK" : "FAIL")}] {fileName}  UnitBytes={chd.UnitBytes}  Tracks={reader.Tracks.Count}  Files={files}  Dirs={dirs}  MaxFile={maxSize:N0}");
             }
             finally
             {
@@ -182,7 +186,6 @@ public class AmigaCdIntegrationTests
     private static void Walk(FsNode node, ref int files, ref int dirs, ref ulong maxSize)
     {
         foreach (var c in node.Children)
-        {
             if (c.IsDirectory)
             {
                 dirs++;
@@ -191,12 +194,8 @@ public class AmigaCdIntegrationTests
             else
             {
                 files++;
-                if (c.Size > maxSize)
-                {
-                    maxSize = c.Size;
-                }
+                if (c.Size > maxSize) maxSize = c.Size;
             }
-        }
     }
 
     private static IEnumerable<FileEntry> CollectEntries(ChdContainer container, string path)

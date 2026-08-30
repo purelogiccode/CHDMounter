@@ -1,7 +1,7 @@
 namespace Tester.Models;
 
 /// <summary>
-/// Represents the result of parsing a single CHD file during testing.
+///     Represents the result of parsing a single CHD file during testing.
 /// </summary>
 /// <param name="FileName">The file name of the CHD file.</param>
 /// <param name="FilePath">The full path to the CHD file.</param>

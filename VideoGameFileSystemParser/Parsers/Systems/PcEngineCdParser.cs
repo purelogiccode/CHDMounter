@@ -4,7 +4,8 @@ using VideoGameFileSystemParser.Interfaces;
 namespace VideoGameFileSystemParser.Parsers.Systems;
 
 /// <summary>
-/// Parses NEC PC Engine CD/TurboGrafx-CD disc images. Locates the boot signature, attempts ISO 9660, falls back to raw track exposure.
+///     Parses NEC PC Engine CD/TurboGrafx-CD disc images. Locates the boot signature, attempts ISO 9660, falls back to raw
+///     track exposure.
 /// </summary>
 public class PcEngineCdParser : IConsoleParser
 {
@@ -16,12 +17,7 @@ public class PcEngineCdParser : IConsoleParser
     private readonly SectorReader _reader;
 
     /// <summary>
-    /// Gets or sets whether to force parsing even when the boot signature is not found.
-    /// </summary>
-    public bool ForceMode { get; set; }
-
-    /// <summary>
-    /// Initializes a new instance of the PcEngineCdParser class.
+    ///     Initializes a new instance of the PcEngineCdParser class.
     /// </summary>
     /// <param name="reader">The SectorReader to read sectors from.</param>
     public PcEngineCdParser(SectorReader reader)
@@ -30,7 +26,12 @@ public class PcEngineCdParser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the ConsoleType that this parser handles.
+    ///     Gets or sets whether to force parsing even when the boot signature is not found.
+    /// </summary>
+    public bool ForceMode { get; set; }
+
+    /// <summary>
+    ///     Returns the ConsoleType that this parser handles.
     /// </summary>
     /// <returns>ConsoleType.PcEngineCd</returns>
     public ConsoleType GetConsoleType()
@@ -39,7 +40,7 @@ public class PcEngineCdParser : IConsoleParser
     }
 
     /// <summary>
-    /// Returns the human-readable console name.
+    ///     Returns the human-readable console name.
     /// </summary>
     /// <returns>"PC Engine CD"</returns>
     public string GetConsoleName()
@@ -48,7 +49,7 @@ public class PcEngineCdParser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses all data tracks. Attempts ISO 9660 first, falls back to raw track files.
+    ///     Parses all data tracks. Attempts ISO 9660 first, falls back to raw track files.
     /// </summary>
     /// <param name="rootNode">The root FsNode to populate.</param>
     /// <returns>true if parsing succeeded.</returns>
@@ -98,7 +99,7 @@ public class PcEngineCdParser : IConsoleParser
     }
 
     /// <summary>
-    /// Parses a specific track using ISO 9660, falling back to raw track file.
+    ///     Parses a specific track using ISO 9660, falling back to raw track file.
     /// </summary>
     /// <param name="track">The track to parse.</param>
     /// <param name="rootNode">The root FsNode to populate.</param>
@@ -142,9 +143,7 @@ public class PcEngineCdParser : IConsoleParser
         var candidates = new List<uint>();
         if (track.Pregap > 0 && track.Pregap < track.Frames &&
             track.Metadata.Contains("PGTYPE:V", StringComparison.OrdinalIgnoreCase))
-        {
             candidates.Add(track.StartLba + track.Pregap);
-        }
 
         candidates.Add(track.StartLba);
 
@@ -159,21 +158,19 @@ public class PcEngineCdParser : IConsoleParser
         try
         {
             foreach (var candidate in candidates)
+            foreach (var offset in new uint[] { 1, 0 })
             {
-                foreach (var offset in new uint[] { 1, 0 })
+                var lba = candidate + offset;
+                if (lba >= track.StartLba + track.Frames)
+                    continue;
+
+                if (!_reader.ReadSector(lba, sector))
+                    continue;
+
+                if (HasBootSignature(sector))
                 {
-                    var lba = candidate + offset;
-                    if (lba >= track.StartLba + track.Frames)
-                        continue;
-
-                    if (!_reader.ReadSector(lba, sector))
-                        continue;
-
-                    if (HasBootSignature(sector))
-                    {
-                        hasSignature = true;
-                        return candidate;
-                    }
+                    hasSignature = true;
+                    return candidate;
                 }
             }
 
@@ -200,10 +197,8 @@ public class PcEngineCdParser : IConsoleParser
                     continue;
 
                 foreach (var t in sector)
-                {
                     if (t != 0)
                         return track.StartLba + rel;
-                }
             }
 
             return null;
@@ -220,7 +215,7 @@ public class PcEngineCdParser : IConsoleParser
             return false;
 
         var descriptor = Encoding.ASCII.GetString(sector, 0x20, Signature.Length);
-        if (descriptor == Signature)
+        if (string.Equals(descriptor, Signature, StringComparison.OrdinalIgnoreCase))
             return true;
 
         var gamesExpress = Encoding.ASCII.GetString(sector, 0, Math.Min(sector.Length, 128));

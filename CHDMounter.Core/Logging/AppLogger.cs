@@ -4,12 +4,12 @@ using Serilog;
 namespace CHDMounter.Core.Logging;
 
 /// <summary>
-/// Configures and manages the Serilog logging pipeline with file, debug, and bug report sinks.
+///     Configures and manages the Serilog logging pipeline with file, debug, and bug report sinks.
 /// </summary>
 public static class AppLogger
 {
     /// <summary>
-    /// Initializes the Serilog logger with file output, debug output, and bug report sink.
+    ///     Initializes the Serilog logger with file output, debug output, and bug report sink.
     /// </summary>
     /// <param name="logFilePath">The file path for the rolling log file.</param>
     public static void Initialize(string logFilePath)
@@ -28,7 +28,7 @@ public static class AppLogger
     }
 
     /// <summary>
-    /// Closes and flushes the Serilog logger, ensuring all pending log events are written.
+    ///     Closes and flushes the Serilog logger, ensuring all pending log events are written.
     /// </summary>
     public static void CloseAndFlush()
     {

@@ -1,4 +1,5 @@
 using System.Globalization;
+using QuestPDF;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -7,17 +8,17 @@ using Tester.Models;
 namespace Tester.Services;
 
 /// <summary>
-/// Exports CHD parsing test results to a PDF report using QuestPDF.
+///     Exports CHD parsing test results to a PDF report using QuestPDF.
 /// </summary>
 internal sealed class PdfExportService
 {
     static PdfExportService()
     {
-        QuestPDF.Settings.License = LicenseType.Community;
+        Settings.License = LicenseType.Community;
     }
 
     /// <summary>
-    /// Generates a PDF report from the specified test summary and writes it to the output path.
+    ///     Generates a PDF report from the specified test summary and writes it to the output path.
     /// </summary>
     /// <param name="summary">The test summary containing results to include in the report.</param>
     /// <param name="outputPath">The file path where the PDF will be saved.</param>
@@ -81,12 +82,14 @@ internal sealed class PdfExportService
                 row.RelativeItem().Column(c =>
                 {
                     c.Item().Text("Started").FontSize(9).FontColor(Colors.Grey.Medium);
-                    c.Item().Text(summary.StartTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)).FontSize(11);
+                    c.Item().Text(summary.StartTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture))
+                        .FontSize(11);
                 });
                 row.RelativeItem().Column(c =>
                 {
                     c.Item().Text("Completed").FontSize(9).FontColor(Colors.Grey.Medium);
-                    c.Item().Text(summary.EndTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)).FontSize(11);
+                    c.Item().Text(summary.EndTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture))
+                        .FontSize(11);
                 });
                 row.RelativeItem().Column(c =>
                 {
@@ -103,11 +106,16 @@ internal sealed class PdfExportService
         {
             col.Item().PaddingBottom(15).Row(row =>
             {
-                row.RelativeItem().PaddingRight(4).Element(StatBox(Colors.Blue.Darken2, "Total Files", summary.TotalFiles.ToString(CultureInfo.InvariantCulture)));
-                row.RelativeItem().PaddingLeft(2).PaddingRight(2).Element(StatBox(Colors.Green.Darken2, "Succeeded", summary.SuccessCount.ToString(CultureInfo.InvariantCulture)));
-                row.RelativeItem().PaddingLeft(2).PaddingRight(2).Element(StatBox(Colors.Red.Darken2, "Failed", summary.FailCount.ToString(CultureInfo.InvariantCulture)));
-                row.RelativeItem().PaddingLeft(2).PaddingRight(2).Element(StatBox(Colors.Orange.Darken2, "Avg Time", $"{summary.AverageDuration.TotalSeconds:F2}s"));
-                row.RelativeItem().PaddingLeft(4).Element(StatBox(Colors.Purple.Darken2, "Total Size", FormatBytes((ulong)summary.TotalBytes)));
+                row.RelativeItem().PaddingRight(4).Element(StatBox(Colors.Blue.Darken2, "Total Files",
+                    summary.TotalFiles.ToString(CultureInfo.InvariantCulture)));
+                row.RelativeItem().PaddingLeft(2).PaddingRight(2).Element(StatBox(Colors.Green.Darken2, "Succeeded",
+                    summary.SuccessCount.ToString(CultureInfo.InvariantCulture)));
+                row.RelativeItem().PaddingLeft(2).PaddingRight(2).Element(StatBox(Colors.Red.Darken2, "Failed",
+                    summary.FailCount.ToString(CultureInfo.InvariantCulture)));
+                row.RelativeItem().PaddingLeft(2).PaddingRight(2).Element(StatBox(Colors.Orange.Darken2, "Avg Time",
+                    $"{summary.AverageDuration.TotalSeconds:F2}s"));
+                row.RelativeItem().PaddingLeft(4).Element(StatBox(Colors.Purple.Darken2, "Total Size",
+                    FormatBytes((ulong)summary.TotalBytes)));
             });
 
             col.Item().PaddingBottom(8).Text("Test Results").FontSize(16).Bold().FontColor(Colors.Blue.Darken3);
@@ -128,11 +136,15 @@ internal sealed class PdfExportService
                 {
                     var headerStyle = TextStyle.Default.FontSize(9).Bold().FontColor(Colors.White);
                     header.Cell().Background(Colors.Blue.Darken2).Padding(4).Text("File Name").Style(headerStyle);
-                    header.Cell().Background(Colors.Blue.Darken2).Padding(4).AlignCenter().Text("Status").Style(headerStyle);
+                    header.Cell().Background(Colors.Blue.Darken2).Padding(4).AlignCenter().Text("Status")
+                        .Style(headerStyle);
                     header.Cell().Background(Colors.Blue.Darken2).Padding(4).Text("Volume Name").Style(headerStyle);
-                    header.Cell().Background(Colors.Blue.Darken2).Padding(4).AlignRight().Text("Size").Style(headerStyle);
-                    header.Cell().Background(Colors.Blue.Darken2).Padding(4).AlignRight().Text("Items").Style(headerStyle);
-                    header.Cell().Background(Colors.Blue.Darken2).Padding(4).AlignRight().Text("Duration").Style(headerStyle);
+                    header.Cell().Background(Colors.Blue.Darken2).Padding(4).AlignRight().Text("Size")
+                        .Style(headerStyle);
+                    header.Cell().Background(Colors.Blue.Darken2).Padding(4).AlignRight().Text("Items")
+                        .Style(headerStyle);
+                    header.Cell().Background(Colors.Blue.Darken2).Padding(4).AlignRight().Text("Duration")
+                        .Style(headerStyle);
                 });
 
                 foreach (var result in summary.Results)
@@ -151,7 +163,9 @@ internal sealed class PdfExportService
                     table.Cell().Background(bgColor).Padding(4).AlignRight()
                         .Text(isSuccess ? FormatBytes(result.VolumeSize) : "-").Style(rowStyle);
                     table.Cell().Background(bgColor).Padding(4).AlignRight()
-                        .Text(isSuccess ? (result.FileCount + result.DirectoryCount).ToString("N0", CultureInfo.InvariantCulture) : "-").Style(rowStyle);
+                        .Text(isSuccess
+                            ? (result.FileCount + result.DirectoryCount).ToString("N0", CultureInfo.InvariantCulture)
+                            : "-").Style(rowStyle);
                     table.Cell().Background(bgColor).Padding(4).AlignRight()
                         .Text($"{result.Duration.TotalSeconds:F2}s").Style(rowStyle);
                 }
@@ -163,10 +177,12 @@ internal sealed class PdfExportService
                 col.Item().PaddingTop(5).Row(row =>
                 {
                     if (summary.Fastest is not null)
-                        row.RelativeItem().Text($"Fastest: {summary.Fastest.FileName} ({summary.Fastest.Duration.TotalSeconds:F2}s)")
+                        row.RelativeItem()
+                            .Text($"Fastest: {summary.Fastest.FileName} ({summary.Fastest.Duration.TotalSeconds:F2}s)")
                             .FontSize(11);
                     if (summary.Slowest is not null)
-                        row.RelativeItem().Text($"Slowest: {summary.Slowest.FileName} ({summary.Slowest.Duration.TotalSeconds:F2}s)")
+                        row.RelativeItem()
+                            .Text($"Slowest: {summary.Slowest.FileName} ({summary.Slowest.Duration.TotalSeconds:F2}s)")
                             .FontSize(11);
                     row.RelativeItem().Text($"Total Size: {FormatBytes((ulong)summary.TotalBytes)}").FontSize(11);
                 });
@@ -182,18 +198,12 @@ internal sealed class PdfExportService
                         {
                             var textColor = Colors.Grey.Darken3;
                             if (line.StartsWith("  FAIL", StringComparison.Ordinal))
-                            {
                                 textColor = Colors.Red.Darken2;
-                            }
                             else if (line.StartsWith("  OK", StringComparison.Ordinal))
-                            {
                                 textColor = Colors.Green.Darken2;
-                            }
                             else if (line.StartsWith(new string('=', 60), StringComparison.Ordinal)
                                      || line.StartsWith(new string('-', 60), StringComparison.Ordinal))
-                            {
                                 textColor = Colors.Blue.Darken2;
-                            }
 
                             logCol.Item().Text(line).FontSize(7).FontFamily("Consolas").FontColor(textColor);
                         }

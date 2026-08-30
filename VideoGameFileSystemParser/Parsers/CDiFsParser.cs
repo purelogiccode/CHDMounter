@@ -3,18 +3,17 @@ using System.Text;
 namespace VideoGameFileSystemParser.Parsers;
 
 /// <summary>
-/// Parses the CD-i file system, based on ISO 9660 with custom extensions for interleaved data.
+///     Parses the CD-i file system, based on ISO 9660 with custom extensions for interleaved data.
 /// </summary>
 public class CDiFsParser
 {
-    private readonly SectorReader _reader;
-    private static readonly Encoding Encoding = Encoding.GetEncoding("iso8859-1");
-
     private const int CdiRecordHeaderSize = 33;
     private const int CdiSystemAreaSize = 12;
+    private static readonly Encoding Encoding = Encoding.GetEncoding("iso8859-1");
+    private readonly SectorReader _reader;
 
     /// <summary>
-    /// Initializes a new instance of the CDiFsParser class.
+    ///     Initializes a new instance of the CDiFsParser class.
     /// </summary>
     /// <param name="reader">The SectorReader to read sectors from.</param>
     public CDiFsParser(SectorReader reader)
@@ -23,7 +22,7 @@ public class CDiFsParser
     }
 
     /// <summary>
-    /// Parses the CD-i file system and builds the directory tree.
+    ///     Parses the CD-i file system and builds the directory tree.
     /// </summary>
     /// <param name="track">Optional track.</param>
     /// <param name="rootNode">The root FsNode to populate.</param>
@@ -146,10 +145,7 @@ public class CDiFsParser
             });
 
             off += nameLen;
-            if ((nameLen & 1) != 0)
-            {
-                off++;
-            }
+            if ((nameLen & 1) != 0) off++;
         }
 
         return table;
@@ -202,10 +198,7 @@ public class CDiFsParser
                 if (nameLen == 0)
                 {
                     pos += recordLen;
-                    if ((pos & 1) != 0)
-                    {
-                        pos++;
-                    }
+                    if ((pos & 1) != 0) pos++;
 
                     continue;
                 }
@@ -218,10 +211,7 @@ public class CDiFsParser
                     if (nameByte is 0x00 or 0x01)
                     {
                         pos += recordLen;
-                        if ((pos & 1) != 0)
-                        {
-                            pos++;
-                        }
+                        if ((pos & 1) != 0) pos++;
 
                         continue;
                     }
@@ -230,10 +220,7 @@ public class CDiFsParser
                 var name = Encoding.GetString(sector, (int)pos + 33, nameLen);
 
                 var saOff = (int)pos + 33 + nameLen;
-                if ((saOff & 1) != 0)
-                {
-                    saOff++;
-                }
+                if ((saOff & 1) != 0) saOff++;
 
                 var isDir = false;
                 byte fileNumber = 0;
@@ -254,7 +241,6 @@ public class CDiFsParser
                     {
                         var subDirs = GetSubdirsFromPathTable(dirCtx.PathTableIndex, pathTable, trackStart);
                         if (subDirs.Count > 0)
-                        {
                             foreach (var sub in subDirs)
                             {
                                 var child = new FsNode
@@ -276,7 +262,6 @@ public class CDiFsParser
                                 ParseDirectory(child, childCtx, pathTable, trackStart);
                                 dirNode.Children.Add(child);
                             }
-                        }
 
                         break;
                     }
@@ -318,10 +303,7 @@ public class CDiFsParser
                 }
 
                 pos += recordLen;
-                if ((pos & 1) != 0)
-                {
-                    pos++;
-                }
+                if ((pos & 1) != 0) pos++;
             }
 
             if (!hasRecords) break;
@@ -398,15 +380,15 @@ public class CDiFsParser
     private class CdiDirContext
     {
         public uint Lba;
-        public uint Size;
         public int PathTableIndex;
+        public uint Size;
     }
 
     private class CdiSubDirEntry
     {
-        public string Name = "";
         public uint Lba;
-        public uint Size;
+        public string Name = "";
         public int PathTableIndex;
+        public uint Size;
     }
 }

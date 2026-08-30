@@ -1,39 +1,40 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using CHDMounter.Core.Views;
 using Microsoft.Win32;
 using Serilog;
-using CHDMounter.Core.Views;
-using VideoGameFileSystemParser.Models;
-using VideoGameFileSystemParser.Parsers;
 using Tester.Models;
 using Tester.Services;
+using VideoGameFileSystemParser.Models;
+using VideoGameFileSystemParser.Parsers;
 
 namespace Tester;
 
 /// <summary>
-/// The main window for the CHD parsing test tool. Provides UI for selecting CHD folders,
-/// running parsing tests, and exporting results to PDF.
+///     The main window for the CHD parsing test tool. Provides UI for selecting CHD folders,
+///     running parsing tests, and exporting results to PDF.
 /// </summary>
 public partial class MainWindow
 {
-    private readonly ILogger _logger;
-    private readonly ScreenshotService _screenshotService;
-    private TestRunnerService? _testRunner;
-    private TestSummary? _lastSummary;
-    private CancellationTokenSource? _cts;
-    private readonly DispatcherTimer _elapsedTimer;
-    private Stopwatch? _stopwatch;
-
     private static readonly SolidColorBrush GreenBrush = new(Colors.Green);
     private static readonly SolidColorBrush RedBrush = new(Colors.Red);
     private static readonly SolidColorBrush CyanBrush = new(Colors.Cyan);
     private static readonly SolidColorBrush YellowBrush = new(Colors.Yellow);
     private static readonly SolidColorBrush GrayBrush = new(Colors.Gray);
     private static readonly SolidColorBrush LightGrayBrush = new(Colors.LightGray);
+    private readonly DispatcherTimer _elapsedTimer;
+    private readonly ILogger _logger;
+    private readonly ScreenshotService _screenshotService;
+    private CancellationTokenSource? _cts;
+    private TestSummary? _lastSummary;
+    private Stopwatch? _stopwatch;
+    private TestRunnerService? _testRunner;
 
     static MainWindow()
     {
@@ -46,13 +47,14 @@ public partial class MainWindow
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MainWindow"/> class.
+    ///     Initializes a new instance of the <see cref="MainWindow" /> class.
     /// </summary>
     public MainWindow()
     {
         InitializeComponent();
 
-        _logger = App.Logger ?? new LoggerConfiguration().WriteTo.Debug(formatProvider: CultureInfo.InvariantCulture).CreateLogger();
+        _logger = App.Logger ?? new LoggerConfiguration().WriteTo.Debug(formatProvider: CultureInfo.InvariantCulture)
+            .CreateLogger();
         _screenshotService = new ScreenshotService(new LoggingService(Dispatcher));
 
         _elapsedTimer = new DispatcherTimer(DispatcherPriority.Normal, Dispatcher)
@@ -68,7 +70,8 @@ public partial class MainWindow
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         AppendLog("[Tester] CHD Parsing Test Tool", CyanBrush);
-        AppendLog("[Tester] Select a folder containing .chd files, choose a console type, and click Run Tests.", GrayBrush);
+        AppendLog("[Tester] Select a folder containing .chd files, choose a console type, and click Run Tests.",
+            GrayBrush);
         AppendLog("", GrayBrush);
         _logger.Information("MainWindow loaded");
 
@@ -98,7 +101,6 @@ public partial class MainWindow
     private void UpdateBannerButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: string url })
-        {
             try
             {
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
@@ -107,7 +109,6 @@ public partial class MainWindow
             {
                 Log.Warning(ex, "Failed to open update URL: {Url}", url);
             }
-        }
     }
 
     private void UpdateDismiss_Click(object sender, RoutedEventArgs e)
@@ -133,10 +134,7 @@ public partial class MainWindow
             Title = "Select folder containing .chd files"
         };
 
-        if (dialog.ShowDialog() == true)
-        {
-            ChdFolderTextBox.Text = dialog.FolderName;
-        }
+        if (dialog.ShowDialog() == true) ChdFolderTextBox.Text = dialog.FolderName;
     }
 
     private async void RunButton_Click(object sender, RoutedEventArgs e)
@@ -274,7 +272,6 @@ public partial class MainWindow
             };
 
             if (dialog.ShowDialog() == true)
-            {
                 try
                 {
                     ExportPdfButton.IsEnabled = false;
@@ -306,7 +303,6 @@ public partial class MainWindow
                     ExportPdfButton.IsEnabled = true;
                     StatusText.Text = "Ready";
                 }
-            }
         }
         catch (Exception ex)
         {
@@ -319,10 +315,7 @@ public partial class MainWindow
 
     private void ElapsedTimer_Tick(object? sender, EventArgs e)
     {
-        if (_stopwatch is not null)
-        {
-            ElapsedText.Text = $"Elapsed: {_stopwatch.Elapsed.TotalSeconds:F1}s";
-        }
+        if (_stopwatch is not null) ElapsedText.Text = $"Elapsed: {_stopwatch.Elapsed.TotalSeconds:F1}s";
     }
 
     private void AppendLog(string message, SolidColorBrush brush)
@@ -364,16 +357,16 @@ public partial class MainWindow
             AppendLog("[Error] AppData folder not found.", RedBrush);
     }
 
-    private void MainWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    private void MainWindow_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == System.Windows.Input.Key.F8)
+        if (e.Key == Key.F8)
         {
             _screenshotService.TakeScreenshot();
             e.Handled = true;
         }
     }
 
-    private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+    private void MainWindow_Closing(object sender, CancelEventArgs e)
     {
         _cts?.Cancel();
         _cts?.Dispose();

@@ -4,12 +4,12 @@ using VideoGameFileSystemParser.Parsers.Systems;
 namespace VideoGameFileSystemParser.Parsers;
 
 /// <summary>
-/// Provides factory methods to create appropriate IConsoleParser instances for each console type.
+///     Provides factory methods to create appropriate IConsoleParser instances for each console type.
 /// </summary>
 public static class ParserFactory
 {
     /// <summary>
-    /// Creates a parser instance for the specified console type.
+    ///     Creates a parser instance for the specified console type.
     /// </summary>
     /// <returns>An IConsoleParser implementation, or null if unsupported.</returns>
     public static IConsoleParser? CreateParser(ConsoleType type, SectorReader reader)
@@ -46,7 +46,7 @@ public static class ParserFactory
     }
 
     /// <summary>
-    /// Returns the list of all supported console types with their display names.
+    ///     Returns the list of all supported console types with their display names.
     /// </summary>
     /// <returns>An enumerable of ConsoleInfo for all supported consoles.</returns>
     public static IEnumerable<ConsoleInfo> GetAllSupportedConsoles()

@@ -92,7 +92,8 @@
             </Grid>
         </StackPanel>
 
-        <TextBlock Grid.Row="3" Text="Mounts CHD (Compressed Hunks of Data) CD/DVD images as virtual drives using Dokan or WinFsp."
+        <TextBlock Grid.Row="3"
+                   Text="Mounts CHD (Compressed Hunks of Data) CD/DVD images as virtual drives using Dokan or WinFsp."
                    TextWrapping="Wrap" FontSize="11" Margin="0,10,0,0"
                    Foreground="{StaticResource TextMutedBrush}"
                    ToolTip="Brief explanation of what the application does" />
@@ -105,32 +106,53 @@
                            Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"
                            ToolTip="Acknowledgments section title" />
                 <TextBlock TextWrapping="Wrap" FontSize="11">
-                    <Hyperlink NavigateUri="https://github.com/drpetersonfernandes/CHDSharp" RequestNavigate="Hyperlink_RequestNavigate"
-                               Foreground="{StaticResource AccentSecondaryBrush}">CHDSharp</Hyperlink>
+                    <Hyperlink NavigateUri="https://github.com/drpetersonfernandes/CHDSharp"
+                               RequestNavigate="Hyperlink_RequestNavigate"
+                               Foreground="{StaticResource AccentSecondaryBrush}">
+                        CHDSharp
+                    </Hyperlink>
                     <Run Foreground="{StaticResource TextMutedBrush}"> - CHD file format parser</Run>
                     <LineBreak />
-                    <Hyperlink NavigateUri="https://github.com/dokan-dev/dokan-dotnet" RequestNavigate="Hyperlink_RequestNavigate"
-                               Foreground="{StaticResource AccentSecondaryBrush}">DokanNet</Hyperlink>
+                    <Hyperlink NavigateUri="https://github.com/dokan-dev/dokan-dotnet"
+                               RequestNavigate="Hyperlink_RequestNavigate"
+                               Foreground="{StaticResource AccentSecondaryBrush}">
+                        DokanNet
+                    </Hyperlink>
                     <Run Foreground="{StaticResource TextMutedBrush}"> - User-mode filesystem driver for Windows</Run>
                     <LineBreak />
-                    <Hyperlink NavigateUri="https://github.com/mamedev/mame" RequestNavigate="Hyperlink_RequestNavigate"
-                               Foreground="{StaticResource AccentSecondaryBrush}">MAME</Hyperlink>
+                    <Hyperlink NavigateUri="https://github.com/mamedev/mame"
+                               RequestNavigate="Hyperlink_RequestNavigate"
+                               Foreground="{StaticResource AccentSecondaryBrush}">
+                        MAME
+                    </Hyperlink>
                     <Run Foreground="{StaticResource TextMutedBrush}"> - CHD file format specification</Run>
                     <LineBreak />
-                    <Hyperlink NavigateUri="https://github.com/serilog/serilog" RequestNavigate="Hyperlink_RequestNavigate"
-                               Foreground="{StaticResource AccentSecondaryBrush}">Serilog</Hyperlink>
+                    <Hyperlink NavigateUri="https://github.com/serilog/serilog"
+                               RequestNavigate="Hyperlink_RequestNavigate"
+                               Foreground="{StaticResource AccentSecondaryBrush}">
+                        Serilog
+                    </Hyperlink>
                     <Run Foreground="{StaticResource TextMutedBrush}"> - Diagnostic logging library</Run>
                     <LineBreak />
-                    <Hyperlink NavigateUri="https://github.com/drpetersonfernandes/VideoGameFileSystemParser" RequestNavigate="Hyperlink_RequestNavigate"
-                               Foreground="{StaticResource AccentSecondaryBrush}">VideoGameFileSystemParser</Hyperlink>
+                    <Hyperlink NavigateUri="https://github.com/drpetersonfernandes/VideoGameFileSystemParser"
+                               RequestNavigate="Hyperlink_RequestNavigate"
+                               Foreground="{StaticResource AccentSecondaryBrush}">
+                        VideoGameFileSystemParser
+                    </Hyperlink>
                     <Run Foreground="{StaticResource TextMutedBrush}"> - Console filesystem parser</Run>
                     <LineBreak />
-                    <Hyperlink NavigateUri="https://github.com/winfsp/winfsp" RequestNavigate="Hyperlink_RequestNavigate"
-                               Foreground="{StaticResource AccentSecondaryBrush}">WinFsp</Hyperlink>
+                    <Hyperlink NavigateUri="https://github.com/winfsp/winfsp"
+                               RequestNavigate="Hyperlink_RequestNavigate"
+                               Foreground="{StaticResource AccentSecondaryBrush}">
+                        WinFsp
+                    </Hyperlink>
                     <Run Foreground="{StaticResource TextMutedBrush}"> - Windows File System Proxy</Run>
                     <LineBreak />
-                    <Hyperlink NavigateUri="https://github.com/lepoco/wpfui" RequestNavigate="Hyperlink_RequestNavigate"
-                               Foreground="{StaticResource AccentSecondaryBrush}">WPF-UI</Hyperlink>
+                    <Hyperlink NavigateUri="https://github.com/lepoco/wpfui"
+                               RequestNavigate="Hyperlink_RequestNavigate"
+                               Foreground="{StaticResource AccentSecondaryBrush}">
+                        WPF-UI
+                    </Hyperlink>
                     <Run Foreground="{StaticResource TextMutedBrush}"> - Modern Fluent UI toolkit for WPF</Run>
                 </TextBlock>
             </StackPanel>

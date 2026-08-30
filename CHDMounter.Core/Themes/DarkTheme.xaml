@@ -222,12 +222,16 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource BgQuaternaryBrush}" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BorderSecondaryBrush}" />
+                            <Setter TargetName="border" Property="Background"
+                                    Value="{StaticResource BgQuaternaryBrush}" />
+                            <Setter TargetName="border" Property="BorderBrush"
+                                    Value="{StaticResource BorderSecondaryBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource AccentPrimaryBrush}" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentSecondaryBrush}" />
+                            <Setter TargetName="border" Property="Background"
+                                    Value="{StaticResource AccentPrimaryBrush}" />
+                            <Setter TargetName="border" Property="BorderBrush"
+                                    Value="{StaticResource AccentSecondaryBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource BgSecondaryBrush}" />
@@ -262,10 +266,12 @@
                             <Setter TargetName="border" Property="Background" Value="{StaticResource AccentHoverBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource AccentPressedBrush}" />
+                            <Setter TargetName="border" Property="Background"
+                                    Value="{StaticResource AccentPressedBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource BgQuaternaryBrush}" />
+                            <Setter TargetName="border" Property="Background"
+                                    Value="{StaticResource BgQuaternaryBrush}" />
                             <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BgTertiaryBrush}" />
                             <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}" />
                         </Trigger>
@@ -303,10 +309,12 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BorderAccentBrush}" />
+                            <Setter TargetName="border" Property="BorderBrush"
+                                    Value="{StaticResource BorderAccentBrush}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BorderSecondaryBrush}" />
+                            <Setter TargetName="border" Property="BorderBrush"
+                                    Value="{StaticResource BorderSecondaryBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource BgTertiaryBrush}" />
@@ -324,7 +332,6 @@
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Background" Value="{StaticResource BgPrimaryBrush}" />
     </Style>
-
 
 
     <!-- ============================================ -->

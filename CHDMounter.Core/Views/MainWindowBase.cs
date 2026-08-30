@@ -3,23 +3,38 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Threading;
 using Microsoft.Win32;
+using Serilog;
 using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Core.Views;
 
 /// <summary>
-/// Shared base class for both Dokan and WinFsp MainWindow implementations.
-/// Contains all common UI logic, command-line handling, mount/unmount flow, and update checking.
+///     Shared base class for both Dokan and WinFsp MainWindow implementations.
+///     Contains all common UI logic, command-line handling, mount/unmount flow, and update checking.
 /// </summary>
 public class MainWindowBase : Window
 {
     private readonly IScreenshotService _screenshotService;
 
     private string? _chdPath;
-    private ConsoleType _selectedConsoleType = ConsoleType.Unknown;
-    private bool _launchExplorer;
     private string? _cliMountPoint;
+
+    private bool _isClosing;
+    private bool _launchExplorer;
+    private ConsoleType _selectedConsoleType = ConsoleType.Unknown;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="MainWindowBase" /> class and resolves required services.
+    /// </summary>
+    public MainWindowBase()
+    {
+        LoggingService = ServiceProvider.Get<ILoggingService>();
+        MountService = ServiceProvider.Get<IMountService>();
+        _screenshotService = ServiceProvider.Get<IScreenshotService>();
+    }
 
     private ILoggingService LoggingService { get; }
 
@@ -35,7 +50,7 @@ public class MainWindowBase : Window
     private Border UpdateBanner => (Border)FindName("UpdateBanner")!;
 
     /// <summary>
-    /// Returns the startup command-line arguments. Override in derived classes to supply application-specific arguments.
+    ///     Returns the startup command-line arguments. Override in derived classes to supply application-specific arguments.
     /// </summary>
     /// <returns>An array of command-line argument strings.</returns>
     protected virtual string[] GetStartupArgs()
@@ -44,18 +59,8 @@ public class MainWindowBase : Window
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MainWindowBase"/> class and resolves required services.
-    /// </summary>
-    public MainWindowBase()
-    {
-        LoggingService = ServiceProvider.Get<ILoggingService>();
-        MountService = ServiceProvider.Get<IMountService>();
-        _screenshotService = ServiceProvider.Get<IScreenshotService>();
-    }
-
-    /// <summary>
-    /// Initializes the main window by populating console types, wiring up logging, and registering event handlers.
-    /// Called from derived class constructors.
+    ///     Initializes the main window by populating console types, wiring up logging, and registering event handlers.
+    ///     Called from derived class constructors.
     /// </summary>
     protected void InitializeMainWindow()
     {
@@ -105,8 +110,8 @@ public class MainWindowBase : Window
 
     private void CheckForUpdates()
     {
-        var timer = new System.Windows.Threading.DispatcherTimer(
-            System.Windows.Threading.DispatcherPriority.Background, Dispatcher)
+        var timer = new DispatcherTimer(
+            DispatcherPriority.Background, Dispatcher)
         {
             Interval = TimeSpan.FromSeconds(2)
         };
@@ -118,42 +123,39 @@ public class MainWindowBase : Window
             {
                 var message = $"A new version ({result.LatestVersion}) is available!\n\nWould you like to download it?";
                 const string caption = "Update Available";
-                if (MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
-                {
+                if (MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Information) ==
+                    MessageBoxResult.Yes)
                     try
                     {
                         Process.Start(new ProcessStartInfo(result.DownloadUrl) { UseShellExecute = true });
                     }
                     catch (Exception ex)
                     {
-                        Serilog.Log.Warning(ex, "Failed to open download URL: {Url}", result.DownloadUrl);
+                        Log.Warning(ex, "Failed to open download URL: {Url}", result.DownloadUrl);
                     }
-                }
             }
         };
         timer.Start();
     }
 
     /// <summary>
-    /// Handles clicks on the update banner button by opening the download URL in the default browser.
+    ///     Handles clicks on the update banner button by opening the download URL in the default browser.
     /// </summary>
     protected void UpdateBannerButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: string url })
-        {
             try
             {
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
             catch (Exception ex)
             {
-                Serilog.Log.Warning(ex, "Failed to open update URL: {Url}", url);
+                Log.Warning(ex, "Failed to open update URL: {Url}", url);
             }
-        }
     }
 
     /// <summary>
-    /// Handles clicks on the update dismiss button by collapsing the update banner.
+    ///     Handles clicks on the update dismiss button by collapsing the update banner.
     /// </summary>
     protected void UpdateDismiss_Click(object sender, RoutedEventArgs e)
     {
@@ -168,9 +170,7 @@ public class MainWindowBase : Window
         var positional = new List<string>();
 
         foreach (var arg in args)
-        {
             if (arg.StartsWith("/", StringComparison.Ordinal))
-            {
                 switch (arg.ToLowerInvariant())
                 {
                     case "/l":
@@ -181,20 +181,13 @@ public class MainWindowBase : Window
                     case var s when s.StartsWith("/s:", StringComparison.Ordinal):
                     {
                         consoleType = ConsoleTypeRegistry.Parse(s[3..]);
-                        if (consoleType == ConsoleType.Unknown)
-                        {
-                            consoleType = null;
-                        }
+                        if (consoleType == ConsoleType.Unknown) consoleType = null;
 
                         break;
                     }
                 }
-            }
             else
-            {
                 positional.Add(arg);
-            }
-        }
 
         var pos = 0;
 
@@ -220,21 +213,14 @@ public class MainWindowBase : Window
         {
             var ct = ConsoleTypeRegistry.Parse(positional[pos]);
             if (ct != ConsoleType.Unknown)
-            {
                 consoleType ??= ct;
-            }
             else
-            {
                 _cliMountPoint = positional[pos];
-            }
 
             pos++;
         }
 
-        if (positional.Count > pos)
-        {
-            _cliMountPoint = positional[pos];
-        }
+        if (positional.Count > pos) _cliMountPoint = positional[pos];
 
         if (chdPath is not null)
         {
@@ -251,13 +237,9 @@ public class MainWindowBase : Window
         ValidateAndEnableMount();
 
         if (consoleType.HasValue && chdPath is not null && File.Exists(chdPath))
-        {
             MountDisk();
-        }
         else if (chdPath is not null && File.Exists(chdPath) && !consoleType.HasValue)
-        {
             ShowDragDropConsoleModal(chdPath);
-        }
     }
 
     private async void ShowDragDropConsoleModal(string chdPath)
@@ -273,24 +255,22 @@ public class MainWindowBase : Window
                     SelectConsoleTypeInCombo(dialog.SelectedConsoleType);
                     MountDisk();
                 }
-            }), System.Windows.Threading.DispatcherPriority.Background);
+            }), DispatcherPriority.Background);
         }
         catch (Exception ex)
         {
-            Serilog.Log.Error(ex, "Failed to open modal selection window");
+            Log.Error(ex, "Failed to open modal selection window");
         }
     }
 
     private void SelectConsoleTypeInCombo(ConsoleType type)
     {
         foreach (var item in ConsoleTypeComboBox.Items)
-        {
             if (item is ConsoleInfo ci && ci.Type == type)
             {
                 ConsoleTypeComboBox.SelectedItem = item;
                 return;
             }
-        }
     }
 
     private void ValidateAndEnableMount()
@@ -303,20 +283,17 @@ public class MainWindowBase : Window
     }
 
     /// <summary>
-    /// Handles selection changes in the console type combo box.
+    ///     Handles selection changes in the console type combo box.
     /// </summary>
     protected void ConsoleType_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ConsoleTypeComboBox.SelectedItem is ConsoleInfo ci)
-        {
-            _selectedConsoleType = ci.Type;
-        }
+        if (ConsoleTypeComboBox.SelectedItem is ConsoleInfo ci) _selectedConsoleType = ci.Type;
 
         ValidateAndEnableMount();
     }
 
     /// <summary>
-    /// Handles text changes in the CHD file path text box.
+    ///     Handles text changes in the CHD file path text box.
     /// </summary>
     protected void ChdFilePath_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -325,7 +302,7 @@ public class MainWindowBase : Window
     }
 
     /// <summary>
-    /// Opens a file dialog to browse for a CHD file.
+    ///     Opens a file dialog to browse for a CHD file.
     /// </summary>
     protected void BrowseChd_Click(object sender, RoutedEventArgs e)
     {
@@ -343,7 +320,7 @@ public class MainWindowBase : Window
     }
 
     /// <summary>
-    /// Opens a CHD file via the file menu.
+    ///     Opens a CHD file via the file menu.
     /// </summary>
     protected void OpenChd_Click(object sender, RoutedEventArgs e)
     {
@@ -351,7 +328,7 @@ public class MainWindowBase : Window
     }
 
     /// <summary>
-    /// Handles the mount button click by initiating an asynchronous mount operation.
+    ///     Handles the mount button click by initiating an asynchronous mount operation.
     /// </summary>
     protected async void Mount_Click(object sender, RoutedEventArgs e)
     {
@@ -361,7 +338,7 @@ public class MainWindowBase : Window
         }
         catch (Exception ex)
         {
-            LoggingService.LogError($"Mount failed: {ex.Message}");
+            LogMountFailure(ex);
         }
     }
 
@@ -370,7 +347,7 @@ public class MainWindowBase : Window
         _ = MountDiskAsync().ContinueWith(t =>
         {
             if (t.IsFaulted)
-                LoggingService.LogError($"Mount failed: {t.Exception?.InnerException?.Message}");
+                LogMountFailure(t.Exception?.InnerException ?? t.Exception!);
         }, TaskScheduler.Default);
     }
 
@@ -391,10 +368,7 @@ public class MainWindowBase : Window
         try
         {
             var type = _selectedConsoleType;
-            if (ConsoleTypeComboBox.SelectedItem is ConsoleInfo sci)
-            {
-                type = sci.Type;
-            }
+            if (ConsoleTypeComboBox.SelectedItem is ConsoleInfo sci) type = sci.Type;
 
             await Task.Run(() => MountService.Mount(_chdPath, _cliMountPoint, type));
 
@@ -412,7 +386,7 @@ public class MainWindowBase : Window
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Warning(ex, "Failed to auto-open mounted drive in explorer");
+                    Log.Warning(ex, "Failed to auto-open mounted drive in explorer");
                 }
             }
             else
@@ -423,14 +397,28 @@ public class MainWindowBase : Window
         }
         catch (Exception ex)
         {
-            LoggingService.LogError($"Mount failed: {ex.Message}");
+            LogMountFailure(ex);
             StatusText.Text = "Mount failed";
             MountButton.IsEnabled = true;
         }
     }
 
+    private void LogMountFailure(Exception ex)
+    {
+        var sb = new StringBuilder($"Mount failed: {ex.Message}");
+        var current = ex.InnerException;
+        while (current is not null)
+        {
+            sb.AppendLine();
+            sb.Append($"  caused by: {current.GetType().Name}: {current.Message}");
+            current = current.InnerException;
+        }
+
+        LoggingService.LogError(sb.ToString());
+    }
+
     /// <summary>
-    /// Handles the unmount button click by initiating an asynchronous unmount operation.
+    ///     Handles the unmount button click by initiating an asynchronous unmount operation.
     /// </summary>
     protected async void Unmount_Click(object sender, RoutedEventArgs e)
     {
@@ -462,7 +450,7 @@ public class MainWindowBase : Window
     }
 
     /// <summary>
-    /// Closes the application window.
+    ///     Closes the application window.
     /// </summary>
     protected void Exit_Click(object sender, RoutedEventArgs e)
     {
@@ -470,7 +458,7 @@ public class MainWindowBase : Window
     }
 
     /// <summary>
-    /// Opens the application data folder in File Explorer.
+    ///     Opens the application data folder in File Explorer.
     /// </summary>
     protected void OpenAppDataFolder_Click(object sender, RoutedEventArgs e)
     {
@@ -482,7 +470,7 @@ public class MainWindowBase : Window
     }
 
     /// <summary>
-    /// Opens the settings dialog.
+    ///     Opens the settings dialog.
     /// </summary>
     protected void Settings_Click(object sender, RoutedEventArgs e)
     {
@@ -491,14 +479,12 @@ public class MainWindowBase : Window
     }
 
     /// <summary>
-    /// Opens the about dialog.
+    ///     Opens the about dialog.
     /// </summary>
     protected void About_Click(object sender, RoutedEventArgs e)
     {
         new AboutWindow { Owner = this }.ShowDialog();
     }
-
-    private bool _isClosing;
 
     private async void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
@@ -518,7 +504,7 @@ public class MainWindowBase : Window
             }
             catch (Exception ex)
             {
-                Serilog.Log.Warning(ex, "Failed to unmount during window close");
+                Log.Warning(ex, "Failed to unmount during window close");
             }
 
             _isClosing = false;
@@ -526,13 +512,13 @@ public class MainWindowBase : Window
         }
         catch (Exception ex)
         {
-            Serilog.Log.Error(ex, "Error during window closing");
+            Log.Error(ex, "Error during window closing");
         }
     }
 
-    private void MainWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    private void MainWindow_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == System.Windows.Input.Key.F8)
+        if (e.Key == Key.F8)
         {
             _screenshotService.TakeScreenshot();
             e.Handled = true;

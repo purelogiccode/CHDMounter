@@ -2,34 +2,27 @@ using System.Diagnostics;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Windows;
-using Fsp;
-using Microsoft.Win32;
 using CHDMounter.Core.Interfaces;
+using Fsp;
 using VideoGameFileSystemParser.Parsers;
 
 #pragma warning disable CA1707
 namespace CHDMounter_WinFsp.Services;
 
 /// <summary>
-/// Mounts and unmounts CHD disc images as virtual drives using the WinFsp file system driver.
-/// Supports cross-integrity mounts when running as Administrator.
+///     Mounts and unmounts CHD disc images as virtual drives using the WinFsp file system driver.
+///     Supports cross-integrity mounts when running as Administrator.
 /// </summary>
 internal class MountService : IMountService
 {
     private readonly ILoggingService _loggingService;
     private readonly Lock _mountLock = new();
-    private FileSystemHost? _host;
-    private ChdFs? _currentFs;
     private ChdContainer? _container;
-
-    /// <inheritdoc/>
-    public bool IsMounted { get; private set; }
-
-    /// <inheritdoc/>
-    public string MountPoint { get; private set; } = "";
+    private ChdFs? _currentFs;
+    private FileSystemHost? _host;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MountService"/> class.
+    ///     Initializes a new instance of the <see cref="MountService" /> class.
     /// </summary>
     /// <param name="loggingService">The logging service for recording mount operations.</param>
     internal MountService(ILoggingService loggingService)
@@ -37,22 +30,28 @@ internal class MountService : IMountService
         _loggingService = loggingService;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
+    public bool IsMounted { get; private set; }
+
+    /// <inheritdoc />
+    public string MountPoint { get; private set; } = "";
+
+    /// <inheritdoc />
     public bool CanMount()
     {
         return IsWinFspInstalled();
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public void Mount(string chdPath, string? mountPoint, ConsoleType consoleType)
     {
         lock (_mountLock)
         {
             if (IsMounted) throw new InvalidOperationException("Already mounted.");
 
-            if (!IsWinFspInstalled())
+            if (!IsWinFspInstalled(out var winFspReason))
             {
-                _loggingService.LogError("WinFsp not found. Unable to mount CHD.");
+                _loggingService.LogError($"WinFsp not available: {winFspReason ?? "unknown reason"}");
                 ShowWinFspNotInstalledDialog();
                 return;
             }
@@ -64,7 +63,8 @@ internal class MountService : IMountService
                 _container = new ChdContainer(chdPath);
                 if (!_container.MountAndParse(consoleType))
                 {
-                    _loggingService.LogError($"Failed to open or parse CHD as {consoleType}.");
+                    _loggingService.LogError(
+                        $"Failed to open or parse CHD as {consoleType}: {_container.LastError ?? "unknown reason"}.");
                     return;
                 }
 
@@ -72,7 +72,8 @@ internal class MountService : IMountService
 
                 var crossIntegrity = IsRunningAsAdministrator();
                 if (crossIntegrity)
-                    _loggingService.Log("Running as Administrator: Cross-integrity mount enforced so standard processes can access the drive.");
+                    _loggingService.Log(
+                        "Running as Administrator: Cross-integrity mount enforced so standard processes can access the drive.");
 
                 // Per-session or elevated-session drives can be invisible to
                 // DriveInfo.GetDrives(), so a picked letter may already be in use.
@@ -88,14 +89,16 @@ internal class MountService : IMountService
                     {
                         candidates = DriveHelper.GetAvailableDriveLetters().ToList();
                         if (candidates.Count == 0)
-                            throw new InvalidOperationException("No available drive letter found. All drive letters are in use.");
+                            throw new InvalidOperationException(
+                                "No available drive letter found. All drive letters are in use.");
                     }
                 }
                 else
                 {
                     if (crossIntegrity && IsDriveLetterMountPoint(mountPoint))
                     {
-                        _loggingService.Log("Cross-integrity mode: Drive letter mounts are not supported. Redirecting to folder mount.");
+                        _loggingService.Log(
+                            "Cross-integrity mode: Drive letter mounts are not supported. Redirecting to folder mount.");
                         candidates = GetCrossIntegrityMountCandidates(chdPath);
                     }
                     else if (IsDriveLetterMountPoint(mountPoint))
@@ -158,7 +161,9 @@ internal class MountService : IMountService
                     }
                 }
 
-                throw lastError ?? new InvalidOperationException("No available drive letter found. All drive letters are in use.");
+                throw lastError is not null
+                    ? TranslateMountFailure(lastError)
+                    : new InvalidOperationException("No available drive letter found. All drive letters are in use.");
             }
             finally
             {
@@ -180,7 +185,7 @@ internal class MountService : IMountService
         }
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public void Unmount()
     {
         lock (_mountLock)
@@ -189,7 +194,6 @@ internal class MountService : IMountService
 
             _loggingService.Log($"Unmounting {MountPoint} (WinFsp)...");
             if (_host is not null)
-            {
                 try
                 {
                     _host.Unmount();
@@ -198,7 +202,6 @@ internal class MountService : IMountService
                 {
                     _loggingService.LogError($"Error: {ex.Message}");
                 }
-            }
 
             _host?.Dispose();
             _host = null;
@@ -209,6 +212,20 @@ internal class MountService : IMountService
             IsMounted = false;
             MountPoint = "";
         }
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Unmount();
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc />
+    public ValueTask DisposeAsync()
+    {
+        Dispose();
+        return ValueTask.CompletedTask;
     }
 
     private static bool IsRunningAsAdministrator()
@@ -253,12 +270,8 @@ internal class MountService : IMountService
         var invalid = Path.GetInvalidFileNameChars();
         var chars = name.ToCharArray();
         for (var i = 0; i < chars.Length; i++)
-        {
             if (invalid.Contains(chars[i]))
-            {
                 chars[i] = '_';
-            }
-        }
 
         return new string(chars);
     }
@@ -269,82 +282,33 @@ internal class MountService : IMountService
                                           && (mountPoint.Length == 2 || mountPoint is [_, _, '\\']);
     }
 
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        Unmount();
-        GC.SuppressFinalize(this);
-    }
-
-    /// <inheritdoc/>
-    public ValueTask DisposeAsync()
-    {
-        Dispose();
-        return ValueTask.CompletedTask;
-    }
-
     private static bool IsWinFspInstalled()
     {
-        return EnsureWinFspOnPath();
+        return WinFspEnvironment.EnsureWinFspLoadable(out _);
     }
 
-    private static bool EnsureWinFspOnPath()
+    private static bool IsWinFspInstalled(out string? reason)
     {
-        try
-        {
-            var currentPath = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
-            if (currentPath.Contains("WinFsp", StringComparison.OrdinalIgnoreCase))
-                return true;
-
-            var binDir = FindWinFspBinDir();
-            if (binDir is null)
-                return false;
-
-            var dllName = Environment.Is64BitProcess ? "winfsp-x64.dll" : "winfsp-x86.dll";
-            var dllPath = Path.Combine(binDir, dllName);
-            if (!File.Exists(dllPath))
-                return false;
-
-            Environment.SetEnvironmentVariable("PATH", binDir + ";" + currentPath, EnvironmentVariableTarget.Process);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        return WinFspEnvironment.EnsureWinFspLoadable(out reason);
     }
 
-    private static string? FindWinFspBinDir()
+    private static Exception TranslateMountFailure(Exception lastError)
     {
-        try
-        {
-            using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\WinFsp")
-                            ?? Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WinFsp");
-            if (key is null)
-                return null;
+        var innermost = lastError;
+        while (innermost.InnerException is not null)
+            innermost = innermost.InnerException;
 
-            var sxsDir = key.GetValue("SxsDir") as string;
-            if (!string.IsNullOrEmpty(sxsDir))
-            {
-                var sxsBin = Path.Combine(sxsDir, "bin");
-                if (Directory.Exists(sxsBin))
-                    return sxsBin;
-            }
+        var isTypeInitFailure = lastError is TypeInitializationException ||
+                                (lastError is InvalidOperationException &&
+                                 lastError.Message.Contains("type initializer", StringComparison.OrdinalIgnoreCase));
 
-            var installDir = key.GetValue("InstallDir") as string;
-            if (!string.IsNullOrEmpty(installDir))
-            {
-                var installBin = Path.Combine(installDir, "bin");
-                if (Directory.Exists(installBin))
-                    return installBin;
-            }
-        }
-        catch (Exception ex)
-        {
-            Serilog.Log.Warning(ex, "Failed to find WinFsp binary directory");
-        }
+        if (isTypeInitFailure || innermost is DllNotFoundException or BadImageFormatException)
+            return new InvalidOperationException(
+                "The WinFsp native library (winfsp-x64.dll / winfsp-x86.dll) could not be loaded. " +
+                "Install or repair WinFsp, then restart this application.",
+                lastError);
 
-        return null;
+        return lastError;
     }
 
     private static void ShowWinFspNotInstalledDialog()
@@ -357,12 +321,10 @@ internal class MountService : IMountService
             MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
         if (result == MessageBoxResult.Yes)
-        {
             Process.Start(new ProcessStartInfo
             {
                 FileName = "https://github.com/winfsp/winfsp/releases",
                 UseShellExecute = true
             });
-        }
     }
 }

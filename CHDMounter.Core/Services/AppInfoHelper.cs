@@ -1,17 +1,17 @@
 using System.Reflection;
-using System.Text;
 
 namespace CHDMounter.Core.Services;
 
 /// <summary>
-/// Provides shared helper methods for application metadata and API key access.
+///     Provides shared helper methods for application metadata and API key access.
 /// </summary>
 internal static class AppInfoHelper
 {
-    private const string ApiKeyEncoded = "YUdwb04zbDFOblExTm5SNWNqVTBNRzg1ZFRnM05qYzJOelp5TlRZM05EVXpORFExTXpJek5USTJOR00zTldJMmREZG5aMmRvWjJjM05uUnlaalUyTkdVPQ==";
+    private const string ApiKeyEncoded =
+        "YUdwb04zbDFOblExTm5SNWNqVTBNRzg1ZFRnM05qYzJOelp5TlRZM05EVXpORFExTXpJek5USTJOR00zTldJMmREZG5aMmRvWjJjM05uUnlaalUyTkdVPQ==";
 
     /// <summary>
-    /// Gets the application name from the entry assembly, or "CHDMounter" as a fallback.
+    ///     Gets the application name from the entry assembly, or "CHDMounter" as a fallback.
     /// </summary>
     internal static string GetAppName()
     {
@@ -26,7 +26,7 @@ internal static class AppInfoHelper
     }
 
     /// <summary>
-    /// Gets the application version string from the entry assembly, or "1.0.0" as a fallback.
+    ///     Gets the application version string from the entry assembly, or "1.0.0" as a fallback.
     /// </summary>
     internal static string GetVersion()
     {
@@ -41,7 +41,7 @@ internal static class AppInfoHelper
     }
 
     /// <summary>
-    /// Decodes and returns the API key from the embedded encoded constant.
+    ///     Decodes and returns the API key from the embedded encoded constant.
     /// </summary>
     internal static string GetApiKey()
     {

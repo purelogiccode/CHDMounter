@@ -14,14 +14,16 @@ public class BugReportClientExtendedTests
 
     private static string InvokeBuildEnvironmentDetails()
     {
-        var method = typeof(BugReportClient).GetMethod("BuildEnvironmentDetails", BindingFlags.NonPublic | BindingFlags.Static);
+        var method =
+            typeof(BugReportClient).GetMethod("BuildEnvironmentDetails", BindingFlags.NonPublic | BindingFlags.Static);
         Assert.NotNull(method);
         return (string)method.Invoke(null, null!)!;
     }
 
     private static string InvokeBuildExceptionDetails(Exception ex)
     {
-        var method = typeof(BugReportClient).GetMethod("BuildExceptionDetails", BindingFlags.NonPublic | BindingFlags.Static);
+        var method =
+            typeof(BugReportClient).GetMethod("BuildExceptionDetails", BindingFlags.NonPublic | BindingFlags.Static);
         Assert.NotNull(method);
         return (string)method.Invoke(null, [ex])!;
     }
@@ -127,7 +129,8 @@ public class BugReportClientExtendedTests
     {
         var result = InvokeBuildEnvironmentDetails();
         Assert.Contains("Date:", result, StringComparison.Ordinal);
-        Assert.Contains(DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), result, StringComparison.Ordinal);
+        Assert.Contains(DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), result,
+            StringComparison.Ordinal);
     }
 
     [Fact]
@@ -173,7 +176,8 @@ public class BugReportClientExtendedTests
     {
         var result = InvokeBuildEnvironmentDetails();
         Assert.Contains("Processor Count:", result, StringComparison.Ordinal);
-        Assert.Contains(Environment.ProcessorCount.ToString(CultureInfo.InvariantCulture), result, StringComparison.Ordinal);
+        Assert.Contains(Environment.ProcessorCount.ToString(CultureInfo.InvariantCulture), result,
+            StringComparison.Ordinal);
     }
 
     [Fact]
@@ -303,6 +307,7 @@ public class BugReportClientExtendedTests
     [Fact]
     public void SendMethodsDoNotThrowWhenSendingDisabled()
     {
+        var originalValue = BugReportClient.IsSendingEnabled;
         BugReportClient.IsSendingEnabled = false;
         try
         {
@@ -316,7 +321,7 @@ public class BugReportClientExtendedTests
         }
         finally
         {
-            BugReportClient.IsSendingEnabled = true;
+            BugReportClient.IsSendingEnabled = originalValue;
         }
     }
 

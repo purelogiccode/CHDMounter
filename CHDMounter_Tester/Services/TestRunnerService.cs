@@ -1,31 +1,21 @@
 using System.Diagnostics;
 using Serilog;
+using Tester.Models;
 using VideoGameFileSystemParser.Models;
 using VideoGameFileSystemParser.Parsers;
-using Tester.Models;
 
 namespace Tester.Services;
 
 /// <summary>
-/// Orchestrates CHD parsing tests across a folder of CHD files, collecting results and emitting progress events.
+///     Orchestrates CHD parsing tests across a folder of CHD files, collecting results and emitting progress events.
 /// </summary>
 internal sealed class TestRunnerService
 {
-    private readonly ILogger _logger;
     private readonly List<string> _logLines = [];
+    private readonly ILogger _logger;
 
     /// <summary>
-    /// Raised when a log message should be displayed to the user.
-    /// </summary>
-    public event EventHandler<EventArgs<string>>? LogMessage;
-
-    /// <summary>
-    /// Raised when all tests have completed with the final summary.
-    /// </summary>
-    public event EventHandler<EventArgs<TestSummary>>? AllCompleted;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TestRunnerService"/> class.
+    ///     Initializes a new instance of the <see cref="TestRunnerService" /> class.
     /// </summary>
     /// <param name="logger">The Serilog logger for recording test output.</param>
     public TestRunnerService(ILogger logger)
@@ -34,13 +24,24 @@ internal sealed class TestRunnerService
     }
 
     /// <summary>
-    /// Runs parsing tests on all CHD files in the specified folder.
+    ///     Raised when a log message should be displayed to the user.
+    /// </summary>
+    public event EventHandler<EventArgs<string>>? LogMessage;
+
+    /// <summary>
+    ///     Raised when all tests have completed with the final summary.
+    /// </summary>
+    public event EventHandler<EventArgs<TestSummary>>? AllCompleted;
+
+    /// <summary>
+    ///     Runs parsing tests on all CHD files in the specified folder.
     /// </summary>
     /// <param name="folderPath">The folder containing CHD files to test.</param>
     /// <param name="consoleInfo">The console type information to use for parsing.</param>
     /// <param name="ct">A cancellation token to abort the test run.</param>
-    /// <returns>A <see cref="TestSummary"/> containing the aggregated results.</returns>
-    public async Task<TestSummary> RunTestsAsync(string folderPath, ConsoleInfo consoleInfo, CancellationToken ct = default)
+    /// <returns>A <see cref="TestSummary" /> containing the aggregated results.</returns>
+    public async Task<TestSummary> RunTestsAsync(string folderPath, ConsoleInfo consoleInfo,
+        CancellationToken ct = default)
     {
         var summary = new TestSummary
         {
@@ -91,21 +92,12 @@ internal sealed class TestRunnerService
                     var fileCount = 0;
                     var dirCount = 0;
                     foreach (var entry in container.Entries)
-                    {
                         if (entry.IsDirectory)
-                        {
                             dirCount++;
-                        }
                         else
-                        {
                             fileCount++;
-                        }
-                    }
 
-                    if (dirCount > 0)
-                    {
-                        dirCount--;
-                    }
+                    if (dirCount > 0) dirCount--;
 
                     result = new TestResult(
                         fileName,
@@ -136,7 +128,8 @@ internal sealed class TestRunnerService
                         sw.Elapsed
                     );
 
-                    EmitLog($"  OK   Audio-only disc — no data track to parse. Size: {FormatBytes(container.VolumeSize)}, Time: {sw.Elapsed.TotalSeconds:F2}s");
+                    EmitLog(
+                        $"  OK   Audio-only disc — no data track to parse. Size: {FormatBytes(container.VolumeSize)}, Time: {sw.Elapsed.TotalSeconds:F2}s");
                 }
                 else
                 {

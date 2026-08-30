@@ -4,15 +4,16 @@ using System.Text;
 namespace VideoGameFileSystemParser.Parsers;
 
 /// <summary>
-/// Parses ISO 9660 (High Sierra, Joliet, CD-XA) file systems. Supports SUSP/Rock Ridge for POSIX attributes and symlinks.
+///     Parses ISO 9660 (High Sierra, Joliet, CD-XA) file systems. Supports SUSP/Rock Ridge for POSIX attributes and
+///     symlinks.
 /// </summary>
 public class Iso9660Parser
 {
     private const int MaxCeChain = 64;
 
     private readonly SectorReader _reader;
-    private readonly HashSet<uint> _visitedDirs = [];
     private readonly bool _scanWithinSector;
+    private readonly HashSet<uint> _visitedDirs = [];
     private bool _isHighSierra;
     private bool _isJoliet;
     private bool _isXa;
@@ -20,12 +21,14 @@ public class Iso9660Parser
     private byte _suspSkip;
 
     /// <summary>
-    /// Initializes a new instance of the Iso9660Parser class.
+    ///     Initializes a new instance of the Iso9660Parser class.
     /// </summary>
     /// <param name="reader">The SectorReader to read sectors from.</param>
-    /// <param name="scanWithinSector">If true, scans entire sectors byte-offset for VD signatures
-    /// (handles raw-sector images where CD sync headers weren't fully stripped,
-    /// e.g. some PC-FX and other CD-ROM dumps).</param>
+    /// <param name="scanWithinSector">
+    ///     If true, scans entire sectors byte-offset for VD signatures
+    ///     (handles raw-sector images where CD sync headers weren't fully stripped,
+    ///     e.g. some PC-FX and other CD-ROM dumps).
+    /// </param>
     public Iso9660Parser(SectorReader reader, bool scanWithinSector = false)
     {
         _reader = reader;
@@ -33,7 +36,7 @@ public class Iso9660Parser
     }
 
     /// <summary>
-    /// Parses the ISO 9660 file system, locating the PVD and building the directory tree.
+    ///     Parses the ISO 9660 file system, locating the PVD and building the directory tree.
     /// </summary>
     /// <param name="track">Optional track to restrict parsing to.</param>
     /// <param name="rootNode">The root FsNode to populate.</param>
@@ -68,32 +71,28 @@ public class Iso9660Parser
         var sectorData = new byte[2048];
 
         foreach (var offset in vdOffsets)
-        {
-            if (ScanSectorForVd(effectiveTrackStart + offset, sectorData, ref foundPvd, ref _isHighSierra, ref _isJoliet, ref bestVdData!))
+            if (ScanSectorForVd(effectiveTrackStart + offset, sectorData, ref foundPvd, ref _isHighSierra,
+                    ref _isJoliet, ref bestVdData!))
                 break;
-        }
 
         if (!foundPvd && effectiveTrackStart != 0)
         {
             _reader.SetTrack(null);
             foreach (var offset in vdOffsets)
-            {
-                if (ScanSectorForVd(offset, sectorData, ref foundPvd, ref _isHighSierra, ref _isJoliet, ref bestVdData!))
+                if (ScanSectorForVd(offset, sectorData, ref foundPvd, ref _isHighSierra, ref _isJoliet,
+                        ref bestVdData!))
                 {
                     effectiveTrackStart = 0;
                     _reader.SetTrack(null);
                     break;
                 }
-            }
         }
 
         if (!foundPvd)
         {
             var scanLimit = track is { Frames: > 0 } ? Math.Min(track.Frames, 5000u) : 5000u;
             for (uint i = 0; i < scanLimit; i++)
-            {
                 if (_reader.ReadSector(effectiveTrackStart + i, sectorData) && sectorData.Length >= 16)
-                {
                     if (TryFindVdInSector(sectorData, out var isHs, out var isJoliet))
                     {
                         _isHighSierra = isHs;
@@ -102,8 +101,6 @@ public class Iso9660Parser
                         bestVdData = (byte[])sectorData.Clone();
                         break;
                     }
-                }
-            }
         }
 
         if (!foundPvd)
@@ -135,10 +132,8 @@ public class Iso9660Parser
         uint[] candidates = [trackStart, 150, 0];
 
         foreach (var candidate in candidates)
-        {
             if (IsRootDirectorySector(candidate + rootRelLba, rootRelLba, true))
                 return candidate;
-        }
 
         // Multisession discs (CD-Extra style): extents are absolute LBAs including an
         // inter-session gap that is not stored in the CHD, so the bias is disc-specific.
@@ -155,15 +150,14 @@ public class Iso9660Parser
         }
 
         foreach (var candidate in candidates)
-        {
             if (IsRootDirectorySector(candidate + rootRelLba, rootRelLba, false))
                 return candidate;
-        }
 
         return trackStart;
     }
 
-    private bool ScanSectorForVd(uint lba, byte[] sectorData, ref bool found, ref bool isHs, ref bool isJol, ref byte[] best)
+    private bool ScanSectorForVd(uint lba, byte[] sectorData, ref bool found, ref bool isHs, ref bool isJol,
+        ref byte[] best)
     {
         if (!_reader.ReadSector(lba, sectorData) || sectorData.Length < 16)
             return false;
@@ -240,9 +234,8 @@ public class Iso9660Parser
         if (off + magic.Length > data.Length) return false;
 
         for (var i = 0; i < magic.Length; i++)
-        {
-            if (data[off + i] != magic[i]) return false;
-        }
+            if (data[off + i] != magic[i])
+                return false;
 
         return true;
     }
@@ -279,7 +272,7 @@ public class Iso9660Parser
     }
 
     /// <summary>
-    /// Parses a directory sector chain recursively.
+    ///     Parses a directory sector chain recursively.
     /// </summary>
     /// <param name="dirNode">The directory node to populate.</param>
     /// <param name="trackStart">The LBA of the containing track.</param>
@@ -308,10 +301,7 @@ public class Iso9660Parser
                 if (pos + recordLen > 2048 || recordLen < 34)
                 {
                     pos += recordLen;
-                    if ((pos & 1) != 0)
-                    {
-                        pos++;
-                    }
+                    if ((pos & 1) != 0) pos++;
 
                     continue;
                 }
@@ -332,17 +322,15 @@ public class Iso9660Parser
                 if (nameOff + nameLen > recordLen || pos + nameOff + nameLen > 2048)
                 {
                     pos += recordLen;
-                    if ((pos & 1) != 0)
-                    {
-                        pos++;
-                    }
+                    if ((pos & 1) != 0) pos++;
 
                     continue;
                 }
 
                 var name = DecodeName(sectorData, (int)pos + nameOff, nameLen);
 
-                if (name != "." && name != "..")
+                if (!string.Equals(name, ".", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(name, "..", StringComparison.OrdinalIgnoreCase))
                 {
                     // Extended attribute records occupy xattr_len blocks before the data (ECMA-119 9.1.2)
                     var absoluteLba = trackStart + relLba + xattrLen;
@@ -366,10 +354,7 @@ public class Iso9660Parser
                         }
                         else
                         {
-                            if (!string.IsNullOrEmpty(susp.Name))
-                            {
-                                name = susp.Name;
-                            }
+                            if (!string.IsNullOrEmpty(susp.Name)) name = susp.Name;
 
                             if (susp.ChildLinkLba != 0 &&
                                 ReadSelfRecord(trackStart + susp.ChildLinkLba, out var clLba, out var clSize))
@@ -384,12 +369,9 @@ public class Iso9660Parser
 
                     if (!skipRecord && illMultiExtentName != null)
                     {
-                        if (name == illMultiExtentName && !isDir)
+                        if (string.Equals(name, illMultiExtentName, StringComparison.OrdinalIgnoreCase) && !isDir)
                         {
-                            if (!isMulti)
-                            {
-                                illMultiExtentName = null;
-                            }
+                            if (!isMulti) illMultiExtentName = null;
 
                             skipRecord = true;
                         }
@@ -402,15 +384,13 @@ public class Iso9660Parser
                     if (!skipRecord)
                     {
                         var last = dirNode.Children.Count > 0 ? dirNode.Children[^1] : null;
-                        if (last is { IsMultiExtent: true, IsDirectory: false } && last.Name == name && !isDir)
+                        if (last is { IsMultiExtent: true, IsDirectory: false } &&
+                            string.Equals(last.Name, name, StringComparison.OrdinalIgnoreCase) && !isDir)
                         {
                             if (last.Extents.Count > 0 && last.Extents[^1].Size % 2048 != 0)
                             {
                                 last.IsMultiExtent = false;
-                                if (isMulti)
-                                {
-                                    illMultiExtentName = name;
-                                }
+                                if (isMulti) illMultiExtentName = name;
                             }
                             else
                             {
@@ -444,40 +424,19 @@ public class Iso9660Parser
 
                             if (susp != null)
                             {
-                                if (susp.UnixMode.HasValue)
-                                {
-                                    child.UnixMode = susp.UnixMode;
-                                }
+                                if (susp.UnixMode.HasValue) child.UnixMode = susp.UnixMode;
 
-                                if (susp.Uid.HasValue)
-                                {
-                                    child.Uid = susp.Uid;
-                                }
+                                if (susp.Uid.HasValue) child.Uid = susp.Uid;
 
-                                if (susp.Gid.HasValue)
-                                {
-                                    child.Gid = susp.Gid;
-                                }
+                                if (susp.Gid.HasValue) child.Gid = susp.Gid;
 
-                                if (susp.Inode.HasValue)
-                                {
-                                    child.Inode = susp.Inode;
-                                }
+                                if (susp.Inode.HasValue) child.Inode = susp.Inode;
 
-                                if (susp.LinkCount.HasValue)
-                                {
-                                    child.LinkCount = susp.LinkCount;
-                                }
+                                if (susp.LinkCount.HasValue) child.LinkCount = susp.LinkCount;
 
-                                if (susp.CreatedTime.HasValue)
-                                {
-                                    child.CreatedTime = susp.CreatedTime;
-                                }
+                                if (susp.CreatedTime.HasValue) child.CreatedTime = susp.CreatedTime;
 
-                                if (susp.AccessedTime.HasValue)
-                                {
-                                    child.AccessedTime = susp.AccessedTime;
-                                }
+                                if (susp.AccessedTime.HasValue) child.AccessedTime = susp.AccessedTime;
                             }
 
                             child.Extents.Add(new FsExtent { Lba = child.Lba, Size = child.Size });
@@ -488,29 +447,11 @@ public class Iso9660Parser
                 }
 
                 pos += recordLen;
-                if ((pos & 1) != 0)
-                {
-                    pos++;
-                }
+                if ((pos & 1) != 0) pos++;
             }
         }
 
         return true;
-    }
-
-    private sealed class SuspInfo
-    {
-        public string? Name;
-        public bool Relocated;
-        public uint ChildLinkLba;
-        public uint? UnixMode;
-        public uint? Uid;
-        public uint? Gid;
-        public uint? Inode;
-        public uint? LinkCount;
-        public string? SymlinkTarget;
-        public DateTime? CreatedTime;
-        public DateTime? AccessedTime;
     }
 
     private void DetectSusp(uint rootLba)
@@ -524,7 +465,7 @@ public class Iso9660Parser
         var nameLen = sec[32];
         if (nameLen != 1 || sec[33] != 0x00) return; // must be the "." self record
 
-        var su = 33 + nameLen + (0);
+        var su = 33 + nameLen + 0;
         if (su + 7 > recLen) return;
 
         // SUSP "SP" entry: 'S' 'P' len ver 0xBE 0xEF skip
@@ -557,10 +498,7 @@ public class Iso9660Parser
                 var entryLen = buf[off + 2];
                 if (entryLen < 4 || entryLen > len) break;
 
-                if (s0 == 'S' && s1 == 'T')
-                {
-                    break;
-                }
+                if (s0 == 'S' && s1 == 'T') break;
 
                 // CE: Continuation Entry (deferred)
                 if (s0 == 'C' && s1 == 'E' && entryLen >= 28)
@@ -582,17 +520,11 @@ public class Iso9660Parser
                         var nameBytes = entryLen - 5;
                         var nameStr = Encoding.UTF8.GetString(buf, off + 5, nameBytes);
                         var nul = nameStr.IndexOf('\0');
-                        if (nul >= 0)
-                        {
-                            nameStr = nameStr[..nul];
-                        }
+                        if (nul >= 0) nameStr = nameStr[..nul];
 
                         nameBuilder.Append(nameStr);
 
-                        if (!continued)
-                        {
-                            nameDone = true;
-                        }
+                        if (!continued) nameDone = true;
                     }
                 }
                 // PX: POSIX File Attributes
@@ -602,10 +534,7 @@ public class Iso9660Parser
                     info.LinkCount = BeU32(buf, off + 12);
                     info.Uid = BeU32(buf, off + 20);
                     info.Gid = BeU32(buf, off + 28);
-                    if (entryLen >= 44)
-                    {
-                        info.Inode = BeU32(buf, off + 36);
-                    }
+                    if (entryLen >= 44) info.Inode = BeU32(buf, off + 36);
                 }
                 // TF: Time Stamps
                 else if (s0 == 'T' && s1 == 'F' && entryLen >= 5)
@@ -617,20 +546,16 @@ public class Iso9660Parser
                     var idx = 0;
 
                     if ((tfFlags & 0x01) != 0 && stampOff + (idx + 1) * stampSize <= off + entryLen)
-                    {
                         info.CreatedTime = isLongForm
                             ? ParseLongTimestamp(buf, stampOff + idx * stampSize)
                             : ParseRecordTime(buf, stampOff + idx * stampSize);
-                    }
 
                     idx += (tfFlags & 0x01) != 0 ? 1 : 0;
 
                     if ((tfFlags & 0x02) != 0 && stampOff + (idx + 1) * stampSize <= off + entryLen)
-                    {
                         info.AccessedTime = isLongForm
                             ? ParseLongTimestamp(buf, stampOff + idx * stampSize)
                             : ParseRecordTime(buf, stampOff + idx * stampSize);
-                    }
 
                     idx += (tfFlags & 0x02) != 0 ? 1 : 0;
 
@@ -711,7 +636,8 @@ public class Iso9660Parser
         return true;
     }
 
-    private static void TryParseXa(byte[] data, int suOffset, int suLen, byte nameLen, out byte fileNumber, out bool interleaved)
+    private static void TryParseXa(byte[] data, int suOffset, int suLen, byte nameLen, out byte fileNumber,
+        out bool interleaved)
     {
         fileNumber = 0;
         interleaved = false;
@@ -726,13 +652,11 @@ public class Iso9660Parser
 
             var reservedZero = true;
             for (var r = 9; r < 14; r++)
-            {
                 if (data[off + r] != 0)
                 {
                     reservedZero = false;
                     break;
                 }
-            }
 
             if (!reservedZero) continue;
 
@@ -747,13 +671,11 @@ public class Iso9660Parser
     {
         var allZero = true;
         for (var i = 0; i < 7; i++)
-        {
             if (d[off + i] != 0)
             {
                 allZero = false;
                 break;
             }
-        }
 
         if (allZero) return null;
 
@@ -764,14 +686,12 @@ public class Iso9660Parser
         if (hour > 23 || minute > 59 || second > 59) return null;
 
         var tzMinutes = _isHighSierra ? 0 : 15 * (sbyte)d[off + 6];
-        if (tzMinutes is < -14 * 60 or > 14 * 60)
-        {
-            tzMinutes = 0;
-        }
+        if (tzMinutes is < -14 * 60 or > 14 * 60) tzMinutes = 0;
 
         try
         {
-            return new DateTimeOffset(year, month, day, hour, minute, second, TimeSpan.FromMinutes(tzMinutes)).UtcDateTime;
+            return new DateTimeOffset(year, month, day, hour, minute, second, TimeSpan.FromMinutes(tzMinutes))
+                .UtcDateTime;
         }
         catch (ArgumentOutOfRangeException)
         {
@@ -799,15 +719,9 @@ public class Iso9660Parser
 
         var name = Encoding.ASCII.GetString(data, offset, nameLen);
         var semi = name.IndexOf(';');
-        if (semi >= 0)
-        {
-            name = name[..semi];
-        }
+        if (semi >= 0) name = name[..semi];
 
-        if (name.EndsWith('.'))
-        {
-            name = name[..^1];
-        }
+        if (name.EndsWith('.')) name = name[..^1];
 
         return name;
     }
@@ -824,10 +738,7 @@ public class Iso9660Parser
 
         var name = Encoding.BigEndianUnicode.GetString(data, offset, len & ~1);
         var nul = name.IndexOf('\0');
-        if (nul >= 0)
-        {
-            name = name[..nul];
-        }
+        if (nul >= 0) name = name[..nul];
 
         var semi = name.IndexOf(';');
         return semi >= 0 ? name[..semi] : name;
@@ -835,7 +746,8 @@ public class Iso9660Parser
 
     private static bool CheckMagic(byte[] data, int offset, string magic)
     {
-        return Encoding.ASCII.GetString(data, offset, magic.Length) == magic;
+        return string.Equals(Encoding.ASCII.GetString(data, offset, magic.Length), magic,
+            StringComparison.OrdinalIgnoreCase);
     }
 
     private static uint LeU32(byte[] data, int offset)
@@ -852,13 +764,11 @@ public class Iso9660Parser
     {
         var allZero = true;
         for (var i = 0; i < 16; i++)
-        {
             if (d[off + i] != 0 && d[off + i] != '0')
             {
                 allZero = false;
                 break;
             }
-        }
 
         if (allZero) return null;
 
@@ -876,16 +786,29 @@ public class Iso9660Parser
             if (hour > 23 || minute > 59 || second > 59) return null;
 
             var tzMinutes = 15 * (sbyte)d[off + 16];
-            if (tzMinutes is < -14 * 60 or > 14 * 60)
-            {
-                tzMinutes = 0;
-            }
+            if (tzMinutes is < -14 * 60 or > 14 * 60) tzMinutes = 0;
 
-            return new DateTimeOffset(year, month, day, hour, minute, second, TimeSpan.FromMinutes(tzMinutes)).UtcDateTime;
+            return new DateTimeOffset(year, month, day, hour, minute, second, TimeSpan.FromMinutes(tzMinutes))
+                .UtcDateTime;
         }
         catch
         {
             return null;
         }
+    }
+
+    private sealed class SuspInfo
+    {
+        public DateTime? AccessedTime;
+        public uint ChildLinkLba;
+        public DateTime? CreatedTime;
+        public uint? Gid;
+        public uint? Inode;
+        public uint? LinkCount;
+        public string? Name;
+        public bool Relocated;
+        public string? SymlinkTarget;
+        public uint? Uid;
+        public uint? UnixMode;
     }
 }

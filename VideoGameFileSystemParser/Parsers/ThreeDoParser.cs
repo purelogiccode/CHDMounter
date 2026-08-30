@@ -3,22 +3,21 @@ using System.Text;
 namespace VideoGameFileSystemParser.Parsers;
 
 /// <summary>
-/// Parses the Opera file system used on 3DO Interactive Multiplayer discs.
+///     Parses the Opera file system used on 3DO Interactive Multiplayer discs.
 /// </summary>
 public class ThreeDoParser
 {
-    private readonly SectorReader _reader;
-
-    private static readonly byte[] OperaMagic = [0x01, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x01];
-
     private const int DirectoryEntrySize = 0x44;
     private const uint FileFlagsMask = 0xFF;
     private const uint FileTypeDirectory = 7;
     private const uint FlagLastEntry = 0x80000000;
     private const uint FlagLastEntryInBlock = 0x40000000;
 
+    private static readonly byte[] OperaMagic = [0x01, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x01];
+    private readonly SectorReader _reader;
+
     /// <summary>
-    /// Initializes a new instance of the ThreeDoParser class.
+    ///     Initializes a new instance of the ThreeDoParser class.
     /// </summary>
     /// <param name="reader">The SectorReader to read sectors from.</param>
     public ThreeDoParser(SectorReader reader)
@@ -27,7 +26,7 @@ public class ThreeDoParser
     }
 
     /// <summary>
-    /// Parses the Opera file system and builds the directory tree.
+    ///     Parses the Opera file system and builds the directory tree.
     /// </summary>
     /// <param name="track">Optional track.</param>
     /// <param name="rootNode">The root FsNode to populate.</param>
@@ -45,31 +44,21 @@ public class ThreeDoParser
         var foundVh = _reader.ReadSector(trackStart, sectorData) && CheckMagic(sectorData, 0, OperaMagic);
 
         if (!foundVh)
-        {
             for (uint i = 0; i < 100; i++)
-            {
                 if (_reader.ReadSector(trackStart + i, sectorData) && CheckMagic(sectorData, 0, OperaMagic))
                 {
                     trackStart += i;
                     foundVh = true;
                     break;
                 }
-            }
-        }
 
         if (!foundVh) return false;
 
         var blockSize = Be32(sectorData, 0x4C);
-        if (blockSize == 0)
-        {
-            blockSize = 2048;
-        }
+        if (blockSize == 0) blockSize = 2048;
 
         var blockSizeRatio = blockSize / 2048;
-        if (blockSizeRatio == 0)
-        {
-            blockSizeRatio = 1;
-        }
+        if (blockSizeRatio == 0) blockSizeRatio = 1;
 
         var firstRootBlock = (int)Be32(sectorData, 0x64);
 
@@ -97,10 +86,7 @@ public class ThreeDoParser
             var headerNextBlock = (int)Be32(sectorData, 0x00);
             var firstEntryOffset = Be32(sectorData, 0x10);
 
-            if (firstEntryOffset is 0 or >= 2048)
-            {
-                firstEntryOffset = 0x14;
-            }
+            if (firstEntryOffset is 0 or >= 2048) firstEntryOffset = 0x14;
 
             uint lastEntryFlags = 0;
             var hasEntries = false;
@@ -157,9 +143,8 @@ public class ThreeDoParser
     private static bool CheckMagic(byte[] d, int o, byte[] m)
     {
         for (var i = 0; i < m.Length; i++)
-        {
-            if (d[o + i] != m[i]) return false;
-        }
+            if (d[o + i] != m[i])
+                return false;
 
         return true;
     }

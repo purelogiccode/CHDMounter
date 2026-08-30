@@ -4,7 +4,7 @@ using VideoGameFileSystemParser.Interfaces;
 namespace VideoGameFileSystemParser.Parsers.Systems;
 
 /// <summary>
-/// Parses Sega Dreamcast GD-ROM disc images. Prefers tracks containing the IP.BIN boot sector signature.
+///     Parses Sega Dreamcast GD-ROM disc images. Prefers tracks containing the IP.BIN boot sector signature.
 /// </summary>
 public class DreamcastParser : IConsoleParser
 {
@@ -12,17 +12,17 @@ public class DreamcastParser : IConsoleParser
 
     private readonly SectorReader _reader;
 
-    /// <inheritdoc />
-    public bool ForceMode { get; set; }
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="DreamcastParser"/> class.
+    ///     Initializes a new instance of the <see cref="DreamcastParser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public DreamcastParser(SectorReader reader)
     {
         _reader = reader;
     }
+
+    /// <inheritdoc />
+    public bool ForceMode { get; set; }
 
     /// <inheritdoc />
     public ConsoleType GetConsoleType()
@@ -41,19 +41,15 @@ public class DreamcastParser : IConsoleParser
     {
         var dataTracks = new List<TrackInfo>();
         for (var i = _reader.Tracks.Count - 1; i >= 0; i--)
-        {
             if (_reader.Tracks[i].IsDataTrack)
                 dataTracks.Add(_reader.Tracks[i]);
-        }
 
         if (dataTracks.Count == 0)
             return false;
 
         foreach (var track in dataTracks.OrderByDescending(HasIpBin))
-        {
             if (ParseTrack(rootNode, track))
                 return true;
-        }
 
         return false;
     }
@@ -85,7 +81,8 @@ public class DreamcastParser : IConsoleParser
 
         var sec = new byte[2048];
         var ok = _reader.ReadSector(track.StartLba, sec) &&
-                 Encoding.ASCII.GetString(sec, 0, IpBinSignature.Length) == IpBinSignature;
+                 string.Equals(Encoding.ASCII.GetString(sec, 0, IpBinSignature.Length), IpBinSignature,
+                     StringComparison.OrdinalIgnoreCase);
 
         _reader.Reset();
         return ok;
@@ -93,23 +90,23 @@ public class DreamcastParser : IConsoleParser
 }
 
 /// <summary>
-/// Parses Philips CD-i disc images using CDiFsParser, falling back to ISO 9660.
+///     Parses Philips CD-i disc images using CDiFsParser, falling back to ISO 9660.
 /// </summary>
 public class CDiParser : IConsoleParser
 {
     private readonly SectorReader _reader;
 
-    /// <inheritdoc />
-    public bool ForceMode { get; set; }
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="CDiParser"/> class.
+    ///     Initializes a new instance of the <see cref="CDiParser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public CDiParser(SectorReader reader)
     {
         _reader = reader;
     }
+
+    /// <inheritdoc />
+    public bool ForceMode { get; set; }
 
     /// <inheritdoc />
     public ConsoleType GetConsoleType()
@@ -154,23 +151,23 @@ public class CDiParser : IConsoleParser
 }
 
 /// <summary>
-/// Parses 3DO Interactive Multiplayer disc images using the Opera file system parser.
+///     Parses 3DO Interactive Multiplayer disc images using the Opera file system parser.
 /// </summary>
 public class ThreeDoConsoleParser : IConsoleParser
 {
     private readonly SectorReader _reader;
 
-    /// <inheritdoc />
-    public bool ForceMode { get; set; }
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="ThreeDoConsoleParser"/> class.
+    ///     Initializes a new instance of the <see cref="ThreeDoConsoleParser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public ThreeDoConsoleParser(SectorReader reader)
     {
         _reader = reader;
     }
+
+    /// <inheritdoc />
+    public bool ForceMode { get; set; }
 
     /// <inheritdoc />
     public ConsoleType GetConsoleType()
@@ -215,19 +212,19 @@ public class ThreeDoConsoleParser : IConsoleParser
 }
 
 /// <summary>
-/// Provides raw sector passthrough access, exposing the image as "image.iso".
+///     Provides raw sector passthrough access, exposing the image as "image.iso".
 /// </summary>
 internal class GenericIsoRawParser : IConsoleParser
 {
     private readonly SectorReader _reader;
 
-    /// <inheritdoc />
-    public bool ForceMode { get; set; }
-
     public GenericIsoRawParser(SectorReader reader)
     {
         _reader = reader;
     }
+
+    /// <inheritdoc />
+    public bool ForceMode { get; set; }
 
     /// <inheritdoc />
     public ConsoleType GetConsoleType()
@@ -266,23 +263,23 @@ internal class GenericIsoRawParser : IConsoleParser
 }
 
 /// <summary>
-/// Generic ISO 9660 parser for standard data discs without console-specific handling.
+///     Generic ISO 9660 parser for standard data discs without console-specific handling.
 /// </summary>
 public class GenericIso9660Parser : IConsoleParser
 {
     private readonly SectorReader _reader;
 
-    /// <inheritdoc />
-    public bool ForceMode { get; set; }
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="GenericIso9660Parser"/> class.
+    ///     Initializes a new instance of the <see cref="GenericIso9660Parser" /> class.
     /// </summary>
     /// <param name="reader">The sector reader to use for reading disc data.</param>
     public GenericIso9660Parser(SectorReader reader)
     {
         _reader = reader;
     }
+
+    /// <inheritdoc />
+    public bool ForceMode { get; set; }
 
     /// <inheritdoc />
     public ConsoleType GetConsoleType()
@@ -324,19 +321,19 @@ public class GenericIso9660Parser : IConsoleParser
 }
 
 /// <summary>
-/// Parses VM Labs Nuon DVD-ROM disc images using UDF, falling back to ISO 9660 if UDF fails.
+///     Parses VM Labs Nuon DVD-ROM disc images using UDF, falling back to ISO 9660 if UDF fails.
 /// </summary>
 internal class NuonParser : IConsoleParser
 {
     private readonly SectorReader _reader;
 
-    /// <inheritdoc />
-    public bool ForceMode { get; set; }
-
     internal NuonParser(SectorReader reader)
     {
         _reader = reader;
     }
+
+    /// <inheritdoc />
+    public bool ForceMode { get; set; }
 
     /// <inheritdoc />
     public ConsoleType GetConsoleType()

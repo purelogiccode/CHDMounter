@@ -47,7 +47,8 @@ public class DreamcastIntegrationTests
 
                 output.WriteLine($"UnitBytes={unitBytes} Tracks={reader.Tracks.Count} TrackType={track!.TrackType}");
                 foreach (var t in reader.Tracks)
-                    output.WriteLine($"  idx={t.Index} LBA={t.StartLba} frames={t.Frames} type={t.TrackType} data={t.IsDataTrack}");
+                    output.WriteLine(
+                        $"  idx={t.Index} LBA={t.StartLba} frames={t.Frames} type={t.TrackType} data={t.IsDataTrack}");
 
                 var root = new FsNode();
                 var parser = new DreamcastParser(reader);
@@ -69,21 +70,25 @@ public class DreamcastIntegrationTests
 
                 var allNodes = FindNodes(root);
                 var rockRidgeNodes = allNodes.Count(static n => n.UnixMode.HasValue);
-                output.WriteLine($"FsNode tree: {files} files, {dirs} dirs, largest file {maxSize:N0} bytes, RR entries={rockRidgeNodes}");
+                output.WriteLine(
+                    $"FsNode tree: {files} files, {dirs} dirs, largest file {maxSize:N0} bytes, RR entries={rockRidgeNodes}");
 
                 var topFifteen = root.Children.OrderByDescending(static n => n.Size).Take(15);
                 foreach (var c in topFifteen)
-                    output.WriteLine($"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
+                    output.WriteLine(
+                        $"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
 
                 Assert.True(files >= 5, $"Suspiciously few files parsed: {files}");
 
-                var executables = allNodes.Count(static n => !n.IsDirectory && n.Name.EndsWith(".bin", StringComparison.OrdinalIgnoreCase));
+                var executables = allNodes.Count(static n =>
+                    !n.IsDirectory && n.Name.EndsWith(".bin", StringComparison.OrdinalIgnoreCase));
                 output.WriteLine($"BIN files: {executables}");
 
                 if (rockRidgeNodes > 0)
                 {
                     var sample = allNodes.First(static n => n.UnixMode.HasValue);
-                    output.WriteLine($"Rock Ridge sample: {sample.Name} mode=0x{sample.UnixMode:X8} uid={sample.Uid} gid={sample.Gid}");
+                    output.WriteLine(
+                        $"Rock Ridge sample: {sample.Name} mode=0x{sample.UnixMode:X8} uid={sample.Uid} gid={sample.Gid}");
                 }
             }
             finally
@@ -99,44 +104,47 @@ public class DreamcastIntegrationTests
     public void ChdContainerMountAndParseDreamcastDisc()
     {
         var paths = GetPaths();
-        SequentialTestRunner.Run(_output, nameof(ChdContainerMountAndParseDreamcastDisc), paths, static (path, output) =>
-        {
-            var container = new ChdContainer(path);
-            try
+        SequentialTestRunner.Run(_output, nameof(ChdContainerMountAndParseDreamcastDisc), paths,
+            static (path, output) =>
             {
-                var success = container.MountAndParse(ConsoleType.Dreamcast);
-
-                switch (success)
+                var container = new ChdContainer(path);
+                try
                 {
-                    case false when container is { HasDataTracks: false, VolumeSize: > 0 }:
-                        output.WriteLine("Audio-only disc — no data track to parse");
-                        return true;
-                    case false:
-                        output.WriteLine($"SKIP: MountAndParse failed for {Path.GetFileName(path)}");
-                        return true;
+                    var success = container.MountAndParse(ConsoleType.Dreamcast);
+
+                    switch (success)
+                    {
+                        case false when container is { HasDataTracks: false, VolumeSize: > 0 }:
+                            output.WriteLine("Audio-only disc — no data track to parse");
+                            return true;
+                        case false:
+                            output.WriteLine($"SKIP: MountAndParse failed for {Path.GetFileName(path)}");
+                            return true;
+                    }
+
+                    var all = CollectEntries(container, "\\").ToList();
+                    var fileEntries = all.Where(static e => !e.IsDirectory).ToList();
+                    output.WriteLine($"Container: {fileEntries.Count} files, {all.Count - fileEntries.Count} dirs");
+
+                    Assert.True(fileEntries.Count >= 5, $"Suspiciously few files: {fileEntries.Count}");
+
+                    var badNames = all.Where(static e => e.Name.Contains('\uFFFD') || e.Name.Any(char.IsControl))
+                        .ToList();
+                    foreach (var bad in badNames)
+                        output.WriteLine($"BAD NAME: {bad.FullPath}");
+                    Assert.Empty(badNames);
+
+                    foreach (var e in container.ListDirectory("\\"))
+                        output.WriteLine(
+                            $"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
+                }
+                finally
+                {
+                    container.Dispose();
                 }
 
-                var all = CollectEntries(container, "\\").ToList();
-                var fileEntries = all.Where(static e => !e.IsDirectory).ToList();
-                output.WriteLine($"Container: {fileEntries.Count} files, {all.Count - fileEntries.Count} dirs");
-
-                Assert.True(fileEntries.Count >= 5, $"Suspiciously few files: {fileEntries.Count}");
-
-                var badNames = all.Where(static e => e.Name.Contains('\uFFFD') || e.Name.Any(char.IsControl)).ToList();
-                foreach (var bad in badNames)
-                    output.WriteLine($"BAD NAME: {bad.FullPath}");
-                Assert.Empty(badNames);
-
-                foreach (var e in container.ListDirectory("\\"))
-                    output.WriteLine($"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
-            }
-            finally
-            {
-                container.Dispose();
-            }
-
-            return true;
-        });
+                return true;
+            });
     }
 
     [Fact]
@@ -156,22 +164,22 @@ public class DreamcastIntegrationTests
                 var sectorsPerHunk = hunkBytes / unitBytes;
                 var totalFrames = (uint)(chd.TotalBytes / unitBytes);
 
-                output.WriteLine($"UnitBytes={unitBytes} HunkBytes={hunkBytes} sectorsPerHunk={sectorsPerHunk} totalFrames={totalFrames}");
+                output.WriteLine(
+                    $"UnitBytes={unitBytes} HunkBytes={hunkBytes} sectorsPerHunk={sectorsPerHunk} totalFrames={totalFrames}");
 
                 var reader = new SectorReader(chd, unitBytes);
                 output.WriteLine($"Tracks: {reader.Tracks.Count}");
                 foreach (var t in reader.Tracks)
-                    output.WriteLine($"  idx={t.Index} LBA={t.StartLba} frames={t.Frames} ChdOff={t.ChdOffset} data={t.IsDataTrack} type={t.TrackType}");
+                    output.WriteLine(
+                        $"  idx={t.Index} LBA={t.StartLba} frames={t.Frames} ChdOff={t.ChdOffset} data={t.IsDataTrack} type={t.TrackType}");
 
                 TrackInfo? hdTrack = null;
                 for (var i = reader.Tracks.Count - 1; i >= 0; i--)
-                {
                     if (reader.Tracks[i].IsDataTrack)
                     {
                         hdTrack = reader.Tracks[i];
                         break;
                     }
-                }
 
                 if (hdTrack == null)
                 {
@@ -179,7 +187,8 @@ public class DreamcastIntegrationTests
                     return true;
                 }
 
-                output.WriteLine($"HD track: idx={hdTrack.Index} LBA={hdTrack.StartLba} frames={hdTrack.Frames} ChdOff={hdTrack.ChdOffset}");
+                output.WriteLine(
+                    $"HD track: idx={hdTrack.Index} LBA={hdTrack.StartLba} frames={hdTrack.Frames} ChdOff={hdTrack.ChdOffset}");
 
                 var buf = new byte[2048];
 
@@ -204,10 +213,7 @@ public class DreamcastIntegrationTests
                 }
 
                 var rootLbaFromPvd = 0u;
-                if (reader.ReadSector(hdTrack.StartLba + 16, buf))
-                {
-                    rootLbaFromPvd = BitConverter.ToUInt32(buf, 158);
-                }
+                if (reader.ReadSector(hdTrack.StartLba + 16, buf)) rootLbaFromPvd = BitConverter.ToUInt32(buf, 158);
 
                 output.WriteLine($"PVD rootLBA={rootLbaFromPvd}");
 
@@ -216,7 +222,8 @@ public class DreamcastIntegrationTests
                 var rootLbaSimple = rootLbaFromPvd > 45000 ? rootLbaFromPvd - 45000 : rootLbaFromPvd;
                 var candC = hdTrack.StartLba + rootLbaSimple;
 
-                foreach (var (label, lba) in new[] { ("A:start+root", candA), ("B:absolute", candB), ("C:start+root-norm", candC) })
+                foreach (var (label, lba) in new[]
+                             { ("A:start+root", candA), ("B:absolute", candB), ("C:start+root-norm", candC) })
                 {
                     var ok = reader.ReadSector(lba, buf);
                     var b0 = buf[0];
@@ -245,7 +252,6 @@ public class DreamcastIntegrationTests
     private static void Walk(FsNode node, ref int files, ref int dirs, ref ulong maxSize)
     {
         foreach (var c in node.Children)
-        {
             if (c.IsDirectory)
             {
                 dirs++;
@@ -254,12 +260,8 @@ public class DreamcastIntegrationTests
             else
             {
                 files++;
-                if (c.Size > maxSize)
-                {
-                    maxSize = c.Size;
-                }
+                if (c.Size > maxSize) maxSize = c.Size;
             }
-        }
     }
 
     private static List<FsNode> FindNodes(FsNode node)

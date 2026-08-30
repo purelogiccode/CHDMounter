@@ -7,85 +7,38 @@ using CHDSharp.Models;
 namespace VideoGameFileSystemParser.Parsers;
 
 /// <summary>
-/// Opens and manages a CHD disc image, providing file system access via console-specific parsers
-/// or virtual CUE/BIN export for raw image access.
+///     Opens and manages a CHD disc image, providing file system access via console-specific parsers
+///     or virtual CUE/BIN export for raw image access.
 /// </summary>
 public class ChdContainer : IDisposable, IAsyncDisposable
 {
     private const uint SectorSize = 2048;
     private const uint InvalidHandle = uint.MaxValue;
+    private readonly List<SectorReader> _availableReaders = [];
+    private readonly string _chdPath;
 
     private readonly List<FileEntry> _entries = [];
-    private readonly List<uint> _parentHandles = [];
     private readonly Dictionary<string, uint> _entryMap = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<uint> _parentHandles = [];
+    private readonly Lock _poolLock = new();
     private readonly List<SectorReader> _readerPool = [];
-    private readonly List<SectorReader> _availableReaders = [];
-    private readonly object _poolLock = new();
-    private bool _poolShutdown;
-    private readonly string _chdPath;
-    private uint _rootHandle;
-
-    private ChdFile? _primaryChd;
-
-    private enum CueExportMode
-    {
-        CueBin2352,
-        CueBin2048,
-        CueIso2352,
-        CueIso2048,
-        CueBinWav2352,
-        CueBinWav2048,
-        CueIsoWav2352,
-        CueIsoWav2048
-    }
+    private List<TrackInfo>? _cachedTracks;
+    private ulong _cueBinSize;
 
     private bool _cueExportEnabled;
     private CueExportMode _cueMode;
-    private string _cueText = "";
-    private string _cueStemName = "";
-    private ulong _cueBinSize;
     private uint _cueSectorSize;
-    private List<TrackInfo>? _cachedTracks;
-    private Dictionary<int, byte[]>? _wavHeaders;
+    private string _cueStemName = "";
+    private string _cueText = "";
+    private bool _poolShutdown;
+
+    private ChdFile? _primaryChd;
+    private uint _rootHandle;
     private Dictionary<int, ulong>? _wavDataSizes;
+    private Dictionary<int, byte[]>? _wavHeaders;
 
     /// <summary>
-    /// Gets the read-only list of all file and directory entries in the container.
-    /// </summary>
-    public IReadOnlyList<FileEntry> Entries => _entries;
-
-    /// <summary>
-    /// Gets the volume name (derived from the CHD file name).
-    /// </summary>
-    public string VolumeName { get; private set; } = "";
-
-    /// <summary>
-    /// Gets the total size of the disc image in bytes.
-    /// </summary>
-    public ulong VolumeSize { get; private set; }
-
-    /// <summary>
-    /// Gets whether the CHD contains at least one data track.
-    /// </summary>
-    public bool HasDataTracks { get; private set; }
-
-    /// <summary>
-    /// Gets the number of bytes per sector unit (e.g., 2048 or 2352).
-    /// </summary>
-    public uint UnitBytes { get; private set; }
-
-    /// <summary>
-    /// Gets the number of bytes per compressed hunk.
-    /// </summary>
-    public uint HunkBytes { get; private set; }
-
-    /// <summary>
-    /// Gets or sets the console type used for parsing this image.
-    /// </summary>
-    public ConsoleType ConsoleType { get; set; } = ConsoleType.Unknown;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ChdContainer"/> class.
+    ///     Initializes a new instance of the <see cref="ChdContainer" /> class.
     /// </summary>
     /// <param name="chdPath">The file system path to the CHD disc image.</param>
     public ChdContainer(string chdPath)
@@ -94,44 +47,128 @@ public class ChdContainer : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// Opens the CHD file and initializes the reader pool for the specified console type.
+    ///     Gets the reason the most recent open or parse operation failed, or <c>null</c> if it succeeded.
+    /// </summary>
+    public string? LastError { get; private set; }
+
+    /// <summary>
+    ///     Gets the read-only list of all file and directory entries in the container.
+    /// </summary>
+    public IReadOnlyList<FileEntry> Entries => _entries;
+
+    /// <summary>
+    ///     Gets the volume name (derived from the CHD file name).
+    /// </summary>
+    public string VolumeName { get; private set; } = "";
+
+    /// <summary>
+    ///     Gets the total size of the disc image in bytes.
+    /// </summary>
+    public ulong VolumeSize { get; private set; }
+
+    /// <summary>
+    ///     Gets whether the CHD contains at least one data track.
+    /// </summary>
+    public bool HasDataTracks { get; private set; }
+
+    /// <summary>
+    ///     Gets the number of bytes per sector unit (e.g., 2048 or 2352).
+    /// </summary>
+    public uint UnitBytes { get; private set; }
+
+    /// <summary>
+    ///     Gets the number of bytes per compressed hunk.
+    /// </summary>
+    public uint HunkBytes { get; private set; }
+
+    /// <summary>
+    ///     Gets or sets the console type used for parsing this image.
+    /// </summary>
+    public ConsoleType ConsoleType { get; set; } = ConsoleType.Unknown;
+
+    /// <summary>
+    ///     Asynchronously disposes the container, releasing all readers and the underlying CHD file.
+    /// </summary>
+    public ValueTask DisposeAsync()
+    {
+        Dispose();
+        return ValueTask.CompletedTask;
+    }
+
+    /// <summary>
+    ///     Disposes the container, releasing all readers and the underlying CHD file.
+    /// </summary>
+    public void Dispose()
+    {
+        lock (_poolLock)
+        {
+            _poolShutdown = true;
+        }
+
+        foreach (var reader in _readerPool)
+            reader.Dispose();
+        _readerPool.Clear();
+        _availableReaders.Clear();
+        _cachedTracks = null;
+        _primaryChd?.Dispose();
+
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    ///     Opens the CHD file and initializes the reader pool for the specified console type.
     /// </summary>
     /// <param name="consoleType">The console type to configure the reader for.</param>
     /// <returns><c>true</c> if the CHD was opened successfully; otherwise <c>false</c>.</returns>
     public bool Open(ConsoleType consoleType)
     {
         ConsoleType = consoleType;
+        LastError = null;
 
         var err = ChdFile.Open(_chdPath, out var chd);
         if (err != ChdError.Chderrnone || chd is null)
+        {
+            LastError = $"CHDSharp failed to open the file: {err} ({err.GetMessage()})";
             return false;
+        }
 
         _primaryChd = chd;
-
-        var unitBytes = chd.UnitBytes;
-        var reader = new SectorReader(chd, unitBytes);
-        UnitBytes = unitBytes;
-        HunkBytes = chd.HunkBytes;
-        VolumeSize = chd.TotalBytes;
-        VolumeName = Path.GetFileNameWithoutExtension(_chdPath);
-
-        _readerPool.Add(reader);
-        HasDataTracks = reader.Tracks.Any(static t => t.IsDataTrack);
-        lock (_poolLock)
+        try
         {
-            _availableReaders.Add(reader);
+            var unitBytes = chd.UnitBytes;
+            var reader = new SectorReader(chd, unitBytes);
+            UnitBytes = unitBytes;
+            HunkBytes = chd.HunkBytes;
+            VolumeSize = chd.TotalBytes;
+            VolumeName = Path.GetFileNameWithoutExtension(_chdPath);
+
+            _readerPool.Add(reader);
+            HasDataTracks = reader.Tracks.Any(static t => t.IsDataTrack);
+            lock (_poolLock)
+            {
+                _availableReaders.Add(reader);
+            }
+        }
+        catch (Exception ex)
+        {
+            _primaryChd.Dispose();
+            _primaryChd = null;
+            LastError = $"CHDSharp opened the file but track/metadata parsing failed: {ex.Message}";
+            return false;
         }
 
         return true;
     }
 
     /// <summary>
-    /// Opens the CHD, creates the appropriate parser, parses the file system, and builds the entry tree.
+    ///     Opens the CHD, creates the appropriate parser, parses the file system, and builds the entry tree.
     /// </summary>
     /// <param name="consoleType">The console type to parse the image as.</param>
     /// <returns><c>true</c> if parsing succeeded; otherwise <c>false</c>.</returns>
     public bool MountAndParse(ConsoleType consoleType)
     {
+        LastError = null;
+
         if (!Open(consoleType))
             return false;
 
@@ -164,11 +201,21 @@ public class ChdContainer : IDisposable, IAsyncDisposable
 
         var parser = ParserFactory.CreateParser(consoleType, _readerPool[0]);
         if (parser is null)
+        {
+            LastError = $"No file system parser is available for console type '{consoleType}'.";
             return false;
+        }
 
         var parsedRoot = new FsNode();
         if (!parser.Parse(parsedRoot))
+        {
+            var noDataTracksHint = HasDataTracks
+                ? string.Empty
+                : " The CHD has no data tracks; it may not be a CD/disc image (it could be a hard-drive image).";
+            LastError =
+                $"The '{consoleType}' file system parser could not find a recognizable file system on this disc.{noDataTracksHint}";
             return false;
+        }
 
         BuildFromFsNode(parsedRoot);
 
@@ -179,7 +226,7 @@ public class ChdContainer : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// Builds the internal file entry table from a parsed <see cref="FsNode"/> tree.
+    ///     Builds the internal file entry table from a parsed <see cref="FsNode" /> tree.
     /// </summary>
     /// <param name="rootNode">The root node of the parsed file system tree.</param>
     public void BuildFromFsNode(FsNode rootNode)
@@ -188,7 +235,8 @@ public class ChdContainer : IDisposable, IAsyncDisposable
         _parentHandles.Clear();
         _entryMap.Clear();
 
-        var rootEntry = new FileEntry { Name = "\\", FullPath = "\\", Lba = rootNode.Lba, Size = rootNode.Size, IsDirectory = true };
+        var rootEntry = new FileEntry
+            { Name = "\\", FullPath = "\\", Lba = rootNode.Lba, Size = rootNode.Size, IsDirectory = true };
         _rootHandle = RegisterEntry(rootEntry, InvalidHandle);
 
         foreach (var child in rootNode.Children)
@@ -197,7 +245,9 @@ public class ChdContainer : IDisposable, IAsyncDisposable
 
     private void AddFsNodeRecursive(FsNode node, uint parentHandle, string parentPath)
     {
-        var currentPath = parentPath == "\\" ? $"\\{node.Name}" : $"{parentPath}\\{node.Name}";
+        var currentPath = string.Equals(parentPath, "\\", StringComparison.OrdinalIgnoreCase)
+            ? $"\\{node.Name}"
+            : $"{parentPath}\\{node.Name}";
 
         var entry = new FileEntry
         {
@@ -213,10 +263,7 @@ public class ChdContainer : IDisposable, IAsyncDisposable
             Offset = node.EmbeddedOffset
         };
 
-        if (node.ModifiedTime.HasValue)
-        {
-            entry.ModifiedTime = node.ModifiedTime.Value;
-        }
+        if (node.ModifiedTime.HasValue) entry.ModifiedTime = node.ModifiedTime.Value;
 
         foreach (var ext in node.Extents)
             entry.Extents.Add(new FileExtent { Lba = ext.Lba, Size = ext.Size });
@@ -224,10 +271,8 @@ public class ChdContainer : IDisposable, IAsyncDisposable
         var handle = RegisterEntry(entry, parentHandle);
 
         if (entry.IsDirectory)
-        {
             foreach (var child in node.Children)
                 AddFsNodeRecursive(child, handle, currentPath);
-        }
     }
 
     private uint RegisterEntry(FileEntry entry, uint parent)
@@ -252,8 +297,7 @@ public class ChdContainer : IDisposable, IAsyncDisposable
         parts.Reverse();
         var sb = new StringBuilder();
         foreach (var part in parts)
-        {
-            if (part == "\\")
+            if (string.Equals(part, "\\", StringComparison.OrdinalIgnoreCase))
             {
                 sb.Append('\\');
             }
@@ -262,27 +306,20 @@ public class ChdContainer : IDisposable, IAsyncDisposable
                 if (sb.Length > 0 && sb[^1] != '\\') sb.Append('\\');
                 sb.Append(part);
             }
-        }
 
         var path = sb.ToString().ToLowerInvariant();
-        if (path.Length > 1 && path[^1] == '\\')
-        {
-            path = path[..^1];
-        }
+        if (path.Length > 1 && path[^1] == '\\') path = path[..^1];
 
-        if (string.IsNullOrEmpty(path))
-        {
-            path = "\\";
-        }
+        if (string.IsNullOrEmpty(path)) path = "\\";
 
         return path;
     }
 
     /// <summary>
-    /// Finds a file or directory entry by its full path.
+    ///     Finds a file or directory entry by its full path.
     /// </summary>
     /// <param name="path">The full path to search for (e.g., "\GAME\DATA.BIN").</param>
-    /// <returns>The matching <see cref="FileEntry"/>, or <c>null</c> if not found.</returns>
+    /// <returns>The matching <see cref="FileEntry" />, or <c>null</c> if not found.</returns>
     public FileEntry? FindFile(string path)
     {
         var key = MakeEntryKey(path);
@@ -290,10 +327,10 @@ public class ChdContainer : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// Attempts to find a file or directory entry by its full path.
+    ///     Attempts to find a file or directory entry by its full path.
     /// </summary>
     /// <param name="path">The full path to search for.</param>
-    /// <param name="entry">When successful, the matching <see cref="FileEntry"/>.</param>
+    /// <param name="entry">When successful, the matching <see cref="FileEntry" />.</param>
     /// <param name="error">When not found, a description of why (e.g., "not found" or "container disposed").</param>
     /// <returns><c>true</c> if the entry was found; otherwise <c>false</c>.</returns>
     public bool TryFindFile(string path, out FileEntry? entry, out string? error)
@@ -323,24 +360,18 @@ public class ChdContainer : IDisposable, IAsyncDisposable
         if (string.IsNullOrEmpty(path) || path is "\\" or "/") return "\\";
 
         var result = path.Replace('/', '\\').ToLowerInvariant();
-        if (result[0] != '\\')
-        {
-            result = '\\' + result;
-        }
+        if (result[0] != '\\') result = '\\' + result;
 
-        while (result.Length > 1 && result[^1] == '\\')
-        {
-            result = result[..^1];
-        }
+        while (result.Length > 1 && result[^1] == '\\') result = result[..^1];
 
         return result;
     }
 
     /// <summary>
-    /// Enumerates the child entries of a directory specified by path.
+    ///     Enumerates the child entries of a directory specified by path.
     /// </summary>
     /// <param name="path">The full path of the directory.</param>
-    /// <returns>An enumeration of <see cref="FileEntry"/> items in the directory.</returns>
+    /// <returns>An enumeration of <see cref="FileEntry" /> items in the directory.</returns>
     public IEnumerable<FileEntry> ListDirectory(string path)
     {
         var key = MakeEntryKey(path);
@@ -352,7 +383,7 @@ public class ChdContainer : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// Reads data from a file entry at the specified offset into the provided buffer.
+    ///     Reads data from a file entry at the specified offset into the provided buffer.
     /// </summary>
     /// <param name="entry">The file entry to read from.</param>
     /// <param name="offset">The byte offset within the file to start reading from.</param>
@@ -391,10 +422,7 @@ public class ChdContainer : IDisposable, IAsyncDisposable
                 return ReadVirtualWav(wavTrackIdx, offset, buffer, bufOffset, bytesToRead);
         }
 
-        if (entry.IsRawPassthrough)
-        {
-            return ReadRawChdBytes(offset, buffer, bufOffset, bytesToRead);
-        }
+        if (entry.IsRawPassthrough) return ReadRawChdBytes(offset, buffer, bufOffset, bytesToRead);
 
         var reader = AcquireReader();
 
@@ -514,13 +542,11 @@ public class ChdContainer : IDisposable, IAsyncDisposable
 
         var hasDataTracks = false;
         foreach (var t in _cachedTracks)
-        {
             if (t.IsDataTrack)
             {
                 hasDataTracks = true;
                 break;
             }
-        }
 
         var currentFile = "";
         var freshFile = true;
@@ -536,7 +562,7 @@ public class ChdContainer : IDisposable, IAsyncDisposable
                 var dataFileExt = isIsoMode ? "iso" : "bin";
                 var dataFileName = $"{_cueStemName}.{dataFileExt}";
 
-                if (currentFile != dataFileName)
+                if (!string.Equals(currentFile, dataFileName, StringComparison.OrdinalIgnoreCase))
                 {
                     if (!freshFile)
                         sb.AppendLine();
@@ -544,7 +570,8 @@ public class ChdContainer : IDisposable, IAsyncDisposable
                     currentFile = dataFileName;
                 }
 
-                var modeStr = t.TrackType.Contains("MODE2") || t.TrackType.Contains("CDI")
+                var modeStr = t.TrackType.Contains("MODE2", StringComparison.OrdinalIgnoreCase) ||
+                              t.TrackType.Contains("CDI", StringComparison.OrdinalIgnoreCase)
                     ? $"MODE2/{_cueSectorSize}"
                     : $"MODE1/{_cueSectorSize}";
 
@@ -578,7 +605,7 @@ public class ChdContainer : IDisposable, IAsyncDisposable
                 {
                     var wavFileName = $"{_cueStemName}_Track{trackNum:D2}.wav";
 
-                    if (currentFile != wavFileName)
+                    if (!string.Equals(currentFile, wavFileName, StringComparison.OrdinalIgnoreCase))
                     {
                         if (!freshFile)
                             sb.AppendLine();
@@ -597,7 +624,7 @@ public class ChdContainer : IDisposable, IAsyncDisposable
                 else
                 {
                     var containerFile = isIsoMode ? $"{_cueStemName}.iso" : $"{_cueStemName}.bin";
-                    if (currentFile != containerFile)
+                    if (!string.Equals(currentFile, containerFile, StringComparison.OrdinalIgnoreCase))
                     {
                         if (!freshFile)
                             sb.AppendLine();
@@ -615,7 +642,8 @@ public class ChdContainer : IDisposable, IAsyncDisposable
                 else if (t.Pregap > 0)
                 {
                     sb.AppendLine(CultureInfo.InvariantCulture, $"    INDEX 00 {SectorToMsf(cumulativeFrames)}");
-                    sb.AppendLine(CultureInfo.InvariantCulture, $"    INDEX 01 {SectorToMsf(cumulativeFrames + t.Pregap)}");
+                    sb.AppendLine(CultureInfo.InvariantCulture,
+                        $"    INDEX 01 {SectorToMsf(cumulativeFrames + t.Pregap)}");
                 }
                 else
                 {
@@ -624,10 +652,7 @@ public class ChdContainer : IDisposable, IAsyncDisposable
 
                 cumulativeFrames += t.Frames;
 
-                if (!isWavMode)
-                {
-                    _cueBinSize += (ulong)t.Frames * VirtualTrackSectorSize(t);
-                }
+                if (!isWavMode) _cueBinSize += (ulong)t.Frames * VirtualTrackSectorSize(t);
             }
 
             freshFile = false;
@@ -696,16 +721,14 @@ public class ChdContainer : IDisposable, IAsyncDisposable
         if (!entryName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) return false;
 
         var numStr = entryName.Substring(prefix.Length, entryName.Length - prefix.Length - suffix.Length);
-        return int.TryParse(numStr, out trackIndex) && _wavHeaders.ContainsKey(trackIndex);
+        return int.TryParse(numStr, CultureInfo.InvariantCulture, out trackIndex) &&
+               _wavHeaders.ContainsKey(trackIndex);
     }
 
     private static byte[] BuildWavHeader(ulong pcmDataSize)
     {
         var header = new byte[44];
-        if (pcmDataSize > uint.MaxValue - 36)
-        {
-            pcmDataSize = uint.MaxValue - 36;
-        }
+        if (pcmDataSize > uint.MaxValue - 36) pcmDataSize = uint.MaxValue - 36;
 
         var riffSize = (uint)(36 + pcmDataSize);
 
@@ -735,11 +758,11 @@ public class ChdContainer : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// Returns the sector size used for a track inside a single-file virtual
-    /// export (BIN/ISO). Data tracks use the configured sector size (2352 for
-    /// BIN, 2048 for ISO); audio tracks inside a BINARY file are always raw
-    /// 2352-byte sectors, except in the cooked 2048-byte BIN mode which keeps
-    /// everything at 2048 bytes.
+    ///     Returns the sector size used for a track inside a single-file virtual
+    ///     export (BIN/ISO). Data tracks use the configured sector size (2352 for
+    ///     BIN, 2048 for ISO); audio tracks inside a BINARY file are always raw
+    ///     2352-byte sectors, except in the cooked 2048-byte BIN mode which keeps
+    ///     everything at 2048 bytes.
     /// </summary>
     private uint VirtualTrackSectorSize(TrackInfo t)
     {
@@ -937,32 +960,15 @@ public class ChdContainer : IDisposable, IAsyncDisposable
         }
     }
 
-    /// <summary>
-    /// Disposes the container, releasing all readers and the underlying CHD file.
-    /// </summary>
-    public void Dispose()
+    private enum CueExportMode
     {
-        lock (_poolLock)
-        {
-            _poolShutdown = true;
-        }
-
-        foreach (var reader in _readerPool)
-            reader.Dispose();
-        _readerPool.Clear();
-        _availableReaders.Clear();
-        _cachedTracks = null;
-        _primaryChd?.Dispose();
-
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
-    /// Asynchronously disposes the container, releasing all readers and the underlying CHD file.
-    /// </summary>
-    public ValueTask DisposeAsync()
-    {
-        Dispose();
-        return ValueTask.CompletedTask;
+        CueBin2352,
+        CueBin2048,
+        CueIso2352,
+        CueIso2048,
+        CueBinWav2352,
+        CueBinWav2048,
+        CueIsoWav2352,
+        CueIsoWav2048
     }
 }

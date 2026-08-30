@@ -1,13 +1,13 @@
 using System.Globalization;
 using System.Windows;
-using Serilog;
 using CHDMounter.Core.Logging;
+using Serilog;
 
 namespace Tester;
 
 /// <summary>
-/// Application entry point for the CHD parsing test tool. Configures Serilog logging
-/// and handles application lifecycle.
+///     Application entry point for the CHD parsing test tool. Configures Serilog logging
+///     and handles application lifecycle.
 /// </summary>
 public partial class App
 {
@@ -15,7 +15,7 @@ public partial class App
     internal static string LogFilePath { get; private set; } = "";
 
     /// <summary>
-    /// Handles application startup: initializes Serilog logging and configures global exception handlers.
+    ///     Handles application startup: initializes Serilog logging and configures global exception handlers.
     /// </summary>
     /// <param name="e">The startup event arguments.</param>
     protected override void OnStartup(StartupEventArgs e)
@@ -27,6 +27,8 @@ public partial class App
             "CHDMounter_Tester", "logs");
         Directory.CreateDirectory(logDir);
         LogFilePath = Path.Combine(logDir, $"tester_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+
+        BugReportClient.IsSendingEnabled = true;
 
         var loggerConfig = new LoggerConfiguration()
             .MinimumLevel.Debug()
@@ -62,7 +64,7 @@ public partial class App
     }
 
     /// <summary>
-    /// Handles application shutdown: logs the shutdown message and closes and flushes the Serilog logger.
+    ///     Handles application shutdown: logs the shutdown message and closes and flushes the Serilog logger.
     /// </summary>
     /// <param name="e">The exit event arguments.</param>
     protected override void OnExit(ExitEventArgs e)

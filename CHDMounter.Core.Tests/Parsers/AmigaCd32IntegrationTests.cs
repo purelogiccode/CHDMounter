@@ -37,7 +37,8 @@ public class AmigaCd32IntegrationTests
                 var reader = new SectorReader(chd, unitBytes);
                 var track = reader.Tracks.FirstOrDefault(static t => t.IsDataTrack) ?? reader.Tracks.FirstOrDefault();
 
-                output.WriteLine($"UnitBytes={unitBytes} Tracks={reader.Tracks.Count} TrackType={track?.TrackType ?? "N/A"}");
+                output.WriteLine(
+                    $"UnitBytes={unitBytes} Tracks={reader.Tracks.Count} TrackType={track?.TrackType ?? "N/A"}");
 
                 var root = new FsNode();
                 var parser = new Iso9660Parser(reader);
@@ -55,7 +56,8 @@ public class AmigaCd32IntegrationTests
                 Assert.True(files > 2, $"Suspiciously few files parsed: {files}");
 
                 foreach (var c in root.Children.OrderByDescending(static n => n.Size).Take(15))
-                    output.WriteLine($"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
+                    output.WriteLine(
+                        $"  {(c.IsDirectory ? "<DIR>" : c.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {c.Name}  mtime={c.ModifiedTime:yyyy-MM-dd HH:mm:ss}");
             }
             finally
             {
@@ -109,34 +111,37 @@ public class AmigaCd32IntegrationTests
     public void ChdContainerMountAndParseAmigaCd32Disc()
     {
         var paths = GetPaths();
-        SequentialTestRunner.Run(_output, nameof(ChdContainerMountAndParseAmigaCd32Disc), paths, static (path, output) =>
-        {
-            var container = new ChdContainer(path);
-            try
+        SequentialTestRunner.Run(_output, nameof(ChdContainerMountAndParseAmigaCd32Disc), paths,
+            static (path, output) =>
             {
-                Assert.True(container.MountAndParse(ConsoleType.AmigaCd32), "MountAndParse failed");
+                var container = new ChdContainer(path);
+                try
+                {
+                    Assert.True(container.MountAndParse(ConsoleType.AmigaCd32), "MountAndParse failed");
 
-                var all = CollectEntries(container, "\\").ToList();
-                var fileEntries = all.Where(static e => !e.IsDirectory).ToList();
-                output.WriteLine($"Container: {fileEntries.Count} files, {all.Count - fileEntries.Count} dirs");
+                    var all = CollectEntries(container, "\\").ToList();
+                    var fileEntries = all.Where(static e => !e.IsDirectory).ToList();
+                    output.WriteLine($"Container: {fileEntries.Count} files, {all.Count - fileEntries.Count} dirs");
 
-                Assert.True(fileEntries.Count > 2, $"Suspiciously few files: {fileEntries.Count}");
+                    Assert.True(fileEntries.Count > 2, $"Suspiciously few files: {fileEntries.Count}");
 
-                var badNames = all.Where(static e => e.Name.Contains('\uFFFD') || e.Name.Any(char.IsControl)).ToList();
-                foreach (var bad in badNames)
-                    output.WriteLine($"BAD NAME: {bad.FullPath}");
-                Assert.Empty(badNames);
+                    var badNames = all.Where(static e => e.Name.Contains('\uFFFD') || e.Name.Any(char.IsControl))
+                        .ToList();
+                    foreach (var bad in badNames)
+                        output.WriteLine($"BAD NAME: {bad.FullPath}");
+                    Assert.Empty(badNames);
 
-                foreach (var e in container.ListDirectory("\\"))
-                    output.WriteLine($"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
-            }
-            finally
-            {
-                container.Dispose();
-            }
+                    foreach (var e in container.ListDirectory("\\"))
+                        output.WriteLine(
+                            $"  {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
+                }
+                finally
+                {
+                    container.Dispose();
+                }
 
-            return true;
-        });
+                return true;
+            });
     }
 
     private static void Walk(FsNode node, ref int files, ref int dirs, ref ulong maxSize)
@@ -150,10 +155,7 @@ public class AmigaCd32IntegrationTests
             else
             {
                 files++;
-                if (c.Size > maxSize)
-                {
-                    maxSize = c.Size;
-                }
+                if (c.Size > maxSize) maxSize = c.Size;
             }
     }
 

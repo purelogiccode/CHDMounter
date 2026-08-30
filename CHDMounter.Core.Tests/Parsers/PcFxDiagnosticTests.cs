@@ -55,7 +55,8 @@ public class PcFxDiagnosticTests
             {
                 var reader = new SectorReader(chd, chd.UnitBytes);
                 foreach (var t in reader.Tracks)
-                    _output.WriteLine($"  Track[{t.Index}]: Type='{t.TrackType}' IsData={t.IsDataTrack} Frames={t.Frames} StartLba={t.StartLba} ChdOffset={t.ChdOffset} Pregap={t.Pregap}");
+                    _output.WriteLine(
+                        $"  Track[{t.Index}]: Type='{t.TrackType}' IsData={t.IsDataTrack} Frames={t.Frames} StartLba={t.StartLba} ChdOffset={t.ChdOffset} Pregap={t.Pregap}");
 
                 var track = reader.Tracks.FirstOrDefault(static t => t.IsDataTrack) ?? reader.Tracks.FirstOrDefault();
                 if (track == null)
@@ -64,12 +65,14 @@ public class PcFxDiagnosticTests
                     goto testPcfx;
                 }
 
-                _output.WriteLine($"  Using track: Index={track.Index} StartLba={track.StartLba} Frames={track.Frames}");
+                _output.WriteLine(
+                    $"  Using track: Index={track.Index} StartLba={track.StartLba} Frames={track.Frames}");
 
                 var root = new FsNode();
                 var parser = new Iso9660Parser(reader);
                 var ok = parser.Parse(root, track);
-                _output.WriteLine($"  Iso9660Parser: {(ok ? "OK" : "FAILED")} SectorHeaderOffset={reader.SectorHeaderOffset} SyncOffset={reader.SyncOffset}");
+                _output.WriteLine(
+                    $"  Iso9660Parser: {(ok ? "OK" : "FAILED")} SectorHeaderOffset={reader.SectorHeaderOffset} SyncOffset={reader.SyncOffset}");
 
                 if (ok)
                 {
@@ -89,21 +92,25 @@ public class PcFxDiagnosticTests
             {
                 var reader2 = new SectorReader(chd, chd.UnitBytes);
                 foreach (var t in reader2.Tracks)
-                    _output.WriteLine($"  Track[{t.Index}]: Type='{t.TrackType}' IsData={t.IsDataTrack} Frames={t.Frames} StartLba={t.StartLba} ChdOffset={t.ChdOffset} Pregap={t.Pregap}");
+                    _output.WriteLine(
+                        $"  Track[{t.Index}]: Type='{t.TrackType}' IsData={t.IsDataTrack} Frames={t.Frames} StartLba={t.StartLba} ChdOffset={t.ChdOffset} Pregap={t.Pregap}");
 
-                var track2 = reader2.Tracks.FirstOrDefault(static t => t.IsDataTrack) ?? reader2.Tracks.FirstOrDefault();
+                var track2 = reader2.Tracks.FirstOrDefault(static t => t.IsDataTrack) ??
+                             reader2.Tracks.FirstOrDefault();
                 if (track2 == null)
                 {
                     _output.WriteLine("  PcFxIso: NO TRACK!");
                     return;
                 }
 
-                _output.WriteLine($"  PcFxIso using track: Index={track2.Index} StartLba={track2.StartLba} Frames={track2.Frames}");
+                _output.WriteLine(
+                    $"  PcFxIso using track: Index={track2.Index} StartLba={track2.StartLba} Frames={track2.Frames}");
 
                 var root2 = new FsNode();
                 var pcfxParser = new PcFxIsoParser(reader2);
                 var ok2 = pcfxParser.Parse(root2, track2);
-                _output.WriteLine($"  PcFxIsoParser: {(ok2 ? "OK" : "FAILED")} SectorHeaderOffset={reader2.SectorHeaderOffset} SyncOffset={reader2.SyncOffset}");
+                _output.WriteLine(
+                    $"  PcFxIsoParser: {(ok2 ? "OK" : "FAILED")} SectorHeaderOffset={reader2.SectorHeaderOffset} SyncOffset={reader2.SyncOffset}");
 
                 if (ok2)
                 {
@@ -165,8 +172,10 @@ public class PcFxDiagnosticTests
 
                     if (rawOk)
                     {
-                        var msf = $"{hunkBuf[secOff + off + 12]:X2}:{hunkBuf[secOff + off + 13]:X2}:{hunkBuf[secOff + off + 14]:X2}";
-                        _output.WriteLine($"    RAW CD001 at frame={frame} offsetInSector={off} MSF={msf} typeByte={hunkBuf[secOff + off]:X2}");
+                        var msf =
+                            $"{hunkBuf[secOff + off + 12]:X2}:{hunkBuf[secOff + off + 13]:X2}:{hunkBuf[secOff + off + 14]:X2}";
+                        _output.WriteLine(
+                            $"    RAW CD001 at frame={frame} offsetInSector={off} MSF={msf} typeByte={hunkBuf[secOff + off]:X2}");
                         found++;
                         if (found >= 3) break;
                     }
@@ -208,7 +217,7 @@ public class PcFxDiagnosticTests
         // Simulate what PcFxIsoParser does: check sectors at trackStart + [16, 17, 166, 167]
         // but with correct sector header offset applied
         var trackStartLba = track.StartLba;
-        var dataOffsets = track.IsDataTrack ? (chd.UnitBytes >= 2352 ? new uint[] { 16, 24 } : new uint[] { 0 }) : [0];
+        var dataOffsets = track.IsDataTrack ? chd.UnitBytes >= 2352 ? new uint[] { 16, 24 } : new uint[] { 0 } : [0];
 
         foreach (var vdOffset in new uint[] { 16, 17, 166, 167 })
         {
@@ -254,7 +263,8 @@ public class PcFxDiagnosticTests
 
                     var volId = new string(volChars).Trim();
 
-                    _output.WriteLine($"    FOUND {(rawMatch ? "CD001" : "CDROM")} at LBA={lba} dataOff={dataOff} typeByte={typeByte:X2} volId='{volId}'");
+                    _output.WriteLine(
+                        $"    FOUND {(rawMatch ? "CD001" : "CDROM")} at LBA={lba} dataOff={dataOff} typeByte={typeByte:X2} volId='{volId}'");
                     found++;
                 }
 
@@ -267,7 +277,8 @@ public class PcFxDiagnosticTests
                         hunkBuf[secOff + i + 4] == cd001[3] &&
                         hunkBuf[secOff + i + 5] == cd001[4])
                     {
-                        _output.WriteLine($"    BYTE-OFFSET CD001 at LBA={lba} dataOff={dataOff} byteOfs={i} typeByte={hunkBuf[secOff + i]:X2}");
+                        _output.WriteLine(
+                            $"    BYTE-OFFSET CD001 at LBA={lba} dataOff={dataOff} byteOfs={i} typeByte={hunkBuf[secOff + i]:X2}");
                         found++;
                     }
 
@@ -277,9 +288,7 @@ public class PcFxDiagnosticTests
                         hunkBuf[secOff + i + 11] == cdrom[2] &&
                         hunkBuf[secOff + i + 12] == cdrom[3] &&
                         hunkBuf[secOff + i + 13] == cdrom[4])
-                    {
                         _output.WriteLine($"    BYTE-OFFSET CDROM at LBA={lba} dataOff={dataOff} byteOfs={i}");
-                    }
                 }
             }
         }
@@ -290,10 +299,8 @@ public class PcFxDiagnosticTests
         _output.WriteLine("  Raw hex dump at pregap boundaries:");
         var dumpFrames = new List<uint>();
         foreach (var rel in new uint[] { 0, 16, track.Pregap, track.Pregap + 16, track.Pregap + 17 })
-        {
             if (track.ChdOffset + rel < endFrame)
                 dumpFrames.Add(track.ChdOffset + rel);
-        }
 
         foreach (var frame in dumpFrames)
         {
@@ -326,7 +333,8 @@ public class PcFxDiagnosticTests
             if (reader.ReadSector(testLba, buf))
             {
                 var iso = buf[1] == 'C' && buf[2] == 'D' && buf[3] == '0' && buf[4] == '0' && buf[5] == '1';
-                _output.WriteLine($"    ReadSector(lba={testLba}) OK isoCD001={iso} firstBytes={buf[0]:X2} {buf[1]:X2} {buf[2]:X2} {buf[3]:X2} {buf[4]:X2} {buf[5]:X2}");
+                _output.WriteLine(
+                    $"    ReadSector(lba={testLba}) OK isoCD001={iso} firstBytes={buf[0]:X2} {buf[1]:X2} {buf[2]:X2} {buf[3]:X2} {buf[4]:X2} {buf[5]:X2}");
             }
             else
             {
@@ -338,7 +346,6 @@ public class PcFxDiagnosticTests
     private static void Walk(FsNode node, ref int files, ref int dirs, ref ulong maxSize)
     {
         foreach (var c in node.Children)
-        {
             if (c.IsDirectory)
             {
                 dirs++;
@@ -347,11 +354,7 @@ public class PcFxDiagnosticTests
             else
             {
                 files++;
-                if (c.Size > maxSize)
-                {
-                    maxSize = c.Size;
-                }
+                if (c.Size > maxSize) maxSize = c.Size;
             }
-        }
     }
 }

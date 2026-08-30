@@ -159,10 +159,7 @@ public class FilesystemParsingTests
                 var all = CollectEntries(container, "\\").ToList();
                 var fileEntries = all.Where(static e => !e.IsDirectory).ToList();
                 var dirCount = all.Count - fileEntries.Count;
-                if (dirCount > 0)
-                {
-                    dirCount--;
-                }
+                if (dirCount > 0) dirCount--;
 
                 output.WriteLine($"  Volume: {container.VolumeName}");
                 output.WriteLine($"  Size: {container.VolumeSize:N0}");
@@ -170,7 +167,8 @@ public class FilesystemParsingTests
 
                 if (fileEntries.Count < minFiles)
                 {
-                    output.WriteLine($"  SKIP: Suspiciously few files parsed: {fileEntries.Count} (expected >= {minFiles})");
+                    output.WriteLine(
+                        $"  SKIP: Suspiciously few files parsed: {fileEntries.Count} (expected >= {minFiles})");
                     return true;
                 }
 
@@ -201,7 +199,8 @@ public class FilesystemParsingTests
                 }
 
                 foreach (var e in container.ListDirectory("\\"))
-                    output.WriteLine($"    {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
+                    output.WriteLine(
+                        $"    {(e.IsDirectory ? "<DIR>" : e.Size.ToString("N0", CultureInfo.InvariantCulture)),15}  {e.Name}");
 
                 return true;
             }

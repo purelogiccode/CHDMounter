@@ -34,20 +34,19 @@ public class CDiDiagnosticTests
             Assert.NotEmpty(reader.Tracks);
 
             foreach (var t in reader.Tracks)
-                _output.WriteLine($"  Track {t.Index}: {t.TrackType} data={t.IsDataTrack} frames={t.Frames} pregap={t.Pregap} startLba={t.StartLba} chdOffset={t.ChdOffset}");
+                _output.WriteLine(
+                    $"  Track {t.Index}: {t.TrackType} data={t.IsDataTrack} frames={t.Frames} pregap={t.Pregap} startLba={t.StartLba} chdOffset={t.ChdOffset}");
 
             reader.Reset();
 
             var rawReadCount = 0;
             for (uint lba = 0; lba < 26; lba++)
-            {
                 if (reader.ReadRawSector(lba, out var raw))
                 {
                     rawReadCount++;
                     Assert.NotNull(raw);
                     Assert.True(raw.Length > 0, $"Raw sector at LBA {lba} should not be empty");
                 }
-            }
 
             _output.WriteLine($"Raw sectors read: {rawReadCount}/26");
             Assert.True(rawReadCount > 0, "Should be able to read at least some raw sectors");
@@ -55,14 +54,12 @@ public class CDiDiagnosticTests
             var buf = new byte[2048];
             var cookedReadCount = 0;
             for (uint lba = 0; lba < 26; lba++)
-            {
                 if (reader.ReadSector(lba, buf))
                 {
                     cookedReadCount++;
                     var sig1 = Encoding.ASCII.GetString(buf, 1, 5);
                     _output.WriteLine($"  LBA={lba,3}: type={buf[0]:X2} sig1='{sig1}'");
                 }
-            }
 
             _output.WriteLine($"Cooked sectors read: {cookedReadCount}/26");
 
@@ -111,7 +108,8 @@ public class CDiDiagnosticTests
                 _output.WriteLine($"Tracks: {reader.Tracks.Count}");
 
                 foreach (var t in reader.Tracks)
-                    _output.WriteLine($"  Track {t.Index}: {t.TrackType} data={t.IsDataTrack} frames={t.Frames} pregap={t.Pregap} startLba={t.StartLba} chdOffset={t.ChdOffset}");
+                    _output.WriteLine(
+                        $"  Track {t.Index}: {t.TrackType} data={t.IsDataTrack} frames={t.Frames} pregap={t.Pregap} startLba={t.StartLba} chdOffset={t.ChdOffset}");
 
                 reader.Reset();
                 var dataTrack = reader.Tracks.FirstOrDefault(static t => t.IsDataTrack);
@@ -132,7 +130,8 @@ public class CDiDiagnosticTests
                     var sig1 = Encoding.ASCII.GetString(buf, 1, 5);
                     var sig2 = Encoding.ASCII.GetString(buf, 0, 5);
                     if (offset < 30 || sig1 is "CD-I " or "CD001" || sig2 is "CD001")
-                        _output.WriteLine($"  LBA={lba} (offset {offset}): type={buf[0]:X2} sig1='{sig1}' sig2='{sig2}'");
+                        _output.WriteLine(
+                            $"  LBA={lba} (offset {offset}): type={buf[0]:X2} sig1='{sig1}' sig2='{sig2}'");
                 }
             }
             finally
@@ -172,7 +171,8 @@ public class CDiDiagnosticTests
                 Assert.NotEmpty(reader.Tracks);
 
                 foreach (var t in reader.Tracks)
-                    _output.WriteLine($"  Track {t.Index}: {t.TrackType} data={t.IsDataTrack} frames={t.Frames} pregap={t.Pregap} startLba={t.StartLba} chdOffset={t.ChdOffset}");
+                    _output.WriteLine(
+                        $"  Track {t.Index}: {t.TrackType} data={t.IsDataTrack} frames={t.Frames} pregap={t.Pregap} startLba={t.StartLba} chdOffset={t.ChdOffset}");
 
                 reader.Reset();
                 var dataTrack = reader.Tracks.FirstOrDefault(static t => t.IsDataTrack);
@@ -182,17 +182,16 @@ public class CDiDiagnosticTests
                     continue;
                 }
 
-                _output.WriteLine($"Data track: {dataTrack.Index} type={dataTrack.TrackType} startLba={dataTrack.StartLba} frames={dataTrack.Frames} pregap={dataTrack.Pregap}");
+                _output.WriteLine(
+                    $"Data track: {dataTrack.Index} type={dataTrack.TrackType} startLba={dataTrack.StartLba} frames={dataTrack.Frames} pregap={dataTrack.Pregap}");
 
                 var rawReadCount = 0;
                 for (uint lba = 0; lba < 30; lba++)
-                {
                     if (reader.ReadRawSector(lba, out var raw))
                     {
                         rawReadCount++;
                         Assert.NotNull(raw);
                     }
-                }
 
                 _output.WriteLine($"Raw sectors read: {rawReadCount}/30");
                 Assert.True(rawReadCount > 0, "Should be able to read at least some raw sectors");
