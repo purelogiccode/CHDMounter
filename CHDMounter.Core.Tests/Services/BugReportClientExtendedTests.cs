@@ -52,20 +52,19 @@ public class BugReportClientExtendedTests
     // --- Truncate edge cases ---
 
     [Fact]
-    public void TruncateWithMaxLengthOneThrowsForLongerString()
+    public void TruncateWithMaxLengthOneClipsWithoutThrowing()
     {
-        // Truncate does not handle maxLength < 3 when string is longer
-        // value[..(maxLength - 3)] => value[..(-2)] => ArgumentOutOfRangeException
-        var ex = Assert.Throws<TargetInvocationException>(() => InvokeTruncate("hello", 1));
-        Assert.IsType<ArgumentOutOfRangeException>(ex.InnerException);
+        // Previously value[..(maxLength - 3)] threw ArgumentOutOfRangeException for tiny limits.
+        // Now it clips gracefully with no ellipsis.
+        var result = InvokeTruncate("hello", 1);
+        Assert.Equal("h", result);
     }
 
     [Fact]
-    public void TruncateWithMaxLengthTwoThrowsForLongerString()
+    public void TruncateWithMaxLengthTwoClipsWithoutThrowing()
     {
-        // value[..(maxLength - 3)] => value[..(-1)] => ArgumentOutOfRangeException
-        var ex = Assert.Throws<TargetInvocationException>(() => InvokeTruncate("hello", 2));
-        Assert.IsType<ArgumentOutOfRangeException>(ex.InnerException);
+        var result = InvokeTruncate("hello", 2);
+        Assert.Equal("he", result);
     }
 
     [Fact]
@@ -330,17 +329,37 @@ public class BugReportClientExtendedTests
     [Fact]
     public void SendExceptionDoesNotThrow()
     {
-        var ex = new InvalidOperationException("test exception");
-        var exception = Record.Exception(() => BugReportClient.SendException(ex, "test context"));
-        Assert.Null(exception);
+        // Explicitly disable sending: these calls filed real production bugs as
+        // "ReSharperTestRunner" (66257/66258/66259) before the fail-closed default.
+        var originalValue = BugReportClient.IsSendingEnabled;
+        BugReportClient.IsSendingEnabled = false;
+        try
+        {
+            var ex = new InvalidOperationException("test exception");
+            var exception = Record.Exception(() => BugReportClient.SendException(ex, "test context"));
+            Assert.Null(exception);
+        }
+        finally
+        {
+            BugReportClient.IsSendingEnabled = originalValue;
+        }
     }
 
     [Fact]
     public void SendExceptionWithNullExceptionMessage()
     {
-        var ex = new Exception();
-        var exception = Record.Exception(() => BugReportClient.SendException(ex, "context"));
-        Assert.Null(exception);
+        var originalValue = BugReportClient.IsSendingEnabled;
+        BugReportClient.IsSendingEnabled = false;
+        try
+        {
+            var ex = new Exception();
+            var exception = Record.Exception(() => BugReportClient.SendException(ex, "context"));
+            Assert.Null(exception);
+        }
+        finally
+        {
+            BugReportClient.IsSendingEnabled = originalValue;
+        }
     }
 
     // --- SendWarning ---
@@ -348,15 +367,33 @@ public class BugReportClientExtendedTests
     [Fact]
     public void SendWarningDoesNotThrow()
     {
-        var exception = Record.Exception(() => BugReportClient.SendWarning("test warning"));
-        Assert.Null(exception);
+        var originalValue = BugReportClient.IsSendingEnabled;
+        BugReportClient.IsSendingEnabled = false;
+        try
+        {
+            var exception = Record.Exception(() => BugReportClient.SendWarning("test warning"));
+            Assert.Null(exception);
+        }
+        finally
+        {
+            BugReportClient.IsSendingEnabled = originalValue;
+        }
     }
 
     [Fact]
     public void SendWarningWithEmptyMessage()
     {
-        var exception = Record.Exception(() => BugReportClient.SendWarning(""));
-        Assert.Null(exception);
+        var originalValue = BugReportClient.IsSendingEnabled;
+        BugReportClient.IsSendingEnabled = false;
+        try
+        {
+            var exception = Record.Exception(() => BugReportClient.SendWarning(""));
+            Assert.Null(exception);
+        }
+        finally
+        {
+            BugReportClient.IsSendingEnabled = originalValue;
+        }
     }
 
     // --- SendError ---
@@ -364,21 +401,48 @@ public class BugReportClientExtendedTests
     [Fact]
     public void SendErrorDoesNotThrow()
     {
-        var exception = Record.Exception(() => BugReportClient.SendError("test error", "stack trace"));
-        Assert.Null(exception);
+        var originalValue = BugReportClient.IsSendingEnabled;
+        BugReportClient.IsSendingEnabled = false;
+        try
+        {
+            var exception = Record.Exception(() => BugReportClient.SendError("test error", "stack trace"));
+            Assert.Null(exception);
+        }
+        finally
+        {
+            BugReportClient.IsSendingEnabled = originalValue;
+        }
     }
 
     [Fact]
     public void SendErrorWithNullStackTrace()
     {
-        var exception = Record.Exception(() => BugReportClient.SendError("test error", null));
-        Assert.Null(exception);
+        var originalValue = BugReportClient.IsSendingEnabled;
+        BugReportClient.IsSendingEnabled = false;
+        try
+        {
+            var exception = Record.Exception(() => BugReportClient.SendError("test error", null));
+            Assert.Null(exception);
+        }
+        finally
+        {
+            BugReportClient.IsSendingEnabled = originalValue;
+        }
     }
 
     [Fact]
     public void SendErrorWithEmptyStackTrace()
     {
-        var exception = Record.Exception(() => BugReportClient.SendError("test error", ""));
-        Assert.Null(exception);
+        var originalValue = BugReportClient.IsSendingEnabled;
+        BugReportClient.IsSendingEnabled = false;
+        try
+        {
+            var exception = Record.Exception(() => BugReportClient.SendError("test error", ""));
+            Assert.Null(exception);
+        }
+        finally
+        {
+            BugReportClient.IsSendingEnabled = originalValue;
+        }
     }
 }

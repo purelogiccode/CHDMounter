@@ -281,8 +281,7 @@ public partial class MainWindow
                     var path = dialog.FileName;
                     await Task.Run(() =>
                     {
-                        var exporter = new PdfExportService();
-                        exporter.ExportToPdf(summary, path);
+                        PdfExportService.ExportToPdf(summary, path);
                     });
 
                     AppendLog($"[Export] Summary exported to: {path}", GreenBrush);

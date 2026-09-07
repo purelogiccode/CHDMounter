@@ -170,7 +170,7 @@ public class MainWindowBase : Window
         var positional = new List<string>();
 
         foreach (var arg in args)
-            if (arg.StartsWith("/", StringComparison.Ordinal))
+            if (arg.StartsWith('/'))
                 switch (arg.ToLowerInvariant())
                 {
                     case "/l":
@@ -414,7 +414,55 @@ public class MainWindowBase : Window
             current = current.InnerException;
         }
 
-        LoggingService.LogError(sb.ToString());
+        var fullMessage = sb.ToString();
+        if (IsExpectedMountFailure(ex, fullMessage))
+        {
+            // Missing WinFsp/Dokan driver, wrong console type, busy mount point, etc.
+            // are user/environment issues, not app bugs: show in UI without filing a bug report.
+            LoggingService.LogUserError(fullMessage);
+        }
+        else
+        {
+            // Unexpected failure: file a bug report WITH the exception stack preserved
+            // (previously only the message was sent, yielding "No exception information available").
+            LoggingService.LogError(fullMessage, ex);
+        }
+    }
+
+    private static bool IsExpectedMountFailure(Exception ex, string fullMessage)
+    {
+        // Walk the whole exception chain: a TypeInitializationException wrapping a
+        // DllNotFoundException (the WinFsp "type initializer for 'Fsp.Interop.Api'" crash
+        // from bugs 66623/66496/66495/66494/66493) is environmental, not a bug.
+        for (var current = ex; current is not null; current = current.InnerException)
+        {
+            if (current is TypeInitializationException or DllNotFoundException or BadImageFormatException
+                or EntryPointNotFoundException)
+                return true;
+            if (current is InvalidOperationException or IOException or UnauthorizedAccessException)
+            {
+                // Fall through to message matching below, but these types are
+                // commonly environmental (busy letter, missing folder, no driver).
+            }
+        }
+
+        return fullMessage.Contains("winfsp", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("dokan", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("type initializer", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("native library", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("could not be loaded", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("failed to open or parse chd", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("recognizable file system", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("no file system parser", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("try a different console type", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("no available drive letter", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("already in use", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("mount point", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("is unavailable", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("ntstatus", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("already mounted", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("driver not found", StringComparison.OrdinalIgnoreCase)
+               || fullMessage.Contains("not available", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -436,14 +484,14 @@ public class MainWindowBase : Window
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Unmount failed: {ex.Message}");
+                LoggingService.LogUserError($"Unmount failed: {ex.Message}");
                 StatusText.Text = "Unmount failed";
                 UnmountButton.IsEnabled = MountService.IsMounted;
             }
         }
         catch (Exception ex)
         {
-            LoggingService.LogError($"Unmount failed: {ex.Message}");
+            LoggingService.LogUserError($"Unmount failed: {ex.Message}");
             StatusText.Text = "Unmount failed";
             UnmountButton.IsEnabled = MountService.IsMounted;
         }
@@ -466,7 +514,7 @@ public class MainWindowBase : Window
         if (Directory.Exists(folder))
             Process.Start("explorer.exe", folder);
         else
-            LoggingService.LogError($"AppData folder not found: {folder}");
+            LoggingService.LogUserError($"AppData folder not found: {folder}");
     }
 
     /// <summary>

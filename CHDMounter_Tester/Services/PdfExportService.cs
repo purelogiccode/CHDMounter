@@ -22,7 +22,7 @@ internal sealed class PdfExportService
     /// </summary>
     /// <param name="summary">The test summary containing results to include in the report.</param>
     /// <param name="outputPath">The file path where the PDF will be saved.</param>
-    internal void ExportToPdf(TestSummary summary, string outputPath)
+    internal static void ExportToPdf(TestSummary summary, string outputPath)
     {
         Document.Create(container =>
         {

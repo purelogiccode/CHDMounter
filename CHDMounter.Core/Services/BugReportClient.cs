@@ -86,8 +86,34 @@ public static class BugReportClient
         if (!IsSendingEnabled)
             return;
 
+        // Defense-in-depth against test pollution (bugs 66257/66258/66259 were filed as
+        // "ReSharperTestRunner" v2.16.1.112 from CHDMounter.Core.Tests): even if a test
+        // accidentally enables sending, never file reports from a test harness process.
+        if (IsTestHarnessApp())
+            return;
+
         PendingReports.Enqueue(() => SendAsync(message, stackTrace));
         if (Interlocked.CompareExchange(ref _isProcessing, 1, 0) == 0) _ = Task.Run(ProcessQueueAsync);
+    }
+
+    private static bool IsTestHarnessApp()
+    {
+        string appName;
+        try
+        {
+            appName = AppInfoHelper.GetAppName();
+        }
+        catch
+        {
+            return false;
+        }
+
+        return appName.Contains("Test", StringComparison.OrdinalIgnoreCase)
+               || appName.Contains("ReSharper", StringComparison.OrdinalIgnoreCase)
+               || appName.Contains("xunit", StringComparison.OrdinalIgnoreCase)
+               || appName.Contains("nunit", StringComparison.OrdinalIgnoreCase)
+               || appName.Contains("mstest", StringComparison.OrdinalIgnoreCase)
+               || appName.Contains("vstest", StringComparison.OrdinalIgnoreCase);
     }
 
     private static async Task ProcessQueueAsync()
@@ -102,7 +128,10 @@ public static class BugReportClient
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning(ex, "BugReportClient: Failed to send bug report");
+                    // Log at Information (not Warning): a failure to reach the bug-report API
+                    // is a network/environment issue, and Warning would itself file another
+                    // bug report via the sink (recursive pollution).
+                    Log.Information(ex, "BugReportClient: Failed to send bug report");
                 }
 
                 await Task.Delay(6000);
@@ -150,7 +179,7 @@ public static class BugReportClient
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "BugReportClient: Failed to send bug report to API");
+            Log.Information(ex, "BugReportClient: Failed to send bug report to API");
         }
     }
 
@@ -180,6 +209,15 @@ public static class BugReportClient
     {
         if (string.IsNullOrEmpty(value) || value.Length <= maxLength)
             return value;
+
+        // Guard against tiny limits (previously value[..(maxLength - 3)] threw
+        // ArgumentOutOfRangeException for maxLength 1-2). "..." exactly fills 3.
+        if (maxLength <= 0)
+            return "";
+        if (maxLength <= 2)
+            return value[..maxLength];
+        if (maxLength == 3)
+            return "...";
 
         return value[..(maxLength - 3)] + "...";
     }

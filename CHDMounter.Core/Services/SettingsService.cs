@@ -48,7 +48,8 @@ public class SettingsService : ISettingsService
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "SettingsService: Failed to save settings");
+            // Save failures (disk full, permissions, DPAPI) are environmental, not app bugs.
+            Log.Information(ex, "SettingsService: Failed to save settings");
             Trace.TraceError("SettingsService: Failed to save settings to '{0}'. Error: {1}", _settingsFilePath,
                 ex.Message);
         }

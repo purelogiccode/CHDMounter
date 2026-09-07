@@ -51,7 +51,8 @@ internal class MountService : IMountService
 
             if (!IsWinFspInstalled(out var winFspReason))
             {
-                _loggingService.LogError($"WinFsp not available: {winFspReason ?? "unknown reason"}");
+                // Missing driver is an environment issue, not an app bug: log without filing a bug report.
+                _loggingService.LogUserError($"WinFsp not available: {winFspReason ?? "unknown reason"}");
                 ShowWinFspNotInstalledDialog();
                 return;
             }
@@ -63,8 +64,11 @@ internal class MountService : IMountService
                 _container = new ChdContainer(chdPath);
                 if (!_container.MountAndParse(consoleType))
                 {
-                    _loggingService.LogError(
-                        $"Failed to open or parse CHD as {consoleType}: {_container.LastError ?? "unknown reason"}.");
+                    // A parse failure usually means the wrong console type was selected for this
+                    // disc. This is expected user error, not an app bug: log without filing a bug report.
+                    _loggingService.LogUserError(
+                        $"Failed to open or parse CHD as {consoleType}: {_container.LastError ?? "unknown reason"}. " +
+                        "Try a different console type.");
                     return;
                 }
 
@@ -118,9 +122,21 @@ internal class MountService : IMountService
                 // loop: retried mounts must reuse a live container. In the
                 // multi-candidate (auto drive letter) case crossIntegrity is false,
                 // so persistentAcls is always false there.
+                // NOTE: ChdFs derives from Fsp FileSystemBase, so its construction touches
+                // Fsp.Interop.Api's static constructor, which throws TypeInitializationException
+                // when winfsp-x64/x86.dll is missing or mismatched. Keep it inside the
+                // translated region so users get the friendly "install or repair WinFsp"
+                // message instead of a raw "type initializer" crash (previously filed as a bug).
                 var isDriveLetter = IsDriveLetterMountPoint(candidates[0]);
                 var persistentAcls = crossIntegrity && !isDriveLetter;
-                _currentFs = new ChdFs(_container, persistentAcls);
+                try
+                {
+                    _currentFs = new ChdFs(_container, persistentAcls);
+                }
+                catch (Exception ex)
+                {
+                    throw TranslateMountFailure(ex);
+                }
 
                 Exception? lastError = null;
                 foreach (var candidate in candidates)
@@ -152,8 +168,15 @@ internal class MountService : IMountService
                         _loggingService.Log($"Mounted at {MountPoint} (WinFsp).");
                         return;
                     }
-                    catch (Exception ex) when (candidates.Count > 1)
+                    catch (Exception ex)
                     {
+                        // Single-candidate (explicit folder) mounts have no fallback:
+                        // translate immediately so WinFsp load failures surface as the
+                        // friendly "install or repair WinFsp" message. Multi-candidate
+                        // mounts collect the error and try the next letter.
+                        if (candidates.Count == 1)
+                            throw TranslateMountFailure(ex);
+
                         lastError = ex;
                         _host?.Dispose();
                         _host = null;
@@ -200,7 +223,9 @@ internal class MountService : IMountService
                 }
                 catch (Exception ex)
                 {
-                    _loggingService.LogError($"Error: {ex.Message}");
+                    // Unmount races (drive already gone, handle closed) are environmental,
+                    // not app bugs: log without filing a bug report.
+                    _loggingService.LogUserError($"Unmount failed: {ex.Message}");
                 }
 
             _host?.Dispose();

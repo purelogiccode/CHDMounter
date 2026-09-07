@@ -130,6 +130,6 @@ public class LogTextWriterExtendedTests
     public void LogTextWriterImplementsTextWriter()
     {
         using var writer = CreateLogTextWriter();
-        Assert.IsAssignableFrom<TextWriter>(writer);
+        Assert.IsType<TextWriter>(writer, exactMatch: false);
     }
 }

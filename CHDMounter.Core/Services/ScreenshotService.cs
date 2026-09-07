@@ -32,13 +32,13 @@ public class ScreenshotService : IScreenshotService
             var hwnd = GetForegroundWindow();
             if (hwnd == IntPtr.Zero)
             {
-                _loggingService.LogError("Screenshot: no foreground window found.");
+                _loggingService.LogUserError("Screenshot: no foreground window found.");
                 return;
             }
 
             if (!GetWindowRect(hwnd, out var rect))
             {
-                _loggingService.LogError("Screenshot: failed to get window rect.");
+                _loggingService.LogUserError("Screenshot: failed to get window rect.");
                 return;
             }
 
@@ -59,7 +59,7 @@ public class ScreenshotService : IScreenshotService
 
             if (width <= 0 || height <= 0)
             {
-                _loggingService.LogError("Screenshot: invalid window dimensions.");
+                _loggingService.LogUserError("Screenshot: invalid window dimensions.");
                 return;
             }
 
@@ -73,11 +73,11 @@ public class ScreenshotService : IScreenshotService
             if (savedPath is not null)
                 _loggingService.Log($"Screenshot saved: {savedPath}");
             else
-                _loggingService.LogError("Screenshot: failed to save image.");
+                _loggingService.LogUserError("Screenshot: failed to save image.");
         }
         catch (Exception ex)
         {
-            _loggingService.LogError($"Screenshot error: {ex.Message}");
+            _loggingService.LogUserError($"Screenshot error: {ex.Message}");
         }
     }
 
@@ -106,7 +106,8 @@ public class ScreenshotService : IScreenshotService
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "ScreenshotService: Failed to save screenshot to AppData");
+            // Save failures (disk full, permissions) are environmental, not app bugs.
+            Log.Information(ex, "ScreenshotService: Failed to save screenshot to AppData");
         }
 
         try
@@ -120,7 +121,7 @@ public class ScreenshotService : IScreenshotService
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "ScreenshotService: Failed to save screenshot to app folder");
+            Log.Information(ex, "ScreenshotService: Failed to save screenshot to app folder");
         }
 
         return null;

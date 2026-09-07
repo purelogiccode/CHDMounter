@@ -30,10 +30,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CHDSharp" Version="1.4.2" />
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.193">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PackageReference Include="CHDSharp" Version="1.4.3" />
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.221">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
 

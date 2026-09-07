@@ -146,7 +146,7 @@ internal static class WinFspEnvironment
         Environment.SetEnvironmentVariable("PATH", binDir + ";" + currentPath, EnvironmentVariableTarget.Process);
     }
 
-    [DllImport("kernel32.dll", SetLastError = true)]
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern IntPtr LoadLibraryEx(string lpszFile, IntPtr hFile, uint dwFlags);
 
     [DllImport("kernel32.dll")]

@@ -52,6 +52,31 @@ public class LoggingService : ILoggingService
         Serilog.Log.Error(message);
     }
 
+    /// <summary>
+    ///     Logs an error with its exception, preserving the stack trace for bug reports.
+    /// </summary>
+    /// <param name="message">The error message to log.</param>
+    /// <param name="ex">The exception whose details and stack trace to preserve.</param>
+    public void LogError(string message, Exception ex)
+    {
+        AppendEntry($"{message} ({ex.GetType().Name}: {ex.Message})", true);
+        Serilog.Log.Error(ex, "{Message}", message);
+    }
+
+    /// <summary>
+    ///     Logs a user-facing error without filing a bug report. The UI entry is still
+    ///     marked as an error, but Serilog receives it at Information level so the
+    ///     bug-report sink (Warning and above) ignores it. Use for expected failures:
+    ///     wrong console type, unparsable disc, missing Dokan/WinFsp driver, busy mount
+    ///     point, etc.
+    /// </summary>
+    /// <param name="message">The user-facing error message to log.</param>
+    public void LogUserError(string message)
+    {
+        AppendEntry(message, true);
+        Serilog.Log.Information("User error (no bug report): {Message}", message);
+    }
+
     private void AppendEntry(string message, bool isError)
     {
         var dispatcher = _dispatcher ?? Application.Current?.Dispatcher;

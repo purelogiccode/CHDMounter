@@ -8,7 +8,7 @@ public class LoggingServiceExtendedBehaviorTests
     public void LogEntriesIsObservableCollection()
     {
         var service = new LoggingService();
-        Assert.IsAssignableFrom<ObservableCollection<LogEntry>>(service.LogEntries);
+        Assert.IsType<ObservableCollection<LogEntry>>(service.LogEntries, exactMatch: false);
     }
 
     [Fact]

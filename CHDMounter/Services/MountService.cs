@@ -51,7 +51,8 @@ internal class MountService : IMountService
 
             if (!IsDokanInstalled())
             {
-                _loggingService.LogError("Dokan driver not found. Unable to mount CHD.");
+                // Missing driver is an environment issue, not an app bug: log without filing a bug report.
+                _loggingService.LogUserError("Dokan driver not found. Unable to mount CHD.");
                 ShowDokanNotInstalledDialog();
                 return;
             }
@@ -63,8 +64,12 @@ internal class MountService : IMountService
                 _container = new ChdContainer(chdPath);
                 if (!_container.MountAndParse(consoleType))
                 {
-                    _loggingService.LogError(
-                        $"Failed to open or parse CHD as {consoleType}: {_container.LastError ?? "unknown reason"}.");
+                    // A parse failure usually means the wrong console type was selected for this
+                    // disc (e.g. trying CDi/ThreeDo/GenericIso9660 on a non-matching image).
+                    // This is expected user error, not an app bug: log without filing a bug report.
+                    _loggingService.LogUserError(
+                        $"Failed to open or parse CHD as {consoleType}: {_container.LastError ?? "unknown reason"}. " +
+                        "Try a different console type.");
                     return;
                 }
 
@@ -156,7 +161,8 @@ internal class MountService : IMountService
                 }
                 catch (Exception ex)
                 {
-                    _loggingService.LogError($"Error during unmount: {ex.Message}");
+                    // Unmount races are environmental, not app bugs: no bug report.
+                    _loggingService.LogUserError($"Error during unmount: {ex.Message}");
                 }
 
             _dokanInstance = null;

@@ -40,6 +40,6 @@ public class DriveHelperExtendedTests
         var result = DriveHelper.PickDriveLetter();
 
         Assert.NotNull(result);
-        Assert.True(result.Length == 2);
+        Assert.Equal(2, result.Length);
     }
 }

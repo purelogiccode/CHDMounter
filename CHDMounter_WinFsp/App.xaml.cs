@@ -98,7 +98,8 @@ public partial class App
         }
 
         DiagnosticLogger.Log($"  WinFsp native DLL is NOT loadable: {reason}");
-        Log.Warning("WinFsp native DLL is not loadable: {Reason}", reason);
+        // Missing driver is environmental, not an app bug: Information stays out of bug reports.
+        Log.Information("WinFsp native DLL is not loadable: {Reason}", reason);
     }
 
     private static void RegisterServices()
