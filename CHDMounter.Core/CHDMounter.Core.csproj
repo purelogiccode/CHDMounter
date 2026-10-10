@@ -16,8 +16,8 @@
         <PublishDocumentationFiles>false</PublishDocumentationFiles>
         <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
 
-        <AssemblyVersion>1.2.0</AssemblyVersion>
-        <FileVersion>1.2.0</FileVersion>
+        <AssemblyVersion>1.2.1</AssemblyVersion>
+        <FileVersion>1.2.1</FileVersion>
         <Company>PureLogicCode.com</Company>
     </PropertyGroup>
 
@@ -33,7 +33,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.221">
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.297">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

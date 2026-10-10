@@ -1,13 +1,17 @@
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows%20x64%20%7C%20ARM64-0078d7.svg)](https://www.microsoft.com/windows)
 [![.NET 10.0](https://img.shields.io/badge/.NET-10.0-512bd4.svg)](https://dotnet.microsoft.com/download/dotnet/10.0)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE.txt)
-[![GitHub release](https://img.shields.io/github/v/release/drpetersonfernandes/CHDMounter)](https://github.com/drpetersonfernandes/CHDMounter/releases)
+[![GitHub release](https://img.shields.io/github/v/release/purelogiccode/CHDMounter)](https://github.com/purelogiccode/CHDMounter/releases)
 
 # CHDMounter
 
 Mount CHD (Compressed Hunks of Data) CD/DVD images as virtual read-only drives on Windows. Supports 37 console/format modes (console types plus generic CUE/ISO/BIN/RAW formats), selectable by CLI alias.
 
 ![](screenshot.png)
+
+> **Documentation:** [Wiki](https://github.com/purelogiccode/CHDMounter/wiki) &middot;
+> [Documentation site](https://purelogiccode.github.io/CHDMounter/) &middot; source of both lives in
+> [`docs/`](docs/index.md).
 
 ---
 
@@ -24,7 +28,7 @@ Mount CHD (Compressed Hunks of Data) CD/DVD images as virtual read-only drives o
 - **Settings with DPAPI encryption** — persisted across sessions
 - **Update checker** — polls GitHub releases for new versions
 - **Serilog** structured logging to file and debug output
-- **Single-file self-contained publish** — distribute as one `.exe`
+- **Single-file framework-dependent publish** — one `.exe` per bundle (requires the .NET 10 Desktop Runtime)
 - **x64 and ARM64** support
 
 ---
@@ -76,12 +80,12 @@ Mount CHD (Compressed Hunks of Data) CD/DVD images as virtual read-only drives o
 ## Requirements
 
 - **Windows 10 or later** (x64 or ARM64)
-- **.NET 10.0 Desktop Runtime** (or self-contained build ships its own)
+- **.NET 10.0 Desktop Runtime** — required; the download bundles are framework-dependent and do not embed the runtime ([download](https://dotnet.microsoft.com/download/dotnet/10.0))
 - **Dokan** Use latest version — [install Dokany](https://github.com/dokan-dev/dokany/releases)  
   or
 - **WinFsp** Use latest version — [download WinFsp](https://github.com/winfsp/winfsp/releases)
 
-> Only one driver is needed. The Dokan executable uses Dokan; the WinFsp executable uses WinFsp. Both ship side-by-side.
+> Only one driver is needed. The Dokan bundle uses Dokan; the WinFsp bundle uses WinFsp. Both ship side-by-side.
 
 ---
 
@@ -89,11 +93,20 @@ Mount CHD (Compressed Hunks of Data) CD/DVD images as virtual read-only drives o
 
 ### Download
 
-Grab the latest self-contained executables from [Releases](https://github.com/drpetersonfernandes/CHDMounter/releases):
+Grab the latest bundle from [Releases](https://github.com/purelogiccode/CHDMounter/releases):
 
-- `CHDMounter.exe`
+| Bundle | Architecture | Driver |
+|--------|--------------|--------|
+| `release_<version>_Dokan_win-x64.zip` | x64 | Dokan |
+| `release_<version>_Dokan_win-arm64.zip` | ARM64 | Dokan |
+| `release_<version>_WinFsp_win-x64.zip` | x64 | WinFsp |
+| `release_<version>_WinFsp_win-arm64.zip` | ARM64 | WinFsp |
 
-No installation required. Just download and run.
+Every bundle contains `CHDMounter.exe`, `LICENSE.txt`, `README.md` and `WhatsNew.md`, and
+requires the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
+Extract the bundle anywhere and run `CHDMounter.exe` — no installation required.
+
+> The `CHDMounter_Tester` batch-parsing/benchmarking tool is no longer published in releases.
 
 ### GUI Mode
 
@@ -256,6 +269,9 @@ Both variants share the same core functionality and UI. Choose based on your dri
 
 ## Tester Application (CHDMounter_Tester)
 
+> **Not released.** Starting with version 1.2.1 the Tester is no longer published in release
+> bundles. It remains in the source tree for developers.
+
 WPF desktop application for **batch testing and benchmarking** CHD disc image parsing. Scans folders of `.chd` files, parses each one with a selected console file system parser, and generates summary reports with PDF export.
 
 ### Features
@@ -282,11 +298,11 @@ WPF desktop application for **batch testing and benchmarking** CHD disc image pa
 
 | Package              | Version   | Purpose                                   |
 |----------------------|-----------|-------------------------------------------|
-| `CHDSharp`           | 1.2.0     | MAME CHD format reader                    |
-| `coverlet.collector` | 10.0.1    | Code coverage (Tests only)                |
+| `CHDSharp`           | 1.4.3     | MAME CHD format reader                    |
+| `coverlet.collector` | 10.1.0    | Code coverage (Tests only)                |
 | `DokanNet`           | 2.3.0.3   | Dokan virtual filesystem driver bindings  |
-| `Microsoft.NET.Test.Sdk` | 18.8.1    | Test SDK (Tests only)                     |
-| `QuestPDF`           | 2026.7.2  | PDF report generation (Tester only)       |
+| `Microsoft.NET.Test.Sdk` | 18.10.1 | Test SDK (Tests only)                     |
+| `QuestPDF`           | 2026.9.1  | PDF report generation (Tester only)       |
 | `Serilog`            | 4.4.0     | Structured logging                        |
 | `Serilog.Sinks.Debug`| 3.0.0     | Visual Studio debug output logging        |
 | `Serilog.Sinks.File` | 7.0.0     | File-based log output                     |
@@ -294,7 +310,7 @@ WPF desktop application for **batch testing and benchmarking** CHD disc image pa
 | `winfsp.net`         | 2.1.25156 | WinFsp virtual filesystem driver bindings |
 | `WPF-UI`             | 4.3.0     | Modern WPF theming (Fluent/Win11 style)   |
 | `xUnit`              | 2.9.3     | Test framework (Tests only)               |
-| `xunit.runner.visualstudio` | 3.1.5     | VS test adapter (Tests only)              |
+| `xunit.runner.visualstudio` | 4.0.1 | VS test adapter (Tests only)              |
 
 ---
 

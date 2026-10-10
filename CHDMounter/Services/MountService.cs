@@ -87,12 +87,6 @@ internal class MountService : IMountService
                         ? [mountPoint, .. DriveHelper.GetAvailableDriveLetters()]
                         : [mountPoint];
 
-                // Folder mount points must exist before Dokan can attach to them;
-                // a missing directory produces "Can't assign a drive letter or mount point".
-                foreach (var candidate in candidates)
-                    if (!IsDriveLetterMountPoint(candidate))
-                        Directory.CreateDirectory(candidate);
-
                 _currentFs = new ChdFs(_container, _loggingService);
 
                 var dokan = new Dokan(new DokanPrefixedLogger(_loggingService));
@@ -105,6 +99,13 @@ internal class MountService : IMountService
 
                     try
                     {
+                        // Folder mount points must exist before Dokan can attach to them;
+                        // a missing directory produces "Can't assign a drive letter or mount
+                        // point". Created inside the retry guard so an unusable path does not
+                        // abort the remaining candidates.
+                        if (!IsDriveLetterMountPoint(MountPoint))
+                            Directory.CreateDirectory(MountPoint);
+
                         var builder = new DokanInstanceBuilder(dokan)
                             .ConfigureOptions(options =>
                             {

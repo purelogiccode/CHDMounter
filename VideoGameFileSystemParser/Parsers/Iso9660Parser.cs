@@ -329,8 +329,8 @@ public class Iso9660Parser
 
                 var name = DecodeName(sectorData, (int)pos + nameOff, nameLen);
 
-                if (!string.Equals(name, ".", StringComparison.OrdinalIgnoreCase) &&
-                    !string.Equals(name, "..", StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(name, ".", StringComparison.Ordinal) &&
+                    !string.Equals(name, "..", StringComparison.Ordinal))
                 {
                     // Extended attribute records occupy xattr_len blocks before the data (ECMA-119 9.1.2)
                     var absoluteLba = trackStart + relLba + xattrLen;
@@ -369,7 +369,9 @@ public class Iso9660Parser
 
                     if (!skipRecord && illMultiExtentName != null)
                     {
-                        if (string.Equals(name, illMultiExtentName, StringComparison.OrdinalIgnoreCase) && !isDir)
+                        // ECMA-119 multi-extent pieces must match byte-for-byte (ordinal);
+                        // case-insensitive matching could merge two distinct Joliet names.
+                        if (string.Equals(name, illMultiExtentName, StringComparison.Ordinal) && !isDir)
                         {
                             if (!isMulti) illMultiExtentName = null;
 
@@ -385,7 +387,7 @@ public class Iso9660Parser
                     {
                         var last = dirNode.Children.Count > 0 ? dirNode.Children[^1] : null;
                         if (last is { IsMultiExtent: true, IsDirectory: false } &&
-                            string.Equals(last.Name, name, StringComparison.OrdinalIgnoreCase) && !isDir)
+                            string.Equals(last.Name, name, StringComparison.Ordinal) && !isDir)
                         {
                             if (last.Extents.Count > 0 && last.Extents[^1].Size % 2048 != 0)
                             {
@@ -746,8 +748,10 @@ public class Iso9660Parser
 
     private static bool CheckMagic(byte[] data, int offset, string magic)
     {
+        // Volume descriptor signatures are exact per ECMA-119; a case-insensitive match
+        // could mistake a data sector for a PVD during the fallback scan.
         return string.Equals(Encoding.ASCII.GetString(data, offset, magic.Length), magic,
-            StringComparison.OrdinalIgnoreCase);
+            StringComparison.Ordinal);
     }
 
     private static uint LeU32(byte[] data, int offset)

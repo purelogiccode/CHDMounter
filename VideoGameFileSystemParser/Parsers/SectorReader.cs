@@ -236,7 +236,7 @@ public class SectorReader : IDisposable
     /// <summary>
     ///     The list of tracks parsed from the CHD metadata.
     /// </summary>
-    public IList<TrackInfo> Tracks { get; }
+    public List<TrackInfo> Tracks { get; }
 
     /// <summary>
     ///     Releases all resources used by the <see cref="SectorReader" />, including the cached hunk buffer.

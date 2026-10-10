@@ -10,8 +10,14 @@
         <IsPackable>false</IsPackable>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <PublishSingleFile>true</PublishSingleFile>
-        <SelfContained>true</SelfContained>
+        <!-- Framework-dependent on purpose: the release bundle must not embed the .NET runtime. -->
+        <SelfContained>false</SelfContained>
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+        <!-- Required: WinFsp.NET's Fsp.Interop.Api reads its own assembly Location to load the
+             native DLL and verify its version. In a single-file bundle Location is empty, which
+             makes the static initializer throw TypeInitializationException ("The type initializer
+             for 'Fsp.Interop.Api' threw an exception", bugs 67653-67656, 67777/67778). Extracting
+             all content puts winfsp-msil.dll on disk and lets the bindings initialize. -->
         <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
         <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
         <DebugType>embedded</DebugType>
@@ -21,8 +27,8 @@
         <PublishDocumentationFiles>false</PublishDocumentationFiles>
         <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
 
-        <AssemblyVersion>1.2.0</AssemblyVersion>
-        <FileVersion>1.2.0</FileVersion>
+        <AssemblyVersion>1.2.1</AssemblyVersion>
+        <FileVersion>1.2.1</FileVersion>
         <NeutralLanguage>en</NeutralLanguage>
         <Company>PureLogicCode.com</Company>
         <ApplicationIcon>Icon\chd.ico</ApplicationIcon>
@@ -33,7 +39,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.221">
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.297">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

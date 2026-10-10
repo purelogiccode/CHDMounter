@@ -270,14 +270,15 @@ public class PcFxIsoParser
 
                 var name = DecodeName(sectorData, (int)(pos + nameOff), nameLen);
 
-                if (!string.Equals(name, ".", StringComparison.OrdinalIgnoreCase) &&
-                    !string.Equals(name, "..", StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(name, ".", StringComparison.Ordinal) &&
+                    !string.Equals(name, "..", StringComparison.Ordinal))
                 {
                     var absoluteLba = baseLba + relLba + xattrLen;
                     var last = dirNode.Children.Count > 0 ? dirNode.Children[^1] : null;
 
+                    // Multi-extent pieces must match byte-for-byte (ordinal).
                     if (last != null && isMultiExtent && !last.IsDirectory &&
-                        string.Equals(last.Name, name, StringComparison.OrdinalIgnoreCase))
+                        string.Equals(last.Name, name, StringComparison.Ordinal))
                     {
                         last.Size += extentSize;
                         last.Extents.Add(new FsExtent { Lba = absoluteLba, Size = extentSize });

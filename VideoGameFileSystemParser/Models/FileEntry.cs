@@ -65,7 +65,7 @@ public class FileEntry
     /// <summary>
     ///     The list of contiguous data extents that make up this file's data.
     /// </summary>
-    public IList<FileExtent> Extents { get; set; } = [];
+    public List<FileExtent> Extents { get; set; } = [];
 }
 
 /// <summary>

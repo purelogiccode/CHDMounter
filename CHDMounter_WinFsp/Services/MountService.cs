@@ -144,13 +144,14 @@ internal class MountService : IMountService
                     MountPoint = candidate;
                     _loggingService.Log($"Mounting at {MountPoint} (WinFsp)...");
 
-                    // Folder mounts need the target directory to exist before
-                    // WinFsp can mount at it.
-                    if (!IsDriveLetterMountPoint(MountPoint))
-                        Directory.CreateDirectory(MountPoint);
-
                     try
                     {
+                        // Folder mounts need the target directory to exist before
+                        // WinFsp can mount at it. Created inside the retry guard so
+                        // an unusable path does not abort the remaining candidates.
+                        if (!IsDriveLetterMountPoint(MountPoint))
+                            Directory.CreateDirectory(MountPoint);
+
                         _host = new FileSystemHost(_currentFs);
 
                         var securityDescriptor = persistentAcls ? CreateCrossIntegritySecurityDescriptor() : null;
@@ -327,9 +328,14 @@ internal class MountService : IMountService
                                 (lastError is InvalidOperationException &&
                                  lastError.Message.Contains("type initializer", StringComparison.OrdinalIgnoreCase));
 
-        if (isTypeInitFailure || innermost is DllNotFoundException or BadImageFormatException)
+        // EntryPointNotFoundException / TypeLoadException happen when a loadable but
+        // too-old WinFsp DLL is used: Fsp.Interop.Api's static constructor resolves
+        // all entry points and enforces a version match, then throws the wrapping
+        // TypeInitializationException users reported.
+        if (isTypeInitFailure || innermost is DllNotFoundException or BadImageFormatException
+            or EntryPointNotFoundException or TypeLoadException)
             return new InvalidOperationException(
-                "The WinFsp native library (winfsp-x64.dll / winfsp-x86.dll) could not be loaded. " +
+                "The WinFsp native library (winfsp-a64.dll / winfsp-x64.dll / winfsp-x86.dll) could not be loaded. " +
                 "Install or repair WinFsp, then restart this application.",
                 lastError);
 
@@ -339,10 +345,11 @@ internal class MountService : IMountService
     private static void ShowWinFspNotInstalledDialog()
     {
         const string message = "The WinFsp file system driver is required to mount CHD files as virtual drives. " +
-                               "It does not appear to be installed on this system.\n\n" +
+                               "It does not appear to be installed, or the installed version cannot be used " +
+                               "by this application.\n\n" +
                                "Would you like to open the WinFsp download page?";
 
-        var result = MessageBox.Show(message, "WinFsp Not Found",
+        var result = MessageBox.Show(message, "WinFsp Not Found or Outdated",
             MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
         if (result == MessageBoxResult.Yes)

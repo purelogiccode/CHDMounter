@@ -1,0 +1,34 @@
+{
+  "build": {
+    "content": [
+      {
+        "files": [
+          "*.md",
+          "*.yml"
+        ],
+        "exclude": [
+          "_Sidebar.md",
+          "_site/**",
+          "obj/**"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "dest": "_site",
+    "globalMetadata": {
+      "_appTitle": "CHDMounter Documentation",
+      "_appFooter": "CHDMounter &mdash; PureLogicCode.com",
+      "_enableSearch": true
+    },
+    "markdownEngineName": "markdig",
+    "template": [
+      "default"
+    ]
+  }
+}

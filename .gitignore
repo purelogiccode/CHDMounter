@@ -3,3 +3,10 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+
+# Documentation build output
+docs/_site/
+docs/obj/
+docs/api/
+TestResults/
+artifacts/

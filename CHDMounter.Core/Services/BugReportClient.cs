@@ -108,12 +108,16 @@ public static class BugReportClient
             return false;
         }
 
-        return appName.Contains("Test", StringComparison.OrdinalIgnoreCase)
-               || appName.Contains("ReSharper", StringComparison.OrdinalIgnoreCase)
-               || appName.Contains("xunit", StringComparison.OrdinalIgnoreCase)
+        // Match known test host executables only. A plain "Test" substring also matched
+        // CHDMounter_Tester, which is a real application that explicitly opts into bug
+        // reporting (App.xaml.cs sets IsSendingEnabled = true) and whose diagnostics
+        // were silently dropped.
+        return appName.StartsWith("testhost", StringComparison.OrdinalIgnoreCase)
+               || appName.StartsWith("vstest", StringComparison.OrdinalIgnoreCase)
+               || appName.Contains("ReSharperTestRunner", StringComparison.OrdinalIgnoreCase)
+               || appName.Contains("xunit.console", StringComparison.OrdinalIgnoreCase)
                || appName.Contains("nunit", StringComparison.OrdinalIgnoreCase)
-               || appName.Contains("mstest", StringComparison.OrdinalIgnoreCase)
-               || appName.Contains("vstest", StringComparison.OrdinalIgnoreCase);
+               || appName.Contains("mstest", StringComparison.OrdinalIgnoreCase);
     }
 
     private static async Task ProcessQueueAsync()

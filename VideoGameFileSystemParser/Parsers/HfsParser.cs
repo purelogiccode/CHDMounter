@@ -805,7 +805,9 @@ internal class HfsParser
         rootNode.Lba = _hfsStartLba;
         rootNode.NodeType = FsNodeType.Directory;
 
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        // Ordinal: HFSX catalog keys are case-sensitive; case-insensitive dedup would
+        // drop one of two entries differing only by case.
+        var seen = new HashSet<string>(StringComparer.Ordinal);
         for (var i = _entries.Count - 1; i >= 0; i--)
         {
             var e = _entries[i];

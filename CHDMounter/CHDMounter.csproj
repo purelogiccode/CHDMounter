@@ -9,7 +9,8 @@
         <IsPackable>false</IsPackable>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <PublishSingleFile>true</PublishSingleFile>
-        <SelfContained>true</SelfContained>
+        <!-- Framework-dependent on purpose: the release bundle must not embed the .NET runtime. -->
+        <SelfContained>false</SelfContained>
         <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
         <ApplicationIcon>Icon\chd.ico</ApplicationIcon>
         <DebugType>embedded</DebugType>
@@ -19,8 +20,8 @@
         <PublishDocumentationFiles>false</PublishDocumentationFiles>
         <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
 
-        <AssemblyVersion>1.2.0</AssemblyVersion>
-        <FileVersion>1.2.0</FileVersion>
+        <AssemblyVersion>1.2.1</AssemblyVersion>
+        <FileVersion>1.2.1</FileVersion>
         <NeutralLanguage>en</NeutralLanguage>
         <Company>PureLogicCode.com</Company>
     </PropertyGroup>
@@ -31,7 +32,7 @@
 
     <ItemGroup>
         <PackageReference Include="DokanNet" Version="2.3.0.3" />
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.221">
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.297">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

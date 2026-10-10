@@ -355,9 +355,19 @@ public class MainWindowBase : Window
     {
         if (string.IsNullOrEmpty(_chdPath)) return;
 
+        var type = _selectedConsoleType;
+        if (ConsoleTypeComboBox.SelectedItem is ConsoleInfo sci) type = sci.Type;
+
         if (!MountService.CanMount())
         {
             StatusText.Text = "Driver not found";
+
+            // Route through Mount() so the service logs the specific reason
+            // (missing or outdated Dokan/WinFsp driver) and shows the guidance
+            // dialog with the download link. Returning silently here used to leave
+            // "The type initializer for 'Fsp.Interop.Api' threw an exception" or
+            // "Driver not found" as the user's only feedback.
+            await Task.Run(() => MountService.Mount(_chdPath, _cliMountPoint, type));
             return;
         }
 
@@ -367,9 +377,6 @@ public class MainWindowBase : Window
 
         try
         {
-            var type = _selectedConsoleType;
-            if (ConsoleTypeComboBox.SelectedItem is ConsoleInfo sci) type = sci.Type;
-
             await Task.Run(() => MountService.Mount(_chdPath, _cliMountPoint, type));
 
             if (MountService.IsMounted)
@@ -405,7 +412,17 @@ public class MainWindowBase : Window
 
     private void LogMountFailure(Exception ex)
     {
-        var sb = new StringBuilder($"Mount failed: {ex.Message}");
+        LogFailure("Mount failed", ex);
+    }
+
+    private void LogUnmountFailure(Exception ex)
+    {
+        LogFailure("Unmount failed", ex);
+    }
+
+    private void LogFailure(string action, Exception ex)
+    {
+        var sb = new StringBuilder($"{action}: {ex.Message}");
         var current = ex.InnerException;
         while (current is not null)
         {
@@ -415,7 +432,7 @@ public class MainWindowBase : Window
         }
 
         var fullMessage = sb.ToString();
-        if (IsExpectedMountFailure(ex, fullMessage))
+        if (IsExpectedFailure(ex, fullMessage))
         {
             // Missing WinFsp/Dokan driver, wrong console type, busy mount point, etc.
             // are user/environment issues, not app bugs: show in UI without filing a bug report.
@@ -429,22 +446,15 @@ public class MainWindowBase : Window
         }
     }
 
-    private static bool IsExpectedMountFailure(Exception ex, string fullMessage)
+    private static bool IsExpectedFailure(Exception ex, string fullMessage)
     {
         // Walk the whole exception chain: a TypeInitializationException wrapping a
         // DllNotFoundException (the WinFsp "type initializer for 'Fsp.Interop.Api'" crash
         // from bugs 66623/66496/66495/66494/66493) is environmental, not a bug.
         for (var current = ex; current is not null; current = current.InnerException)
-        {
             if (current is TypeInitializationException or DllNotFoundException or BadImageFormatException
                 or EntryPointNotFoundException)
                 return true;
-            if (current is InvalidOperationException or IOException or UnauthorizedAccessException)
-            {
-                // Fall through to message matching below, but these types are
-                // commonly environmental (busy letter, missing folder, no driver).
-            }
-        }
 
         return fullMessage.Contains("winfsp", StringComparison.OrdinalIgnoreCase)
                || fullMessage.Contains("dokan", StringComparison.OrdinalIgnoreCase)
@@ -484,14 +494,16 @@ public class MainWindowBase : Window
             }
             catch (Exception ex)
             {
-                LoggingService.LogUserError($"Unmount failed: {ex.Message}");
+                // Unmount races (drive already gone, handle closed) are environmental;
+                // genuinely unexpected exceptions are still reported.
+                LogUnmountFailure(ex);
                 StatusText.Text = "Unmount failed";
                 UnmountButton.IsEnabled = MountService.IsMounted;
             }
         }
         catch (Exception ex)
         {
-            LoggingService.LogUserError($"Unmount failed: {ex.Message}");
+            LogUnmountFailure(ex);
             StatusText.Text = "Unmount failed";
             UnmountButton.IsEnabled = MountService.IsMounted;
         }

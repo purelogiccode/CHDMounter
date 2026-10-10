@@ -9,8 +9,8 @@ namespace CHDMounter.Core.Services;
 /// </summary>
 public static class UpdateChecker
 {
-    private const string GitHubApiUrl = "https://api.github.com/repos/drpetersonfernandes/CHDMounter/releases/latest";
-    private const string ReleasesPageUrl = "https://github.com/drpetersonfernandes/CHDMounter/releases/latest";
+    private const string GitHubApiUrl = "https://api.github.com/repos/purelogiccode/CHDMounter/releases/latest";
+    private const string ReleasesPageUrl = "https://github.com/purelogiccode/CHDMounter/releases/latest";
 
     private static readonly HttpClient Client = new();
     private static int _started;
