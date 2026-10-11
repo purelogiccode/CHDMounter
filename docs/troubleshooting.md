@@ -1,5 +1,8 @@
 # Troubleshooting
 
+Start with the log pane in the main window and the newest file in the `logs` folder — most
+problems are explained there. See [Usage](usage.md#logs) for the log locations.
+
 ## "The application requires the .NET runtime"
 
 The download bundles are framework-dependent: they do not embed the runtime. Install the
@@ -18,8 +21,8 @@ This message appears when the WinFsp build cannot initialize the WinFsp.NET bind
    the registered installation.
 
 CHDMounter detects these situations before mounting and shows a dialog with the WinFsp download
-link. Starting with version 1.2.1 the WinFsp bundle also extracts its content correctly in
-single-file mode, which is required for the WinFsp.NET bindings to load.
+link. The single-file release extracts its content correctly, which is required for the
+WinFsp.NET bindings to load.
 
 ## "Dokan driver not found" / "Driver not found"
 
@@ -38,13 +41,18 @@ On macOS install [macFUSE](https://macfuse.io).
 
 All drive letters are in use, or the chosen letter is reserved by another process (drives mounted
 in another session can be invisible to `DriveInfo`). Pick a free letter in the **Mount point**
-box or let CHDMounter choose automatically.
+box or let CHDMounter choose automatically. On Linux/macOS use a folder path instead.
 
 ## Mount fails with an NTSTATUS error (WinFsp)
 
 `NTSTATUS 0xC0000035` (`STATUS_OBJECT_NAME_COLLISION`) means the folder mount point is already in
 use. CHDMounter retries with suffixed folders automatically; if the problem persists, unmount any
 stale CHDMounter mount or restart the application.
+
+## The mount point folder cannot be created
+
+CHDMounter retries the remaining mount candidates when a folder cannot be created, and reports
+the reason in the log. Check the folder permissions or choose a different mount point.
 
 ## Parse failure / empty directory listing
 
@@ -53,13 +61,38 @@ stale CHDMounter mount or restart the application.
 - Some discs ship with unusual layouts; try a generic mode (`iso9660`, `isoraw2352`).
 - Check the log pane for the parser's error message.
 
-## Where are the logs?
+## F8 does not create a screenshot
 
-Open **Open AppData Folder** in the application, or browse to the `logs` folder inside the
-application data folder (`%LOCALAPPDATA%\CHDMounter` on Windows, `~/.local/share/CHDMounter` on
-Linux, `~/Library/Application Support/CHDMounter` on macOS). Attach the newest log file when
-reporting an issue.
+- Make sure a CHDMounter window is focused when you press **F8**.
+- Screenshots are written to the `Screenshot` folder next to the executable first; if that folder
+  is not writable the application falls back to the application data folder. The saved path is
+  written to the log — see [Screenshots](screenshots.md).
+- A failure to save is logged but never interrupts the application.
+
+## The update notification does not appear
+
+The update check is best-effort. If GitHub cannot be reached (offline, firewall, rate limit) no
+notification is shown and the failure is logged at Information level. You can always check the
+[Releases page](https://github.com/purelogiccode/CHDMounter/releases) manually.
+
+## Settings are not saved or keep resetting
+
+- On Windows, settings are DPAPI-encrypted for the current user. Copying `settings.dat` between
+  user accounts or machines makes it unreadable; CHDMounter then resets to defaults.
+- A corrupt settings file is reset automatically (and removed) on the next launch.
+- To reset manually, close the application and delete `settings.dat` from the application data
+  folder — see [Settings](settings.md).
 
 ## The virtual drive appears as "CHDFS" and is read-only
 
 That is expected. CHDMounter mounts images read-only and never modifies the CHD file.
+
+## Reporting an issue
+
+1. Reproduce the problem once.
+2. Open **Help → Open AppData Folder** and pick the newest file in `logs`.
+3. Open an issue on the
+   [issue tracker](https://github.com/purelogiccode/CHDMounter/issues) and attach the log plus a
+   description of the disc and console type used.
+
+See [Privacy and Telemetry](privacy.md) for what the application may send automatically.

@@ -2,7 +2,22 @@
 
 Console selection is **alias-only** (case-insensitive). The alias registry lives in the
 [VideoGameFileSystemParser](https://github.com/drpetersonfernandes/VideoGameFileSystemParser)
-library and is the single source of truth.
+library and is the single source of truth — the UI dropdown and the `/s:<alias>` command-line
+flag both resolve aliases through it.
+
+## Choosing a type
+
+- **PlayStation discs** — try `psauto` first; it auto-detects PS1/PS2/PS3/PSP layouts. Use `ps1`,
+  `ps2`, `ps3` or `psp` when you know the platform.
+- **Generic data discs** — `iso9660` (with Joliet/Rock Ridge support) is the safe default.
+- **Emulators expecting a plain ISO** — `isoraw2048` or `isoraw2352` expose the whole image as a
+  single `image.iso` file (recommended for xemu and RPCS3).
+- **Emulators or burning tools expecting CUE/BIN** — use one of the `cue*` modes; they generate
+  a virtual `.cue` sheet plus `.bin`/`.iso` data and optional per-track `.wav` files.
+- **Not sure at all?** Try the platform-specific alias; if parsing fails, fall back to
+  `iso9660`. The parser's error message is shown in the log pane.
+
+## Reference
 
 | Console / Format     | CLI Alias       | Filesystem              | Notes                                              |
 |----------------------|-----------------|-------------------------|----------------------------------------------------|
@@ -46,3 +61,9 @@ library and is the single source of truth.
 
 > `isoraw2048` and `isoraw2352` are generic passthrough modes; they are also the recommended
 > choice for emulators that expect a plain ISO (xemu, RPCS3).
+
+## See also
+
+- [Command Line](command-line.md) — `/s:<alias>` usage and examples
+- [How It Works](how-it-works.md) — sector mapping and file system parsing
+- [Troubleshooting](troubleshooting.md) — parse failures and empty listings

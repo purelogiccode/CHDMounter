@@ -14,12 +14,13 @@
 A single CHDMounter executable supports every core and the one to use is selected in
 **File → Settings → Mount core**:
 
-- **Dokan** (default, Windows) — uses [Dokany](https://github.com/dokan-dev/dokany/releases) (`Dokan.sys`).
+- **Dokan** (default, Windows) — uses [Dokany](https://github.com/dokan-dev/dokany/releases)
+  (`Dokan.sys`).
 - **WinFsp** (Windows) — uses [WinFsp](https://github.com/winfsp/winfsp/releases).
 - **FUSE** (Linux/macOS) — uses libfuse3 on Linux and macFUSE on macOS.
 
 On Windows you only need to install the driver you actually use; Dokan is the default. On Linux
-and macOS the FUSE core is always used.
+and macOS the FUSE core is always used. See [Mount Cores](dokan-vs-winfsp.md) for help choosing.
 
 > **Important:** always install the **latest** driver release. Outdated driver versions can be
 > missing functions that the application bindings require.
@@ -49,6 +50,9 @@ Extract the bundle anywhere and run `CHDMounter` (`./CHDMounter` or `open CHDMou
 macOS). No installer is required. If the executable permission bit was lost during extraction,
 run `chmod +x CHDMounter` once.
 
+> The bundles are portable: settings, logs and screenshots are written to the application data
+> folder (see below), not next to the executable.
+
 ## Installing Dokan (Windows)
 
 1. Download the latest Dokany release from <https://github.com/dokan-dev/dokany/releases>.
@@ -77,13 +81,34 @@ link to the WinFsp download page.
 
 If the library is missing, CHDMounter shows a dialog with the download/install page.
 
-## Where are settings and logs stored?
+## Verifying the installation
 
-Settings, diagnostic logs and screenshots are stored under:
+1. Start CHDMounter. The main window opens without an error dialog.
+2. The title bar shows the selected mount core, for example `CHDMounter (Dokan)`.
+3. Mount any `.chd` file. The status bar shows **Mounted** and the drive letter/folder.
+4. If the driver is missing, a dialog offers to open the driver download page; the log pane
+   explains the exact reason.
 
-- Windows: `%LOCALAPPDATA%\CHDMounter`
-- Linux: `~/.local/share/CHDMounter`
-- macOS: `~/Library/Application Support/CHDMounter`
+## Where are settings, logs and screenshots stored?
 
-Use **Open AppData Folder** in the application to open that directory. On Windows the settings
-file is DPAPI-encrypted; on Linux/macOS it is plain JSON.
+| Data | Location |
+|------|----------|
+| Settings and logs | Windows: `%LOCALAPPDATA%\CHDMounter` · Linux: `~/.local/share/CHDMounter` · macOS: `~/Library/Application Support/CHDMounter` |
+| Screenshots (F8) | Primary: `Screenshot` folder next to the executable · Fallback: the application data folder above |
+
+Use **Help → Open AppData Folder** in the application to open the application data folder. On
+Windows the settings file is DPAPI-encrypted; on Linux/macOS it is plain JSON. See
+[Settings](settings.md) and [Screenshots](screenshots.md) for details.
+
+## Uninstalling
+
+CHDMounter is portable — delete the extracted files to remove the application, and delete the
+application data folder to remove settings, logs and screenshots. Driver packages (Dokan,
+WinFsp, macFUSE) are installed separately and are removed through your system's software
+manager.
+
+## Next steps
+
+- [Getting Started](getting-started.md) — mount your first image
+- [Troubleshooting](troubleshooting.md) — driver and mount problems
+- [Building from Source](building.md) — build your own binary

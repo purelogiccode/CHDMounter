@@ -25,18 +25,36 @@ are always used.
 ### Which console type should I choose if I am unsure?
 
 Try `psauto` for PlayStation discs, `iso9660` for generic data discs, or `isoraw2352` when an
-emulator (xemu, RPCS3) wants a plain `image.iso`.
+emulator (xemu, RPCS3) wants a plain `image.iso`. See [Console Types](console-types.md) for the
+complete guide.
 
 ### Why is the download bundle only a few megabytes?
 
 The bundles are framework-dependent single-file executables: the .NET runtime is intentionally
 not embedded. Install the .NET 10 runtime once and all applications can use it.
 
+### How do I take a screenshot?
+
+Press **F8** while a CHDMounter window is focused. Images are saved locally — see
+[Screenshots](screenshots.md).
+
+### Where are my settings, logs and screenshots?
+
+In the application data folder (`%LOCALAPPDATA%\CHDMounter` on Windows,
+`~/.local/share/CHDMounter` on Linux, `~/Library/Application Support/CHDMounter` on macOS),
+except screenshots, which prefer a `Screenshot` folder next to the executable. Use
+**Help → Open AppData Folder** to open the folder.
+
+### How do I reset the application to defaults?
+
+Close CHDMounter and delete `settings.dat` (or the whole application data folder). The
+application recreates everything with defaults on the next start. See [Settings](settings.md).
+
 ### Is the Tester application still released?
 
-No. Starting with version 1.2.1 the `CHDMounter_Tester` batch-parsing/benchmarking tool is no
-longer published in release bundles. It remains available in the source tree for developers
-(Windows/WPF only).
+No. The `CHDMounter_Tester` batch-parsing/benchmarking tool is a Windows-only developer tool and
+is not published in release bundles. It remains available in the source tree — see the
+[Development Guide](development.md).
 
 ### Where does the update checker get downloads from?
 
@@ -47,6 +65,13 @@ newer version exists, links to the bundle matching your platform and architectur
 
 ### Do you collect diagnostics?
 
-The application can send crash/bug reports to help diagnose problems. Known user errors
-(missing driver, wrong console type, busy mount point) are never filed as bugs, and test
-harnesses can never file reports. Logs always stay local in the application data folder.
+The application sends anonymous usage statistics once per launch and can send crash/bug reports
+when warnings or errors are logged. Known user errors (missing driver, wrong console type, busy
+mount point) are never filed as bugs, and test harnesses can never file reports. Logs and
+screenshots always stay local. See [Privacy and Telemetry](privacy.md) for the exact payloads
+and how to disable network access.
+
+### Can I use CHDMounter commercially?
+
+CHDMounter is licensed under **GPLv3**. See [License](license.md) for details and third-party
+component licenses.

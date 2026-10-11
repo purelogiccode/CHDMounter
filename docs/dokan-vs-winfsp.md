@@ -19,10 +19,28 @@ CHDMounter is a single executable that supports three mount cores. Pick the one 
   already use WinFsp.
 - **Linux/macOS:** FUSE is used automatically; install libfuse3 or macFUSE.
 
-You only need the driver for the core you select.
+You only need the driver for the core you select. Switching cores is instant — both backends are
+built into the same executable.
+
+## Behaviour notes
+
+- **Drive letters** — Dokan and WinFsp can mount at a drive letter or a folder path. When no
+  mount point is given, CHDMounter picks the first available letter (M–Q first, then Z–D).
+- **Folder mounts** — supported by all cores. On Linux/macOS the mount point is always a folder.
+- **Elevated sessions** — with WinFsp, drive-letter mounts are not available across integrity
+  levels; CHDMounter redirects them to folder mounts with a permissive DACL so standard
+  processes can still read the drive.
+- **Unmounting** — closing the application, clicking **Unmount**, or unmounting externally all
+  release the volume safely.
 
 ## Important
 
 Install the **latest** driver version. CHDMounter verifies that the installed driver exposes the
 functions its bindings require; an outdated version will be reported as incompatible and the
 mount will be blocked with a dialog linking to the driver download page.
+
+## See also
+
+- [Installation](installation.md) — driver installation instructions
+- [Troubleshooting](troubleshooting.md) — driver detection problems
+- [Architecture](architecture.md) — how the backends are wired

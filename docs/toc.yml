@@ -1,25 +1,42 @@
 - name: Home
   href: index.md
-- name: Installation
-  href: installation.md
-- name: Getting Started
-  href: getting-started.md
-- name: Usage
-  href: usage.md
+- name: User Guide
   items:
+    - name: Installation
+      href: installation.md
+    - name: Getting Started
+      href: getting-started.md
+    - name: Usage
+      href: usage.md
+    - name: Settings
+      href: settings.md
+    - name: Screenshots
+      href: screenshots.md
     - name: Command Line
       href: command-line.md
     - name: Console Types
       href: console-types.md
-- name: How It Works
-  href: how-it-works.md
-- name: Dokan vs WinFsp
-  href: dokan-vs-winfsp.md
-- name: Troubleshooting
-  href: troubleshooting.md
-- name: FAQ
-  href: faq.md
-- name: Changelog
-  href: changelog.md
-- name: License
-  href: license.md
+    - name: Mount Cores
+      href: dokan-vs-winfsp.md
+    - name: Troubleshooting
+      href: troubleshooting.md
+    - name: FAQ
+      href: faq.md
+    - name: Privacy and Telemetry
+      href: privacy.md
+- name: Developer Guide
+  items:
+    - name: Architecture
+      href: architecture.md
+    - name: Building from Source
+      href: building.md
+    - name: Development Guide
+      href: development.md
+- name: Reference
+  items:
+    - name: How It Works
+      href: how-it-works.md
+    - name: Changelog
+      href: changelog.md
+    - name: License
+      href: license.md

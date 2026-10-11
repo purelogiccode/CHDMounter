@@ -1,5 +1,8 @@
 # How It Works
 
+This page explains the data path from a `.chd` file to a mounted virtual drive. For the
+application's internal structure, see [Architecture](architecture.md).
+
 ## CHD reading
 
 CHD (Compressed Hunks of Data) is MAME's lossless compression format for CD/DVD/HDD images.
@@ -24,9 +27,10 @@ The `SectorReader` maps logical block addresses (LBAs) to byte offsets within CH
 ## File system parsing
 
 The [VideoGameFileSystemParser](https://github.com/drpetersonfernandes/VideoGameFileSystemParser)
-library (vendored into this solution) parses console file systems from raw sectors and reconstructs
-directory trees. Supported file systems include ISO 9660 (with Joliet/Rock Ridge), XDVDFS (Xbox),
-OperaFS (3DO), CD-i Green Book, UDF and HFS/HFS+.
+NuGet package (v1.4.0) parses console file systems from raw sectors and reconstructs directory
+trees. Supported file systems include ISO 9660 (with Joliet/Rock Ridge), XDVDFS (Xbox), OperaFS
+(3DO), CD-i Green Book, UDF and HFS/HFS+. The console alias registry in the library is the single
+source of truth for console selection.
 
 ## VFS operations
 
@@ -63,3 +67,9 @@ For SingleFile mode, the container serves the entire decompressed CHD image as a
 - Images are opened read-only; CHDMounter never writes to a CHD file.
 - When running as Administrator with WinFsp, CHDMounter uses cross-integrity folder mounts with a
   permissive DACL so standard (non-elevated) processes can access the mounted drive.
+
+## See also
+
+- [Architecture](architecture.md) — services, logging and threading
+- [Console Types](console-types.md) — the alias reference
+- [Mount Cores](dokan-vs-winfsp.md) — Dokan, WinFsp and FUSE compared
