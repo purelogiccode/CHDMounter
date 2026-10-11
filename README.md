@@ -258,7 +258,7 @@ The `SectorReader` maps logical block addresses (LBAs) to byte offsets within CH
 
 ### File System Parsing
 
-CHDMounter uses the [VideoGameFileSystemParser](https://github.com/drpetersonfernandes/VideoGameFileSystemParser) library (v1.1.0, vendored into this solution as the `VideoGameFileSystemParser` project) to parse various console file systems from raw sectors and reconstruct directory trees. The console alias registry lives in the library and is the single source of truth for console selection.
+CHDMounter uses the [VideoGameFileSystemParser](https://github.com/drpetersonfernandes/VideoGameFileSystemParser) NuGet package (v1.4.0) to parse various console file systems from raw sectors and reconstruct directory trees. The console alias registry lives in the library and is the single source of truth for console selection.
 
 Supported file systems include ISO 9660 (with Joliet/Rock Ridge), XDVDFS (Xbox), OperaFS (3DO), CD-i Green Book, UDF, and HFS/HFS+.
 
@@ -336,7 +336,7 @@ WPF desktop application (Windows only, developer tool) for **batch testing and b
 | `Serilog.Sinks.Debug`| 3.0.0     | Visual Studio debug output logging        |
 | `Serilog.Sinks.File` | 7.0.0     | File-based log output                     |
 | `System.Security.Cryptography.ProtectedData` | 10.0.0 | DPAPI settings encryption (Windows) |
-| `VideoGameFileSystemParser` | vendored  | Filesystem parser (project reference — see Build from Source) |
+| `VideoGameFileSystemParser` | 1.4.0 | Console filesystem parser (NuGet package) |
 | `winfsp.net`         | 2.1.25156 | WinFsp virtual filesystem driver bindings |
 | `xUnit`              | 2.9.3     | Test framework (Tests only)               |
 | `xunit.runner.visualstudio` | 4.0.1 | VS test adapter (Tests only)              |

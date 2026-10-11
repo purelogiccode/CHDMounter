@@ -1,6 +1,6 @@
 using Serilog;
 
-namespace CHDMounter.Core.Services;
+namespace CHDMounter.Services;
 
 /// <summary>
 ///     A simple static service locator for registering and resolving application services.

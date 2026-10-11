@@ -2,9 +2,10 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using CHDMounter.Interfaces;
 using Serilog;
 
-namespace CHDMounter.Core.Services;
+namespace CHDMounter.Services;
 
 /// <summary>
 ///     Captures screenshots of the active application window and saves them as PNG files.

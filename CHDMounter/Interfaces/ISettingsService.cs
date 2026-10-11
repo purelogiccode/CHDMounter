@@ -1,4 +1,6 @@
-namespace CHDMounter.Core.Interfaces;
+using CHDMounter.Models;
+
+namespace CHDMounter.Interfaces;
 
 /// <summary>
 ///     Defines a service for managing application settings persistence.

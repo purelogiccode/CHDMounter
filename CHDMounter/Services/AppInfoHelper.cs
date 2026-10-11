@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace CHDMounter.Core.Services;
+namespace CHDMounter.Services;
 
 /// <summary>
 ///     Provides shared helper methods for application metadata and API key access.

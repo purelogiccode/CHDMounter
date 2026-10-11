@@ -3,6 +3,9 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using CHDMounter.Interfaces;
+using CHDMounter.Logging;
+using CHDMounter.Services;
 using CHDMounter.Views;
 using Serilog;
 
@@ -12,7 +15,7 @@ namespace CHDMounter;
 ///     Application entry point for the CHD mounter. Handles service registration, logging
 ///     initialization, and application lifecycle.
 /// </summary>
-public partial class App : Application
+public class App : Application
 {
     private static TextWriter? _originalConsoleOut;
     private static TextWriter? _originalConsoleError;

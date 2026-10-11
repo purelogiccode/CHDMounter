@@ -14,6 +14,8 @@
   bundled `FuseSharp` library.
 - **Per-platform settings** — settings stay DPAPI-encrypted on Windows and are stored as plain
   JSON on Linux/macOS.
+- **VideoGameFileSystemParser is now a NuGet package** — the vendored parser project was removed
+  from the solution; `CHDMounter` references the `VideoGameFileSystemParser` 1.4.0 package.
 
 ## 1.2.1
 

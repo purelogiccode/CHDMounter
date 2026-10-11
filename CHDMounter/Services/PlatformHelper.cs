@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Serilog;
 
-namespace CHDMounter.Core.Services;
+namespace CHDMounter.Services;
 
 /// <summary>
 ///     Cross-platform helpers for interacting with the operating system shell.

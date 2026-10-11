@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
+using CHDMounter.Models;
 
-namespace CHDMounter.Core.Interfaces;
+namespace CHDMounter.Interfaces;
 
 /// <summary>
 ///     Defines a service for logging application messages and errors.

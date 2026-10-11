@@ -1,7 +1,8 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using CHDMounter.Core.Interfaces;
+using CHDMounter.Interfaces;
+using CHDMounter.Services;
 using CHDMounter.Views;
 using DokanNet;
 using DokanNet.Logging;
@@ -182,7 +183,6 @@ internal sealed class DokanMountService : IMountService
     public void Dispose()
     {
         Unmount();
-        GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc />

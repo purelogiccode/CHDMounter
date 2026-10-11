@@ -1,8 +1,9 @@
 using System.Globalization;
+using CHDMounter.Services;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace CHDMounter.Core.Logging;
+namespace CHDMounter.Logging;
 
 /// <summary>
 ///     A Serilog sink that forwards warning-level and above log events to the bug report client.

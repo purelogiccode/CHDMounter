@@ -1,9 +1,11 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
+using CHDMounter.Interfaces;
+using CHDMounter.Models;
 using Serilog;
 
-namespace CHDMounter.Core.Services;
+namespace CHDMounter.Services;
 
 /// <summary>
 ///     Manages loading and saving of application settings. On Windows the file is encrypted

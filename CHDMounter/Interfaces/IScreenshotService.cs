@@ -1,4 +1,4 @@
-namespace CHDMounter.Core.Interfaces;
+namespace CHDMounter.Interfaces;
 
 /// <summary>
 ///     Defines a service for capturing screenshots of the application window.

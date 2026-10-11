@@ -1,6 +1,6 @@
 using SerilogLog = Serilog.Log;
 
-namespace CHDMounter.Core.Logging;
+namespace CHDMounter.Logging;
 
 /// <summary>
 ///     Provides diagnostic logging initialization, log file path management, and log cleanup functionality.

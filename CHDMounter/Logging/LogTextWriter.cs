@@ -1,6 +1,8 @@
+using CHDMounter.Interfaces;
+using CHDMounter.Services;
 using Serilog;
 
-namespace CHDMounter.Core.Logging;
+namespace CHDMounter.Logging;
 
 /// <summary>
 ///     A <see cref="TextWriter" /> that wraps the original console output and forwards

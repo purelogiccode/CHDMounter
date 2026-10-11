@@ -1,5 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using CHDMounter.Interfaces;
+using CHDMounter.Models;
 
 namespace CHDMounter.Views;
 

@@ -1,4 +1,4 @@
-namespace CHDMounter.Core.Services;
+namespace CHDMounter.Services;
 
 /// <summary>
 ///     Provides helper methods for selecting available drive letters.

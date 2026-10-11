@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows;
-using CHDMounter.Core.Logging;
+using CHDMounter.Logging;
+using CHDMounter.Services;
 using Serilog;
 
 namespace Tester;

@@ -33,12 +33,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="CHDMounter.Core.Tests" />
+        <InternalsVisibleTo Include="CHDMounter.Tests" />
         <InternalsVisibleTo Include="CHDMounter_Tester" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\VideoGameFileSystemParser\VideoGameFileSystemParser.csproj" />
+        <PackageReference Include="VideoGameFileSystemParser" Version="1.4.0" />
     </ItemGroup>
 
     <ItemGroup>

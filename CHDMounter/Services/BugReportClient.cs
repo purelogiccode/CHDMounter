@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using Serilog;
 
-namespace CHDMounter.Core.Services;
+namespace CHDMounter.Services;
 
 /// <summary>
 ///     Sends bug reports and warnings to a remote API endpoint with rate-limited queuing.

@@ -1,7 +1,7 @@
 using System.Globalization;
 using Serilog;
 
-namespace CHDMounter.Core.Logging;
+namespace CHDMounter.Logging;
 
 /// <summary>
 ///     Configures and manages the Serilog logging pipeline with file, debug, and bug report sinks.

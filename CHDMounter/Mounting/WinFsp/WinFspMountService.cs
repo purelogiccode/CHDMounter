@@ -1,7 +1,8 @@
 using System.Runtime.Versioning;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using CHDMounter.Core.Interfaces;
+using CHDMounter.Interfaces;
+using CHDMounter.Services;
 using CHDMounter.Views;
 using Fsp;
 using VideoGameFileSystemParser.Parsers;
@@ -245,7 +246,6 @@ internal sealed class WinFspMountService : IMountService
     public void Dispose()
     {
         Unmount();
-        GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc />

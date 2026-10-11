@@ -1,6 +1,7 @@
-using CHDMounter.Core.Interfaces;
+using CHDMounter.FuseSharp;
+using CHDMounter.Interfaces;
+using CHDMounter.Services;
 using CHDMounter.Views;
-using FuseSharp;
 using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Mounting.Fuse;
@@ -18,7 +19,6 @@ internal sealed class FuseMountService : IMountService
     private Thread? _mountThread;
     private TaskCompletionSource<bool>? _mountedSource;
     private volatile bool _isMounted;
-    private string _mountPoint = "";
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="FuseMountService" /> class.
@@ -33,7 +33,7 @@ internal sealed class FuseMountService : IMountService
     public bool IsMounted => _isMounted;
 
     /// <inheritdoc />
-    public string MountPoint => _mountPoint;
+    public string MountPoint { get; private set; } = "";
 
     /// <inheritdoc />
     public bool CanMount()
@@ -81,22 +81,22 @@ internal sealed class FuseMountService : IMountService
 
                 foreach (var candidate in candidates)
                 {
-                    _mountPoint = candidate;
-                    _loggingService.Log($"Mounting at {_mountPoint} (FUSE)...");
+                    MountPoint = candidate;
+                    _loggingService.Log($"Mounting at {MountPoint} (FUSE)...");
 
                     try
                     {
                         // FUSE requires the mount point directory to exist before mounting.
-                        Directory.CreateDirectory(_mountPoint);
-                        StartMount(_mountPoint, creationTime);
-                        _loggingService.Log($"Mounted at {_mountPoint} (FUSE).");
+                        Directory.CreateDirectory(MountPoint);
+                        StartMount(MountPoint, creationTime);
+                        _loggingService.Log($"Mounted at {MountPoint} (FUSE).");
                         return;
                     }
                     catch (Exception ex)
                     {
                         lastError = ex;
                         StopMount(disposeContainer: false);
-                        _loggingService.Log($"Mount point {_mountPoint} is unavailable ({ex.Message}). Trying next...");
+                        _loggingService.Log($"Mount point {MountPoint} is unavailable ({ex.Message}). Trying next...");
                     }
                 }
 
@@ -107,7 +107,7 @@ internal sealed class FuseMountService : IMountService
                 if (!_isMounted)
                 {
                     StopMount(disposeContainer: true);
-                    _mountPoint = "";
+                    MountPoint = "";
                 }
             }
         }
@@ -120,7 +120,7 @@ internal sealed class FuseMountService : IMountService
         {
             if (!_isMounted) return;
 
-            _loggingService.Log($"Unmounting {_mountPoint} (FUSE)...");
+            _loggingService.Log($"Unmounting {MountPoint} (FUSE)...");
             try
             {
                 StopMount(disposeContainer: true);
@@ -131,7 +131,7 @@ internal sealed class FuseMountService : IMountService
                 _loggingService.LogUserError($"Unmount failed: {ex.Message}");
             }
 
-            _mountPoint = "";
+            MountPoint = "";
         }
     }
 
@@ -139,7 +139,6 @@ internal sealed class FuseMountService : IMountService
     public void Dispose()
     {
         Unmount();
-        GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc />

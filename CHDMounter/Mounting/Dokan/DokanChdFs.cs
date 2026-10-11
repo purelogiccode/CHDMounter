@@ -1,7 +1,8 @@
 using System.Runtime.Versioning;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using CHDMounter.Core.Interfaces;
+using CHDMounter.Interfaces;
+using CHDMounter.Services;
 using DokanNet;
 using Serilog;
 using VideoGameFileSystemParser.Parsers;

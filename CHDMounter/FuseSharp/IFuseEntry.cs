@@ -1,4 +1,4 @@
-namespace FuseSharp;
+namespace CHDMounter.FuseSharp;
 
 /// <summary>
 /// Represents a single file or directory entry exposed by an <see cref="IFuseVolume"/>.

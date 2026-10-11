@@ -1,10 +1,13 @@
 using System.Collections.Specialized;
-using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using CHDMounter.Interfaces;
+using CHDMounter.Logging;
+using CHDMounter.Models;
+using CHDMounter.Services;
 using Serilog;
 using VideoGameFileSystemParser.Parsers;
 
@@ -93,7 +96,7 @@ public partial class MainWindow : Window
         ConsoleTypeComboBox.SelectedIndex = 0;
     }
 
-    private void CheckForUpdates()
+    private static void CheckForUpdates()
     {
         var timer = new DispatcherTimer(DispatcherPriority.Background)
         {

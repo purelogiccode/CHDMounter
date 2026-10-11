@@ -1,4 +1,4 @@
-namespace CHDMounter.Core.Models;
+namespace CHDMounter.Models;
 
 /// <summary>
 ///     Represents the result of an application update check against the GitHub releases API.

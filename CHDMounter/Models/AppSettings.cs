@@ -1,4 +1,4 @@
-namespace CHDMounter.Core.Models;
+namespace CHDMounter.Models;
 
 /// <summary>
 ///     Represents the application configuration settings.

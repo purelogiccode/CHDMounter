@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace CHDMounter.Core.Services;
+namespace CHDMounter.Services;
 
 /// <summary>
 ///     Sends anonymous application usage statistics to a remote analytics endpoint.

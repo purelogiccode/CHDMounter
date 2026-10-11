@@ -1,4 +1,4 @@
-namespace CHDMounter.Core.Models;
+namespace CHDMounter.Models;
 
 /// <summary>
 ///     Represents a single log entry displayed in the application's log view.

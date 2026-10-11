@@ -1,4 +1,4 @@
-namespace CHDMounter.Core.Models;
+namespace CHDMounter.Models;
 
 /// <summary>
 ///     Identifies the file system driver used to expose a CHD image as a virtual drive.

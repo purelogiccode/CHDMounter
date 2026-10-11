@@ -1,4 +1,4 @@
-namespace CHDMounter.Core.Services;
+namespace CHDMounter.Services;
 
 /// <summary>
 ///     Matches file names against Windows directory-query search expressions.

@@ -1,8 +1,9 @@
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using CHDMounter.Models;
 using Serilog;
 
-namespace CHDMounter.Core.Services;
+namespace CHDMounter.Services;
 
 /// <summary>
 ///     Checks for application updates by querying the GitHub releases API.

@@ -1,8 +1,10 @@
 using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Threading;
+using CHDMounter.Interfaces;
+using CHDMounter.Models;
 
-namespace CHDMounter.Core.Services;
+namespace CHDMounter.Services;
 
 /// <summary>
 ///     Provides thread-safe logging with UI-bound observable log entries and Serilog integration.

@@ -1,6 +1,6 @@
 using Serilog;
 
-namespace CHDMounter.Core.Logging;
+namespace CHDMounter.Logging;
 
 /// <summary>
 ///     Provides global exception handling and centralized error logging for unhandled exceptions.

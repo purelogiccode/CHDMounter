@@ -1,9 +1,8 @@
-using CHDMounter.Core.Interfaces;
-using CHDMounter.Core.Models;
+using CHDMounter.Interfaces;
+using CHDMounter.Models;
 using CHDMounter.Mounting.Dokan;
 using CHDMounter.Mounting.Fuse;
 using CHDMounter.Mounting.WinFsp;
-using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Mounting;
 
@@ -106,8 +105,6 @@ internal sealed class MountService : IMountService
 
             _backends.Clear();
         }
-
-        GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc />
