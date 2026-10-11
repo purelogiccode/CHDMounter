@@ -1,0 +1,40 @@
+<Window x:Class="CHDMounter.Views.ConsoleSelectionWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vgfsp="clr-namespace:VideoGameFileSystemParser.Models;assembly=VideoGameFileSystemParser"
+        Title="Mount CHD Image" Height="240" Width="500"
+        CanResize="True"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        ToolTip.Tip="Console type selection for CHD image mounting">
+    <Grid Margin="15" RowDefinitions="Auto,Auto,Auto,*,Auto"
+          ToolTip.Tip="Console type selection for CHD image mounting">
+        <TextBlock Grid.Row="0" Text="Selected CHD image:"
+                   Margin="0,0,0,4" FontWeight="SemiBold"
+                   ToolTip.Tip="Label indicating the selected CHD file" />
+        <TextBlock Grid.Row="1" x:Name="ChdPathTextBlock"
+                   Margin="0,0,0,10" TextTrimming="CharacterEllipsis"
+                   ToolTip.Tip="Full path to the CHD disc image file" />
+
+        <TextBlock Grid.Row="2" Text="Select the filesystem type for this CHD image:"
+                   Margin="0,0,0,10"
+                   ToolTip.Tip="Instructions for selecting the console type" />
+
+        <ComboBox Grid.Row="3" x:Name="ConsoleComboBox"
+                  Height="35" Margin="0,0,0,15" VerticalAlignment="Top"
+                  ToolTip.Tip="Select the video game console filesystem type for this CHD image">
+            <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vgfsp:ConsoleInfo">
+                    <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right"
+                    ToolTip.Tip="Confirmation buttons">
+            <Button Content="Mount" Width="80" Classes="primary"
+                    Click="Ok_Click" Margin="0,0,8,0" ToolTip.Tip="Mount the CHD image with the selected filesystem type" />
+            <Button Content="Cancel" Width="80" Click="Cancel_Click" ToolTip.Tip="Cancel and return to main window" />
+        </StackPanel>
+    </Grid>
+</Window>

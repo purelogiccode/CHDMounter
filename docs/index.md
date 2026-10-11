@@ -1,8 +1,9 @@
 # CHDMounter
 
-Mount CHD (Compressed Hunks of Data) CD/DVD images as virtual read-only drives on Windows.
-CHDMounter supports 37 console/format modes and ships in two flavours: a **Dokan** build and a
-**WinFsp** build.
+Mount CHD (Compressed Hunks of Data) CD/DVD images as virtual read-only drives on Windows, Linux
+and macOS. CHDMounter supports 37 console/format modes and lets you choose the mount core in
+Settings: **Dokan** (default) or **WinFsp** on Windows, **FUSE** (libfuse3 / macFUSE) on Linux
+and macOS.
 
 ![CHDMounter main window](images/screenshot.png)
 
@@ -13,8 +14,9 @@ CHDMounter supports 37 console/format modes and ships in two flavours: a **Dokan
 - Virtual CUE/BIN/ISO/WAV export for emulators and burning tools
 - SingleFile ISO passthrough for xemu and RPCS3
 - Command-line interface for scripting and frontend integration
-- WPF dark-theme UI with settings persistence and real-time logs
-- x64 and ARM64 builds
+- Avalonia cross-platform dark-theme UI with settings persistence and real-time logs
+- Selectable mount core: Dokan (default) or WinFsp on Windows; FUSE on Linux/macOS
+- x64 and ARM64 builds for Windows, Linux and macOS
 
 ## Documentation
 
@@ -26,7 +28,7 @@ CHDMounter supports 37 console/format modes and ships in two flavours: a **Dokan
 | [Command Line](command-line.md) | Flags, aliases and examples |
 | [Console Types](console-types.md) | Full alias reference |
 | [How It Works](how-it-works.md) | CHD reading, sector mapping and filesystem parsing |
-| [Dokan vs WinFsp](dokan-vs-winfsp.md) | Choosing a driver |
+| [Dokan vs WinFsp](dokan-vs-winfsp.md) | Choosing a mount core |
 | [Troubleshooting](troubleshooting.md) | Common problems and fixes |
 | [FAQ](faq.md) | Frequently asked questions |
 | [Changelog](changelog.md) | Release notes |
@@ -34,8 +36,10 @@ CHDMounter supports 37 console/format modes and ships in two flavours: a **Dokan
 
 ## Requirements at a glance
 
-- Windows 10 or later (x64 or ARM64)
-- [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [Dokan](https://github.com/dokan-dev/dokany/releases) **or** [WinFsp](https://github.com/winfsp/winfsp/releases)
+- Windows 10+ (x64/ARM64), Linux (x64/ARM64) or macOS (Intel/Apple silicon)
+- [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0)
+- Windows: [Dokan](https://github.com/dokan-dev/dokany/releases) (default) or [WinFsp](https://github.com/winfsp/winfsp/releases)
+- Linux: libfuse3 and `/dev/fuse`
+- macOS: [macFUSE](https://macfuse.io)
 
 See [Installation](installation.md) for details.

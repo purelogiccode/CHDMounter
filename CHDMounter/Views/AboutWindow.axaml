@@ -1,0 +1,158 @@
+<Window x:Class="CHDMounter.Views.AboutWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About CHDMounter"
+        Height="650" Width="580"
+        CanResize="True"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        ToolTip.Tip="About window with application information">
+    <Grid Margin="24,20" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto"
+          ToolTip.Tip="About window with application information">
+        <StackPanel Grid.Row="0" ToolTip.Tip="Application name and description">
+            <Image Source="/Images/logo.png" Width="128" Height="128" Margin="0,0,0,10"
+                   ToolTip.Tip="CHDMounter logo" />
+            <TextBlock Text="CHDMounter" FontSize="22" FontWeight="Bold"
+                       Foreground="{StaticResource AccentSecondaryBrush}" ToolTip.Tip="Application name" />
+            <TextBlock Text="CHD Virtual Drive Mounter" FontSize="13"
+                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0"
+                       ToolTip.Tip="Brief description of the application" />
+        </StackPanel>
+
+        <Border Grid.Row="1" Height="1" Background="{StaticResource BorderPrimaryBrush}"
+                Margin="0,14,0,10" ToolTip.Tip="Visual separator" />
+
+        <StackPanel Grid.Row="2" ToolTip.Tip="Application details and metadata">
+            <Grid Margin="0,0,0,10" ColumnDefinitions="100,*" ToolTip.Tip="Version information">
+                <TextBlock Grid.Column="0" Text="Version" Foreground="{StaticResource TextMutedBrush}" FontSize="12"
+                           ToolTip.Tip="Version label" />
+                <TextBlock Grid.Column="1" x:Name="VersionText" FontSize="12"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           ToolTip.Tip="Current application version number" />
+            </Grid>
+
+            <Border x:Name="UpdateBanner" Background="{StaticResource AccentSecondaryBrush}"
+                    CornerRadius="4" Padding="10,8" Margin="0,0,0,10" IsVisible="False"
+                    ToolTip.Tip="Update notification banner">
+                <StackPanel>
+                    <TextBlock x:Name="UpdateText" Foreground="White" FontSize="12" FontWeight="SemiBold"
+                               TextWrapping="Wrap" ToolTip.Tip="Update availability message" />
+                    <Button x:Name="UpdateLink" Classes="link" Margin="0,4,0,0" Click="UpdateLink_Click"
+                            ToolTip.Tip="Click to open the download page">
+                        <TextBlock Text="Click here to download" Foreground="White" FontSize="12"
+                                   TextDecorations="Underline" />
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <Grid Margin="0,0,0,10" ColumnDefinitions="100,*" ToolTip.Tip="Framework information">
+                <TextBlock Grid.Column="0" Text="Framework" Foreground="{StaticResource TextMutedBrush}" FontSize="12"
+                           ToolTip.Tip="Framework label" />
+                <TextBlock Grid.Column="1" Text=".NET 10 / Avalonia" FontSize="12"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           ToolTip.Tip="The UI framework used by this application" />
+            </Grid>
+            <Grid Margin="0,0,0,10" ColumnDefinitions="100,*" ToolTip.Tip="Supported formats">
+                <TextBlock Grid.Column="0" Text="Supports" Foreground="{StaticResource TextMutedBrush}" FontSize="12"
+                           ToolTip.Tip="Supported formats label" />
+                <TextBlock Grid.Column="1" FontSize="12"
+                           Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"
+                           ToolTip.Tip="Disc image formats supported by this application">
+                    ISO 9660, UDF, XDVDFS (Xbox), OperaFS (3DO), CD-i Green Book
+                </TextBlock>
+            </Grid>
+            <Grid Margin="0,0,0,10" ColumnDefinitions="100,*" ToolTip.Tip="Company information">
+                <TextBlock Grid.Column="0" Text="Company" Foreground="{StaticResource TextMutedBrush}" FontSize="12"
+                           ToolTip.Tip="Company label" />
+                <TextBlock Grid.Column="1" Text="PureLogicCode.com" FontSize="12"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           ToolTip.Tip="Company or developer website" />
+            </Grid>
+        </StackPanel>
+
+        <TextBlock Grid.Row="3"
+                   Text="Mounts CHD (Compressed Hunks of Data) CD/DVD images as virtual drives using Dokan, WinFsp or FUSE."
+                   TextWrapping="Wrap" FontSize="11" Margin="0,10,0,0"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   ToolTip.Tip="Brief explanation of what the application does" />
+
+        <Border Grid.Row="4" Background="{StaticResource BgTertiaryBrush}"
+                CornerRadius="6" Padding="12,10" Margin="0,10,0,0" VerticalAlignment="Top"
+                ToolTip.Tip="Acknowledgments for third-party libraries and projects">
+            <StackPanel>
+                <TextBlock Text="Acknowledgments" FontSize="13" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"
+                           ToolTip.Tip="Acknowledgments section title" />
+                <StackPanel Spacing="2">
+                    <WrapPanel>
+                        <Button Classes="link" Tag="https://github.com/AvaloniaUI/Avalonia" Click="OpenUrl_Click">
+                            <TextBlock Text="Avalonia" FontSize="11" TextDecorations="Underline"
+                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                        </Button>
+                        <TextBlock Text=" - Cross-platform .NET UI framework" FontSize="11"
+                                   Foreground="{StaticResource TextMutedBrush}" />
+                    </WrapPanel>
+                    <WrapPanel>
+                        <Button Classes="link" Tag="https://github.com/drpetersonfernandes/CHDSharp" Click="OpenUrl_Click">
+                            <TextBlock Text="CHDSharp" FontSize="11" TextDecorations="Underline"
+                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                        </Button>
+                        <TextBlock Text=" - CHD file format parser" FontSize="11"
+                                   Foreground="{StaticResource TextMutedBrush}" />
+                    </WrapPanel>
+                    <WrapPanel>
+                        <Button Classes="link" Tag="https://github.com/dokan-dev/dokan-dotnet" Click="OpenUrl_Click">
+                            <TextBlock Text="DokanNet" FontSize="11" TextDecorations="Underline"
+                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                        </Button>
+                        <TextBlock Text=" - User-mode filesystem driver for Windows" FontSize="11"
+                                   Foreground="{StaticResource TextMutedBrush}" />
+                    </WrapPanel>
+                    <WrapPanel>
+                        <Button Classes="link" Tag="https://github.com/libfuse/libfuse" Click="OpenUrl_Click">
+                            <TextBlock Text="FUSE / FuseSharp" FontSize="11" TextDecorations="Underline"
+                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                        </Button>
+                        <TextBlock Text=" - FUSE 3 high-level mount library for Linux and macOS" FontSize="11"
+                                   Foreground="{StaticResource TextMutedBrush}" />
+                    </WrapPanel>
+                    <WrapPanel>
+                        <Button Classes="link" Tag="https://github.com/mamedev/mame" Click="OpenUrl_Click">
+                            <TextBlock Text="MAME" FontSize="11" TextDecorations="Underline"
+                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                        </Button>
+                        <TextBlock Text=" - CHD file format specification" FontSize="11"
+                                   Foreground="{StaticResource TextMutedBrush}" />
+                    </WrapPanel>
+                    <WrapPanel>
+                        <Button Classes="link" Tag="https://github.com/serilog/serilog" Click="OpenUrl_Click">
+                            <TextBlock Text="Serilog" FontSize="11" TextDecorations="Underline"
+                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                        </Button>
+                        <TextBlock Text=" - Diagnostic logging library" FontSize="11"
+                                   Foreground="{StaticResource TextMutedBrush}" />
+                    </WrapPanel>
+                    <WrapPanel>
+                        <Button Classes="link" Tag="https://github.com/drpetersonfernandes/VideoGameFileSystemParser" Click="OpenUrl_Click">
+                            <TextBlock Text="VideoGameFileSystemParser" FontSize="11" TextDecorations="Underline"
+                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                        </Button>
+                        <TextBlock Text=" - Console filesystem parser" FontSize="11"
+                                   Foreground="{StaticResource TextMutedBrush}" />
+                    </WrapPanel>
+                    <WrapPanel>
+                        <Button Classes="link" Tag="https://github.com/winfsp/winfsp" Click="OpenUrl_Click">
+                            <TextBlock Text="WinFsp" FontSize="11" TextDecorations="Underline"
+                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                        </Button>
+                        <TextBlock Text=" - Windows File System Proxy" FontSize="11"
+                                   Foreground="{StaticResource TextMutedBrush}" />
+                    </WrapPanel>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Button Grid.Row="5" Content="OK" Width="80" HorizontalAlignment="Right"
+                Margin="0,14,0,0" Click="Ok_Click" ToolTip.Tip="Close the about window" />
+    </Grid>
+</Window>

@@ -1,0 +1,334 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Styles.Resources>
+        <!-- ============================================ -->
+        <!-- MODERN DARK THEME - COLOR PALETTE             -->
+        <!-- ============================================ -->
+
+        <Color x:Key="BgPrimaryColor">#FF1B1B1F</Color>
+        <Color x:Key="BgSecondaryColor">#FF252528</Color>
+        <Color x:Key="BgTertiaryColor">#FF2D2D31</Color>
+        <Color x:Key="BgQuaternaryColor">#FF3B3B40</Color>
+
+        <Color x:Key="AccentPrimaryColor">#FF0078D4</Color>
+        <Color x:Key="AccentSecondaryColor">#FF60CDFF</Color>
+        <Color x:Key="AccentHoverColor">#FF1A85D9</Color>
+        <Color x:Key="AccentPressedColor">#FF005A9E</Color>
+
+        <Color x:Key="TextPrimaryColor">#FFE8E8E8</Color>
+        <Color x:Key="TextSecondaryColor">#FFB0B0B0</Color>
+        <Color x:Key="TextMutedColor">#FF707070</Color>
+        <Color x:Key="TextDisabledColor">#FF4A4A4A</Color>
+
+        <Color x:Key="BorderPrimaryColor">#FF39393D</Color>
+        <Color x:Key="BorderSecondaryColor">#FF4D4D53</Color>
+        <Color x:Key="BorderAccentColor">#FF0078D4</Color>
+
+        <Color x:Key="SuccessColor">#FF40C057</Color>
+        <Color x:Key="WarningColor">#FFE8A820</Color>
+        <Color x:Key="ErrorColor">#FFE74856</Color>
+        <Color x:Key="InfoColor">#FF60CDFF</Color>
+
+        <!-- ============================================ -->
+        <!-- BRUSHES                                      -->
+        <!-- ============================================ -->
+
+        <SolidColorBrush x:Key="BgPrimaryBrush" Color="{StaticResource BgPrimaryColor}" />
+        <SolidColorBrush x:Key="BgSecondaryBrush" Color="{StaticResource BgSecondaryColor}" />
+        <SolidColorBrush x:Key="BgTertiaryBrush" Color="{StaticResource BgTertiaryColor}" />
+        <SolidColorBrush x:Key="BgQuaternaryBrush" Color="{StaticResource BgQuaternaryColor}" />
+
+        <SolidColorBrush x:Key="AccentPrimaryBrush" Color="{StaticResource AccentPrimaryColor}" />
+        <SolidColorBrush x:Key="AccentSecondaryBrush" Color="{StaticResource AccentSecondaryColor}" />
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}" />
+        <SolidColorBrush x:Key="AccentPressedBrush" Color="{StaticResource AccentPressedColor}" />
+
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+        <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
+        <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabledColor}" />
+
+        <SolidColorBrush x:Key="BorderPrimaryBrush" Color="{StaticResource BorderPrimaryColor}" />
+        <SolidColorBrush x:Key="BorderSecondaryBrush" Color="{StaticResource BorderSecondaryColor}" />
+        <SolidColorBrush x:Key="BorderAccentBrush" Color="{StaticResource BorderAccentColor}" />
+
+        <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+        <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+        <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
+        <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}" />
+
+        <!-- ============================================ -->
+        <!-- FONTS                                        -->
+        <!-- ============================================ -->
+
+        <FontFamily x:Key="PrimaryFontFamily">Segoe UI, Inter, Ubuntu, Noto Sans, sans-serif</FontFamily>
+        <FontFamily x:Key="MonospaceFontFamily">Cascadia Code, Consolas, DejaVu Sans Mono, Menlo, monospace</FontFamily>
+
+        <!-- Fluent theme resource overrides so popups match the custom palette. -->
+        <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{StaticResource BgSecondaryColor}" />
+        <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderPrimaryColor}" />
+        <SolidColorBrush x:Key="MenuFlyoutSeparatorBackground" Color="{StaticResource BorderPrimaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="{StaticResource BgSecondaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource BorderPrimaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxDropDownForeground" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxItemForeground" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource BgTertiaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="{StaticResource BgQuaternaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver" Color="{StaticResource BgQuaternaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxItemForegroundSelected" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedPointerOver" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource BgSecondaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource BgSecondaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource BgSecondaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="{StaticResource BorderPrimaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="{StaticResource BorderSecondaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="{StaticResource BorderAccentColor}" />
+        <SolidColorBrush x:Key="ComboBoxForeground" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxForegroundPointerOver" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="ComboBoxForegroundPressed" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource BgSecondaryColor}" />
+        <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource BgSecondaryColor}" />
+        <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource BgSecondaryColor}" />
+        <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource BorderPrimaryColor}" />
+        <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource BorderSecondaryColor}" />
+        <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource BorderAccentColor}" />
+        <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="TextControlForegroundFocused" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="{StaticResource AccentPrimaryColor}" />
+        <SolidColorBrush x:Key="CheckBoxForegroundUnchecked" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="CheckBoxForegroundUncheckedPointerOver" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="CheckBoxForegroundChecked" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="CheckBoxForegroundCheckedPointerOver" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="RadioButtonForeground" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="RadioButtonForegroundPointerOver" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="RadioButtonForegroundPressed" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{StaticResource AccentPrimaryColor}" />
+        <SolidColorBrush x:Key="ToolTipBackground" Color="{StaticResource BgTertiaryColor}" />
+        <SolidColorBrush x:Key="ToolTipBorderBrush" Color="{StaticResource BorderPrimaryColor}" />
+        <SolidColorBrush x:Key="ToolTipForeground" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="MenuFlyoutItemForeground" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="{StaticResource BgTertiaryColor}" />
+        <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="{StaticResource AccentPrimaryColor}" />
+    </Styles.Resources>
+
+    <!-- ============================================ -->
+    <!-- WINDOW STYLE                                 -->
+    <!-- ============================================ -->
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{StaticResource BgPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFontFamily}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- ============================================ -->
+    <!-- MENU STYLES                                  -->
+    <!-- ============================================ -->
+    <Style Selector="Menu">
+        <Setter Property="Background" Value="{StaticResource BgSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFontFamily}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Padding" Value="2,0" />
+    </Style>
+
+    <Style Selector="MenuItem">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFontFamily}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{StaticResource BgTertiaryBrush}" />
+    </Style>
+
+    <!-- ============================================ -->
+    <!-- BUTTON STYLES                                -->
+    <!-- ============================================ -->
+    <Style Selector="Button">
+        <Setter Property="Background" Value="{StaticResource BgTertiaryBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFontFamily}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderPrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="16,6" />
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="border"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="4">
+                    <ContentPresenter Name="contentPresenter"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Margin="{TemplateBinding Padding}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      RecognizesAccessKey="True" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ Border#border">
+        <Setter Property="Background" Value="{StaticResource BgQuaternaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="Button:pressed /template/ Border#border">
+        <Setter Property="Background" Value="{StaticResource AccentPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="Button:disabled /template/ Border#border">
+        <Setter Property="Background" Value="{StaticResource BgSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BgTertiaryBrush}" />
+    </Style>
+
+    <Style Selector="Button:disabled">
+        <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}" />
+        <Setter Property="Cursor" Value="Arrow" />
+    </Style>
+
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="{StaticResource AccentPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentSecondaryBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.primary:pointerover /template/ Border#border">
+        <Setter Property="Background" Value="{StaticResource AccentHoverBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="Button.primary:pressed /template/ Border#border">
+        <Setter Property="Background" Value="{StaticResource AccentPressedBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="Button.primary:disabled /template/ Border#border">
+        <Setter Property="Background" Value="{StaticResource BgQuaternaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BgTertiaryBrush}" />
+    </Style>
+
+    <Style Selector="Button.link">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="FontWeight" Value="Normal" />
+    </Style>
+
+    <Style Selector="Button.link:pointerover /template/ Border#border">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button.link:pressed /template/ Border#border">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <!-- ============================================ -->
+    <!-- TEXTBOX STYLES                               -->
+    <!-- ============================================ -->
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="{StaticResource BgSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFontFamily}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderPrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="Padding" Value="8,5" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="CaretBrush" Value="{StaticResource AccentSecondaryBrush}" />
+        <Setter Property="SelectionBrush" Value="{StaticResource AccentPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBox:pointerover">
+        <Setter Property="BorderBrush" Value="{StaticResource BorderSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBox:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource BorderAccentBrush}" />
+    </Style>
+
+    <Style Selector="TextBox:disabled">
+        <Setter Property="Background" Value="{StaticResource BgTertiaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BgPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}" />
+    </Style>
+
+    <Style Selector="TextBox.log">
+        <Setter Property="FontFamily" Value="{StaticResource MonospaceFontFamily}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Background" Value="{StaticResource BgPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Padding" Value="10" />
+    </Style>
+
+    <!-- ============================================ -->
+    <!-- LABEL / TEXTBLOCK STYLES                     -->
+    <!-- ============================================ -->
+    <Style Selector="Label">
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFontFamily}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Padding" Value="0,2" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFontFamily}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- ============================================ -->
+    <!-- CHECKBOX / RADIO STYLES                      -->
+    <!-- ============================================ -->
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFontFamily}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFontFamily}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- ============================================ -->
+    <!-- COMBOBOX STYLES                              -->
+    <!-- ============================================ -->
+    <Style Selector="ComboBox">
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFontFamily}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="10,4" />
+    </Style>
+
+    <!-- ============================================ -->
+    <!-- SCROLLBAR STYLES                             -->
+    <!-- ============================================ -->
+    <Style Selector="ScrollBar">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+</Styles>

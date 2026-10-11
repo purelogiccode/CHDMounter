@@ -4,12 +4,13 @@ This walkthrough mounts a CHD image with the GUI.
 
 ## 1. Install the prerequisites
 
-Install the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) and the
-driver for your bundle (Dokan or WinFsp). See [Installation](installation.md).
+Install the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0) and the driver
+for the mount core you will use: Dokan (default) or WinFsp on Windows, libfuse3 on Linux, or
+macFUSE on macOS. See [Installation](installation.md).
 
 ## 2. Run CHDMounter
 
-Extract the release bundle and double-click `CHDMounter.exe`.
+Extract the release bundle and run `CHDMounter` (`CHDMounter.exe` on Windows).
 
 ![CHDMounter main window](images/screenshot.png)
 
@@ -25,8 +26,9 @@ See [Console Types](console-types.md) for the full list.
 
 ## 5. Mount
 
-Click **Mount**. On success the drive letter appears in the status area and in File Explorer.
-The volume is mounted **read-only**; your CHD file is never modified.
+Click **Mount**. On success the drive letter (Windows) or mount folder (Linux/macOS) appears in
+the status area and in your file manager. The volume is mounted **read-only**; your CHD file is
+never modified.
 
 ## 6. Unmount
 

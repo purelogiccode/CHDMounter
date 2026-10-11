@@ -48,11 +48,19 @@ jobs:
           if-no-files-found: ignore
 
   package:
-    name: Package bundles
+    name: Package bundles (${{ matrix.os }})
     needs: test
-    runs-on: windows-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rids: win-x64,win-arm64
+          - os: ubuntu-latest
+            rids: linux-x64,linux-arm64
+          - os: macos-latest
+            rids: osx-x64,osx-arm64
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -69,14 +77,16 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($version)) { throw 'Could not determine version from tag' }
           "version=$version" >> $env:GITHUB_OUTPUT
 
+      # Each runner packs its own platform's bundles so Unix archives keep the
+      # executable permission bit.
       - name: Pack release bundles
         shell: pwsh
-        run: ./build/pack-release.ps1 -Version "${{ steps.version.outputs.version }}" -OutputDir "${{ github.workspace }}/artifacts"
+        run: ./build/pack-release.ps1 -Version "${{ steps.version.outputs.version }}" -OutputDir "${{ github.workspace }}/artifacts" -Runtime "${{ matrix.rids }}"
 
       - name: Upload bundles
         uses: actions/upload-artifact@v4
         with:
-          name: bundles
+          name: bundles-${{ matrix.os }}
           path: artifacts/*.zip
           if-no-files-found: error
 
@@ -90,8 +100,9 @@ jobs:
       - name: Download bundles
         uses: actions/download-artifact@v4
         with:
-          name: bundles
+          pattern: bundles-*
           path: artifacts
+          merge-multiple: true
 
       - name: Create or update release
         env:

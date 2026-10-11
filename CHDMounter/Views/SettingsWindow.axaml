@@ -1,0 +1,43 @@
+<Window x:Class="CHDMounter.Views.SettingsWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Settings"
+        Width="380" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        ToolTip.Tip="Application settings panel">
+    <Grid Margin="24,20" RowDefinitions="Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="Settings" FontSize="18" FontWeight="Bold"
+                   Foreground="{StaticResource AccentSecondaryBrush}" Margin="0,0,0,14"
+                   ToolTip.Tip="Settings window title" />
+
+        <StackPanel Grid.Row="1" ToolTip.Tip="Available settings options">
+            <CheckBox x:Name="AutoOpenDriveCheckBox" Content="Auto open the mounted drive in Explorer"
+                      FontSize="13" Margin="0,0,0,12"
+                      ToolTip.Tip="When checked, the mounted drive will be opened automatically after mounting." />
+
+            <TextBlock Text="Mount core" FontWeight="SemiBold" Margin="0,0,0,6"
+                       ToolTip.Tip="The file system driver used to expose CHD images as virtual drives" />
+            <StackPanel x:Name="MountCorePanel">
+                <RadioButton x:Name="DokanRadioButton" Content="Dokan" GroupName="MountCore"
+                             Margin="0,0,0,3"
+                             ToolTip.Tip="Mount using the Dokan user-mode file system driver (Windows)" />
+                <RadioButton x:Name="WinFspRadioButton" Content="WinFsp" GroupName="MountCore"
+                             Margin="0,0,0,3"
+                             ToolTip.Tip="Mount using the WinFsp user-mode file system driver (Windows)" />
+                <RadioButton x:Name="FuseRadioButton" Content="FUSE (libfuse3 / macFUSE)" GroupName="MountCore"
+                             ToolTip.Tip="Mount using FUSE 3 - libfuse3 on Linux, macFUSE on macOS" />
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0"
+                    ToolTip.Tip="Settings action buttons">
+            <Button x:Name="CancelButton" Content="Cancel" Width="80"
+                    Margin="0,0,10,0" Click="Cancel_Click" ToolTip.Tip="Discard changes and close" />
+            <Button x:Name="SaveButton" Content="Save" Width="80"
+                    Classes="primary"
+                    Click="Save_Click" ToolTip.Tip="Save settings and close" />
+        </StackPanel>
+    </Grid>
+</Window>

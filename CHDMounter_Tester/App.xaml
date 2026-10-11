@@ -9,7 +9,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ui:ThemesDictionary Theme="Dark" />
                 <ui:ControlsDictionary />
-                <ResourceDictionary Source="/CHDMounter.Core;component/Themes/DarkTheme.xaml" />
+                <ResourceDictionary Source="Themes/TesterTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

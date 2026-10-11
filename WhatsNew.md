@@ -1,5 +1,20 @@
 # What's New
 
+## Unreleased
+
+### Changed
+
+- **One application instead of two** — the Dokan, WinFsp and Core projects are merged into a
+  single `CHDMounter` application. There is now one download per platform/architecture
+  (`release_<version>_<rid>.zip`) instead of separate Dokan and WinFsp bundles.
+- **Cross-platform UI** — the WPF interface was ported to Avalonia with the same dark theme and
+  layout, and the application now runs on Windows, Linux and macOS (x64 and ARM64).
+- **Selectable mount core** — choose Dokan (default) or WinFsp on Windows in
+  **Settings → Mount core**. Linux and macOS mount through FUSE 3 (libfuse3 / macFUSE) using the
+  bundled `FuseSharp` library.
+- **Per-platform settings** — settings stay DPAPI-encrypted on Windows and are stored as plain
+  JSON on Linux/macOS.
+
 ## 1.2.1
 
 ### Fixed

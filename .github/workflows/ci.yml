@@ -41,3 +41,23 @@ jobs:
           name: test-results
           path: TestResults/*.trx
           if-no-files-found: ignore
+
+  cross-platform-build:
+    name: Cross-platform build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # Only the app project is portable; the tests and the Tester tool target
+      # net10.0-windows. This verifies the Linux/macOS build stays green.
+      - name: Build app
+        run: dotnet build CHDMounter/CHDMounter.csproj -c Release

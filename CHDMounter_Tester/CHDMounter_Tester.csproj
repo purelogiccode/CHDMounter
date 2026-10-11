@@ -23,11 +23,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CHDMounter.Core\CHDMounter.Core.csproj" />
+        <ProjectReference Include="..\CHDMounter\CHDMounter.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.297">
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.299">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

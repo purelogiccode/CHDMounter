@@ -8,20 +8,22 @@ The main window exposes:
 |---------|---------|
 | **Browse** | Select a `.chd` file |
 | **Console type** | Choose the filesystem/format parser |
-| **Mount point** | Optional drive letter, e.g. `M:`. Leave empty to auto-pick |
+| **Mount point** | Optional drive letter (Windows) or folder (Linux/macOS). Leave empty to auto-pick |
 | **Mount** | Mount the image as a read-only virtual drive |
 | **Unmount** | Remove the virtual drive |
-| **Settings** | Auto-open drive, drive-letter preference and more |
+| **Settings** | Auto-open the mounted drive and select the mount core (Dokan/WinFsp/FUSE) |
 | **About** | Version information and third-party credits |
 | **Open AppData Folder** | Opens `%LOCALAPPDATA%\CHDMounter` (logs, settings, screenshots) |
 | **Log** | Real-time mount/parse log output |
 
 ### Mount options
 
-- **Auto-open drive** — launch File Explorer at the mounted drive when the mount succeeds.
-- **Drive letter** — a preferred drive letter for automatic mounts.
+- **Auto-open drive** — open the mounted drive in your file manager when the mount succeeds.
+- **Mount core** — choose **Dokan** (default) or **WinFsp** on Windows; Linux and macOS always
+  use **FUSE** (libfuse3 / macFUSE).
 
-Settings are encrypted with Windows DPAPI and persisted between sessions.
+On Windows settings are encrypted with DPAPI; on Linux/macOS they are stored as plain JSON.
+Settings persist between sessions.
 
 ## CLI via the GUI build
 
@@ -40,5 +42,7 @@ the image is opened in read-only mode.
 
 ## Logs
 
-Structured Serilog logs are written to `%LOCALAPPDATA%\CHDMounter\Logs`. The log pane in the UI
-shows the same messages. When reporting an issue, include the newest log file.
+Structured Serilog logs are written to the `logs` folder inside the application data folder
+(`%LOCALAPPDATA%\CHDMounter` on Windows, `~/.local/share/CHDMounter` on Linux,
+`~/Library/Application Support/CHDMounter` on macOS). The log pane in the UI shows the same
+messages. When reporting an issue, include the newest log file.

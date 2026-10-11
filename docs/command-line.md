@@ -6,7 +6,7 @@ CHDMounter.exe [/l] [/a] [/s:<alias>] <chd_file> [mount_point]
 
 | Argument | Description |
 |----------|-------------|
-| `/l` | Launch File Explorer after mounting |
+| `/l` | Open the mounted drive in the file manager (Explorer/Finder/xdg-open) |
 | `/a` | Auto-select a drive letter |
 | `/s:<alias>` | Select the console/format by alias (e.g. `ps2`, `cuebin2352`) |
 | `<chd_file>` | Path to the `.chd` file (required) |
@@ -17,6 +17,7 @@ CHDMounter.exe [/l] [/a] [/s:<alias>] <chd_file> [mount_point]
 - Arguments can be in any order.
 - Flags are prefixed with `/`.
 - A console alias may also be passed as a positional argument: `CHDMounter.exe game.chd ps2`.
+- On Linux and macOS the executable is named `CHDMounter` (no `.exe` suffix).
 - If no console type is given, a dialog appears asking you to choose.
 - Numeric console indexes are not supported — use aliases (see [Console Types](console-types.md)).
 
@@ -47,5 +48,5 @@ CHDMounter.exe game.chd ps3
 
 ## Auto-open after mount
 
-With `/l`, CHDMounter opens File Explorer at the mount point as soon as the drive is ready.
+With `/l`, CHDMounter opens the file manager at the mount point as soon as the drive is ready.
 The same behaviour can be enabled permanently in **Settings** (*Auto-open mounted drive*).

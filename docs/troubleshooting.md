@@ -1,10 +1,10 @@
 # Troubleshooting
 
-## "The application requires the .NET Desktop Runtime"
+## "The application requires the .NET runtime"
 
 The download bundles are framework-dependent: they do not embed the runtime. Install the
-[.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) (x64 or ARM64 to
-match your bundle) and start CHDMounter again.
+[.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0) (on Windows the Desktop
+Runtime; x64 or ARM64 to match your bundle) and start CHDMounter again.
 
 ## "The type initializer for 'Fsp.Interop.Api' threw an exception" (WinFsp)
 
@@ -23,9 +23,16 @@ single-file mode, which is required for the WinFsp.NET bindings to load.
 
 ## "Dokan driver not found" / "Driver not found"
 
-The driver for the selected bundle is missing or cannot be loaded. Install the latest
+The driver for the selected mount core is missing or cannot be loaded. Install the latest
 [Dokany](https://github.com/dokan-dev/dokany/releases) or
-[WinFsp](https://github.com/winfsp/winfsp/releases) release and restart the application.
+[WinFsp](https://github.com/winfsp/winfsp/releases) release and restart the application, or
+switch cores in **Settings → Mount core**.
+
+## "FUSE Library Not Found" (Linux / macOS)
+
+The FUSE 3 library is missing. On Linux install it with your package manager (for example
+`sudo apt install libfuse3-3 fuse3`) and make sure `/dev/fuse` exists (`sudo modprobe fuse`).
+On macOS install [macFUSE](https://macfuse.io).
 
 ## Mount fails with "No available drive letter"
 
@@ -48,8 +55,10 @@ stale CHDMounter mount or restart the application.
 
 ## Where are the logs?
 
-Open **Open AppData Folder** in the application, or browse to `%LOCALAPPDATA%\CHDMounter\Logs`.
-Attach the newest log file when reporting an issue.
+Open **Open AppData Folder** in the application, or browse to the `logs` folder inside the
+application data folder (`%LOCALAPPDATA%\CHDMounter` on Windows, `~/.local/share/CHDMounter` on
+Linux, `~/Library/Application Support/CHDMounter` on macOS). Attach the newest log file when
+reporting an issue.
 
 ## The virtual drive appears as "CHDFS" and is read-only
 

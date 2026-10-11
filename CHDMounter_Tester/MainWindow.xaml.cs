@@ -6,7 +6,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using CHDMounter.Core.Views;
 using Microsoft.Win32;
 using Serilog;
 using Tester.Models;
@@ -55,7 +54,7 @@ public partial class MainWindow
 
         _logger = App.Logger ?? new LoggerConfiguration().WriteTo.Debug(formatProvider: CultureInfo.InvariantCulture)
             .CreateLogger();
-        _screenshotService = new ScreenshotService(new LoggingService(Dispatcher));
+        _screenshotService = new ScreenshotService(new LoggingService());
 
         _elapsedTimer = new DispatcherTimer(DispatcherPriority.Normal, Dispatcher)
         {
@@ -342,7 +341,8 @@ public partial class MainWindow
 
     private void About_Click(object sender, RoutedEventArgs e)
     {
-        new AboutWindow { Owner = this }.ShowDialog();
+        MessageBox.Show("CHD Parsing Test Tool\n\nPureLogicCode.com", "About Tester",
+            MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void OpenAppDataFolder_Click(object sender, RoutedEventArgs e)

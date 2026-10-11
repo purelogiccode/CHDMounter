@@ -2,17 +2,23 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net10.0-windows</TargetFramework>
-        <UseWPF>true</UseWPF>
+        <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <IsPackable>false</IsPackable>
         <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationIcon>Icon\chd.ico</ApplicationIcon>
         <PublishSingleFile>true</PublishSingleFile>
         <!-- Framework-dependent on purpose: the release bundle must not embed the .NET runtime. -->
         <SelfContained>false</SelfContained>
-        <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
-        <ApplicationIcon>Icon\chd.ico</ApplicationIcon>
+        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+        <!-- Required: WinFsp.NET's Fsp.Interop.Api reads its own assembly Location to load the
+             native DLL and verify its version. In a single-file bundle Location is empty, which
+             makes the static initializer throw TypeInitializationException. Extracting all
+             content puts winfsp-msil.dll on disk and lets the bindings initialize. -->
+        <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+        <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
         <DebugType>embedded</DebugType>
         <DebugSymbols>true</DebugSymbols>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -27,19 +33,34 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CHDMounter.Core\CHDMounter.Core.csproj" />
+        <InternalsVisibleTo Include="CHDMounter.Core.Tests" />
+        <InternalsVisibleTo Include="CHDMounter_Tester" />
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\VideoGameFileSystemParser\VideoGameFileSystemParser.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="12.1.4" />
+        <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
         <PackageReference Include="DokanNet" Version="2.3.0.3" />
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.297">
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.299">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Serilog" Version="4.4.0" />
         <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-        <PackageReference Include="WPF-UI" Version="4.3.0" />
+        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.12" />
+        <PackageReference Include="winfsp.net" Version="2.1.25156" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AvaloniaResource Include="Images\**" />
+        <AvaloniaResource Include="Icon\**" />
     </ItemGroup>
 
 </Project>
