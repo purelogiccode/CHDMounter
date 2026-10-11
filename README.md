@@ -2,6 +2,15 @@
 [![.NET 10.0](https://img.shields.io/badge/.NET-10.0-512bd4.svg)](https://dotnet.microsoft.com/download/dotnet/10.0)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE.txt)
 [![GitHub release](https://img.shields.io/github/v/release/purelogiccode/CHDMounter)](https://github.com/purelogiccode/CHDMounter/releases)
+[![Release date](https://img.shields.io/github/release-date/purelogiccode/CHDMounter)](https://github.com/purelogiccode/CHDMounter/releases)
+[![Downloads](https://img.shields.io/github/downloads/purelogiccode/CHDMounter/total)](https://github.com/purelogiccode/CHDMounter/releases)
+[![CI](https://github.com/purelogiccode/CHDMounter/actions/workflows/ci.yml/badge.svg)](https://github.com/purelogiccode/CHDMounter/actions/workflows/ci.yml)
+[![Release](https://github.com/purelogiccode/CHDMounter/actions/workflows/release.yml/badge.svg)](https://github.com/purelogiccode/CHDMounter/actions/workflows/release.yml)
+[![Docs](https://img.shields.io/badge/Docs-purelogiccode.github.io-2ea44f?logo=readthedocs)](https://purelogiccode.github.io/CHDMounter/)
+[![Wiki](https://img.shields.io/badge/Wiki-GitHub-6f42c1?logo=github)](https://github.com/purelogiccode/CHDMounter/wiki)
+[![GitHub issues](https://img.shields.io/github/issues/purelogiccode/CHDMounter)](https://github.com/purelogiccode/CHDMounter/issues)
+[![GitHub stars](https://img.shields.io/github/stars/purelogiccode/CHDMounter?style=flat)](https://github.com/purelogiccode/CHDMounter/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/purelogiccode/CHDMounter/master)](https://github.com/purelogiccode/CHDMounter/commits/master)
 
 # CHDMounter
 
