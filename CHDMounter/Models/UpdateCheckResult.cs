@@ -21,11 +21,6 @@ public class UpdateCheckResult
     public string LatestVersion { get; init; } = string.Empty;
 
     /// <summary>
-    ///     Gets the URL to the GitHub release page.
-    /// </summary>
-    public string ReleaseUrl { get; init; } = string.Empty;
-
-    /// <summary>
     ///     Gets the direct download URL for the latest release asset.
     /// </summary>
     public string DownloadUrl { get; init; } = string.Empty;

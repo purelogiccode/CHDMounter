@@ -2,6 +2,7 @@ using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using CHDMounter.Services;
+using Serilog;
 
 namespace CHDMounter.Views;
 
@@ -25,8 +26,9 @@ public partial class AboutWindow : Window
         {
             VersionText.Text = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "1.0.0";
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Debug(ex, "AboutWindow: Failed to read the application version");
             VersionText.Text = "1.0.0";
         }
 

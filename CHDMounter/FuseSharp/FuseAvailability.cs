@@ -125,27 +125,27 @@ public static class FuseAvailability
         {
             Console.Error.WriteLine("Error: macFUSE (libfuse3) was not found.");
             Console.Error.WriteLine();
-            Console.Error.WriteLine("SimpleXisoDrive needs macFUSE to mount images on macOS.");
+            Console.Error.WriteLine("CHDMounter needs macFUSE to mount images on macOS.");
             Console.Error.WriteLine();
             Console.Error.WriteLine("To fix this:");
             Console.Error.WriteLine("  1. Download and install macFUSE from: https://macfuse.io");
             Console.Error.WriteLine("  2. On macOS 15.4 or later, choose the FSKit backend when prompted");
             Console.Error.WriteLine("     (no kernel extension required).");
-            Console.Error.WriteLine("  3. Re-run SimpleXisoDrive.");
+            Console.Error.WriteLine("  3. Re-run CHDMounter.");
             Log.Information("FUSE check failed: macFUSE libfuse3 was not found.");
         }
         else
         {
             Console.Error.WriteLine("Error: the FUSE 3 library (libfuse3) was not found.");
             Console.Error.WriteLine();
-            Console.Error.WriteLine("SimpleXisoDrive needs FUSE 3 to mount images on Linux.");
+            Console.Error.WriteLine("CHDMounter needs FUSE 3 to mount images on Linux.");
             Console.Error.WriteLine();
             Console.Error.WriteLine("To fix this, install FUSE 3 with your package manager:");
             Console.Error.WriteLine("  Debian/Ubuntu: sudo apt install libfuse3-3 fuse3");
             Console.Error.WriteLine("  Fedora:        sudo dnf install fuse3 fuse3-libs");
             Console.Error.WriteLine("  Arch:          sudo pacman -S fuse3");
             Console.Error.WriteLine();
-            Console.Error.WriteLine("Then re-run SimpleXisoDrive.");
+            Console.Error.WriteLine("Then re-run CHDMounter.");
             Log.Information("FUSE check failed: libfuse3 was not found.");
         }
 

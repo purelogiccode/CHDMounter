@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Fsp;
 using Microsoft.Win32;
+using Serilog;
 
 namespace CHDMounter.Mounting.WinFsp;
 
@@ -176,8 +177,9 @@ internal static class WinFspEnvironment
             FreeLibrary(handle);
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Debug(ex, "WinFspEnvironment: Failed to probe native library '{DllName}'", dllName);
             return false;
         }
     }

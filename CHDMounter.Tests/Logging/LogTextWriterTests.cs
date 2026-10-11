@@ -11,7 +11,7 @@ public class LogTextWriterTests
     public void LogTextWriterIsInternal()
     {
         var type = typeof(DiagnosticLogger).Assembly
-            .GetType("CHDMounter.Core.Logging.LogTextWriter");
+            .GetType("CHDMounter.Logging.LogTextWriter");
         // The class should exist but be internal
         Assert.NotNull(type);
         Assert.False(type.IsPublic);

@@ -1,4 +1,4 @@
-namespace CHDMounter.FuseSharp;
+namespace CHDMounter.Interfaces;
 
 /// <summary>
 /// A read-only volume that can be exposed as a FUSE file system. Paths passed to the

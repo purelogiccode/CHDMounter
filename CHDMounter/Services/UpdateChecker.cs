@@ -82,7 +82,6 @@ public static class UpdateChecker
                 HasUpdate = hasUpdate,
                 CurrentVersion = currentVersion,
                 LatestVersion = hasUpdate ? latestVersion : currentVersion,
-                ReleaseUrl = releaseUrl,
                 DownloadUrl = downloadUrl
             };
         }
@@ -127,8 +126,9 @@ public static class UpdateChecker
             var v2 = new Version(current);
             return v1 > v2;
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Debug(ex, "UpdateChecker: Could not parse versions '{Latest}' and '{Current}'", latest, current);
             return !string.Equals(latest, current, StringComparison.OrdinalIgnoreCase);
         }
     }

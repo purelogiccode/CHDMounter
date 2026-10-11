@@ -75,29 +75,34 @@ public class ScreenshotService : IScreenshotService
         return null;
     }
 
+    /// <summary>
+    ///     Gets the primary screenshot directory: the "Screenshot" folder inside the
+    ///     application folder.
+    /// </summary>
+    /// <returns>The full path to the primary screenshot directory.</returns>
+    internal static string GetPrimaryScreenshotDirectory()
+    {
+        return Path.Combine(AppContext.BaseDirectory, "Screenshot");
+    }
+
+    /// <summary>
+    ///     Gets the fallback screenshot directory: the "Screenshot" folder inside
+    ///     %LOCALAPPDATA%\CHDMounter.
+    /// </summary>
+    /// <returns>The full path to the fallback screenshot directory.</returns>
+    internal static string GetFallbackScreenshotDirectory()
+    {
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            AppInfoHelper.GetAppName(),
+            "Screenshot");
+    }
+
     private static string? TrySaveImage(RenderTargetBitmap bitmap, string fileName)
     {
         try
         {
-            var appDataDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "CHDMounter",
-                "Screenshot");
-            Directory.CreateDirectory(appDataDir);
-            var path = Path.Combine(appDataDir, fileName);
-            bitmap.Save(path, new PngBitmapEncoderOptions());
-            return path;
-        }
-        catch (Exception ex)
-        {
-            // Save failures (disk full, permissions) are environmental, not app bugs.
-            Log.Information(ex, "ScreenshotService: Failed to save screenshot to AppData");
-        }
-
-        try
-        {
-            var appFolder = AppContext.BaseDirectory;
-            var screenshotDir = Path.Combine(appFolder, "Screenshot");
+            var screenshotDir = GetPrimaryScreenshotDirectory();
             Directory.CreateDirectory(screenshotDir);
             var path = Path.Combine(screenshotDir, fileName);
             bitmap.Save(path, new PngBitmapEncoderOptions());
@@ -105,7 +110,21 @@ public class ScreenshotService : IScreenshotService
         }
         catch (Exception ex)
         {
+            // Save failures (disk full, permissions) are environmental, not app bugs.
             Log.Information(ex, "ScreenshotService: Failed to save screenshot to app folder");
+        }
+
+        try
+        {
+            var appDataDir = GetFallbackScreenshotDirectory();
+            Directory.CreateDirectory(appDataDir);
+            var path = Path.Combine(appDataDir, fileName);
+            bitmap.Save(path, new PngBitmapEncoderOptions());
+            return path;
+        }
+        catch (Exception ex)
+        {
+            Log.Information(ex, "ScreenshotService: Failed to save screenshot to AppData");
         }
 
         return null;

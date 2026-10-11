@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
 using CHDMounter.Interfaces;
@@ -53,9 +52,7 @@ public class SettingsService : ISettingsService
         catch (Exception ex)
         {
             // Save failures (disk full, permissions, DPAPI) are environmental, not app bugs.
-            Log.Information(ex, "SettingsService: Failed to save settings");
-            Trace.TraceError("SettingsService: Failed to save settings to '{0}'. Error: {1}", _settingsFilePath,
-                ex.Message);
+            Log.Information(ex, "SettingsService: Failed to save settings to {SettingsPath}", _settingsFilePath);
         }
     }
 
@@ -77,10 +74,8 @@ public class SettingsService : ISettingsService
             // not a bug in this application. Log below Warning to keep it out of
             // bug reports, and delete the unreadable file so the failure does not
             // recur on every launch (the app already resets to defaults).
-            Log.Information(ex, "SettingsService: Failed to load settings, resetting to defaults: {Message}",
-                ex.Message);
-            Trace.TraceWarning("SettingsService: Failed to load settings from '{0}', resetting to defaults. Error: {1}",
-                _settingsFilePath, ex.Message);
+            Log.Information(ex, "SettingsService: Failed to load settings from {SettingsPath}, resetting to defaults",
+                _settingsFilePath);
             Settings = new AppSettings();
 
             try
@@ -88,9 +83,10 @@ public class SettingsService : ISettingsService
                 if (File.Exists(_settingsFilePath))
                     File.Delete(_settingsFilePath);
             }
-            catch
+            catch (Exception deleteEx)
             {
                 // Best-effort cleanup; the corrupt file will simply be retried next launch.
+                Log.Debug(deleteEx, "SettingsService: Failed to delete the corrupt settings file");
             }
         }
     }

@@ -137,7 +137,7 @@ public partial class MainWindow
         if (dialog.ShowDialog() == true) ChdFolderTextBox.Text = dialog.FolderName;
     }
 
-    private async void RunButton_Click(object sender, RoutedEventArgs e)
+    private async void RunButton_ClickAsync(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -252,7 +252,7 @@ public partial class MainWindow
         ExportPdfButton.Visibility = Visibility.Visible;
     }
 
-    private async void ExportPdfButton_Click(object sender, RoutedEventArgs e)
+    private async void ExportPdfButton_ClickAsync(object sender, RoutedEventArgs e)
     {
         try
         {

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Serilog;
 
 namespace CHDMounter.Services;
 
@@ -42,9 +43,10 @@ public static class StatsClient
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await Client.SendAsync(request, cts.Token).ConfigureAwait(false);
         }
-        catch
+        catch (Exception ex)
         {
-            // silently fail
+            // Usage statistics are best-effort: a network failure must never impact the app.
+            Log.Information(ex, "StatsClient: Failed to send usage statistics");
         }
     }
 }

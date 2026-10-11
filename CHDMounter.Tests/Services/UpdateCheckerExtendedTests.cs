@@ -20,6 +20,44 @@ public class UpdateCheckerExtendedTests
         return (bool)method.Invoke(null, [latest, current])!;
     }
 
+    private static string InvokeGetPlatformRid()
+    {
+        var method = typeof(UpdateChecker).GetMethod("GetPlatformRid", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.NotNull(method);
+        return (string)method.Invoke(null, null!)!;
+    }
+
+    // --- GetPlatformRid ---
+
+    [Fact]
+    public void GetPlatformRidMatchesCurrentOperatingSystem()
+    {
+        var rid = InvokeGetPlatformRid();
+
+        if (OperatingSystem.IsWindows())
+            Assert.StartsWith("win-", rid, StringComparison.Ordinal);
+        else if (OperatingSystem.IsMacOS())
+            Assert.StartsWith("osx-", rid, StringComparison.Ordinal);
+        else
+            Assert.StartsWith("linux-", rid, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GetPlatformRidEndsWithSupportedArchitecture()
+    {
+        var rid = InvokeGetPlatformRid();
+
+        Assert.True(rid.EndsWith("-x64", StringComparison.Ordinal) ||
+                    rid.EndsWith("-arm64", StringComparison.Ordinal),
+            $"Unexpected runtime identifier: {rid}");
+    }
+
+    [Fact]
+    public void GetPlatformRidIsDeterministic()
+    {
+        Assert.Equal(InvokeGetPlatformRid(), InvokeGetPlatformRid(), StringComparer.Ordinal);
+    }
+
     // --- GetCurrentVersion ---
 
     [Fact]

@@ -11,8 +11,9 @@
         WindowStartupLocation="CenterScreen"
         KeyDown="MainWindow_KeyDown"
         Closing="MainWindow_Closing"
-        Style="{StaticResource ModernWindowStyle}">
-    <Grid>
+        Style="{StaticResource ModernWindowStyle}"
+        ToolTip="Tester main window">
+    <Grid ToolTip="Tester main window content">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -26,7 +27,7 @@
             <MenuItem Header="File" ToolTip="File operations">
                 <MenuItem Header="Exit" Click="Exit_Click" ToolTip="Close the application">
                     <MenuItem.Icon>
-                        <wpfui:SymbolIcon Symbol="ArrowExit20" />
+                        <wpfui:SymbolIcon Symbol="ArrowExit20" ToolTip="Exit icon" />
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
@@ -34,13 +35,13 @@
                 <MenuItem Header="Open AppData Folder" Click="OpenAppDataFolder_Click"
                           ToolTip="Open the application data folder in Explorer">
                     <MenuItem.Icon>
-                        <wpfui:SymbolIcon Symbol="FolderOpen24" />
+                        <wpfui:SymbolIcon Symbol="FolderOpen24" ToolTip="Open folder icon" />
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="About" Click="About_Click" ToolTip="About Tester">
                     <MenuItem.Icon>
-                        <wpfui:SymbolIcon Symbol="Info24" />
+                        <wpfui:SymbolIcon Symbol="Info24" ToolTip="Information icon" />
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
@@ -49,7 +50,7 @@
         <Border x:Name="UpdateBanner" Grid.Row="1" Background="{StaticResource AccentSecondaryBrush}"
                 Visibility="Collapsed" Padding="10,6"
                 ToolTip="Notification banner for available application updates">
-            <Grid>
+            <Grid ToolTip="Update notification banner content">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -73,8 +74,8 @@
         <!-- Top Controls -->
         <Border Grid.Row="2" Background="{StaticResource BgSecondaryBrush}"
                 BorderBrush="{StaticResource BorderPrimaryBrush}" BorderThickness="0,0,0,1"
-                Padding="12,10">
-            <Grid>
+                Padding="12,10" ToolTip="Test folder, console and run controls">
+            <Grid ToolTip="Test configuration controls">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -103,7 +104,7 @@
 
                 <Button Grid.Column="5" x:Name="RunButton" Content="Run Tests"
                         Width="110" Height="32"
-                        Click="RunButton_Click" Style="{StaticResource PrimaryButtonStyle}"
+                        Click="RunButton_ClickAsync" Style="{StaticResource PrimaryButtonStyle}"
                         ToolTip="Run parsing tests on all CHD files in the selected folder" />
                 <Button Grid.Column="5" x:Name="CancelButton" Content="Cancel"
                         Width="110" Height="32"
@@ -119,7 +120,7 @@
                 BorderBrush="{StaticResource BorderPrimaryBrush}" BorderThickness="0,0,0,1"
                 Padding="12,10" Visibility="Collapsed"
                 ToolTip="Summary of test results">
-            <Grid>
+            <Grid ToolTip="Test result summary content">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
@@ -147,7 +148,7 @@
                 </Border>
 
                 <Button Grid.Column="3" x:Name="ExportPdfButton" Content="Export PDF"
-                        Width="110" Height="30" Click="ExportPdfButton_Click"
+                        Width="110" Height="30" Click="ExportPdfButton_ClickAsync"
                         Visibility="Collapsed" ToolTip="Export test results to a PDF report" />
             </Grid>
         </Border>
@@ -177,7 +178,7 @@
                 BorderBrush="{StaticResource BorderPrimaryBrush}" BorderThickness="0,1,0,0"
                 Padding="12,4"
                 ToolTip="Status bar showing application state and elapsed time">
-            <Grid>
+            <Grid ToolTip="Status bar content">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -185,7 +186,7 @@
 
                 <StatusBar Grid.Column="0" Background="Transparent" Foreground="{StaticResource TextMutedBrush}"
                            ToolTip="Current application status">
-                    <StatusBarItem>
+                    <StatusBarItem ToolTip="Application status indicator">
                         <TextBlock x:Name="StatusText" Text="Ready"
                                    ToolTip="Displays the current status of the application" />
                     </StatusBarItem>

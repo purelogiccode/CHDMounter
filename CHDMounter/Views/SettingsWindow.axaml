@@ -19,7 +19,7 @@
 
             <TextBlock Text="Mount core" FontWeight="SemiBold" Margin="0,0,0,6"
                        ToolTip.Tip="The file system driver used to expose CHD images as virtual drives" />
-            <StackPanel x:Name="MountCorePanel">
+            <StackPanel x:Name="MountCorePanel" ToolTip.Tip="Select the file system driver used for mounting">
                 <RadioButton x:Name="DokanRadioButton" Content="Dokan" GroupName="MountCore"
                              Margin="0,0,0,3"
                              ToolTip.Tip="Mount using the Dokan user-mode file system driver (Windows)" />

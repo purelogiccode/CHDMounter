@@ -45,7 +45,7 @@ public partial class MainWindow : Window
         UpdateTitle();
 
         Opened += MainWindow_Opened;
-        Closing += MainWindow_Closing;
+        Closing += MainWindow_ClosingAsync;
         KeyDown += MainWindow_KeyDown;
     }
 
@@ -100,12 +100,23 @@ public partial class MainWindow : Window
     {
         var timer = new DispatcherTimer(DispatcherPriority.Background)
         {
-            Interval = TimeSpan.FromSeconds(2)
+            Interval = TimeSpan.FromSeconds(1)
         };
+        var elapsed = TimeSpan.Zero;
+
         timer.Tick += (_, _) =>
         {
-            timer.Stop();
             var result = UpdateChecker.Result;
+
+            // The check runs in the background; keep polling until it completes so the
+            // notification is never missed, with a generous timeout for slow networks.
+            if (result is null && elapsed < TimeSpan.FromSeconds(30))
+            {
+                elapsed += timer.Interval;
+                return;
+            }
+
+            timer.Stop();
             if (result is { HasUpdate: true })
             {
                 var message = $"A new version ({result.LatestVersion}) is available!\n\nWould you like to download it?";
@@ -270,7 +281,7 @@ public partial class MainWindow : Window
     /// <summary>
     ///     Opens a file dialog to browse for a CHD file.
     /// </summary>
-    private async void BrowseChd_Click(object? sender, RoutedEventArgs e)
+    private async void BrowseChd_ClickAsync(object? sender, RoutedEventArgs e)
     {
         try
         {
@@ -303,13 +314,13 @@ public partial class MainWindow : Window
     /// </summary>
     private void OpenChd_Click(object? sender, RoutedEventArgs e)
     {
-        BrowseChd_Click(sender, e);
+        BrowseChd_ClickAsync(sender, e);
     }
 
     /// <summary>
     ///     Handles the mount button click by initiating an asynchronous mount operation.
     /// </summary>
-    private async void Mount_Click(object? sender, RoutedEventArgs e)
+    private async void Mount_ClickAsync(object? sender, RoutedEventArgs e)
     {
         try
         {
@@ -455,7 +466,7 @@ public partial class MainWindow : Window
     /// <summary>
     ///     Handles the unmount button click by initiating an asynchronous unmount operation.
     /// </summary>
-    private async void Unmount_Click(object? sender, RoutedEventArgs e)
+    private async void Unmount_ClickAsync(object? sender, RoutedEventArgs e)
     {
         try
         {
@@ -526,7 +537,7 @@ public partial class MainWindow : Window
         dialog.ShowDialog(this).GetAwaiter().GetResult();
     }
 
-    private async void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
+    private async void MainWindow_ClosingAsync(object? sender, WindowClosingEventArgs e)
     {
         try
         {

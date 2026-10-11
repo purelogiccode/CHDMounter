@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using CHDMounter.Interfaces;
 using Serilog;
 
 namespace CHDMounter.FuseSharp;
@@ -143,7 +144,7 @@ public sealed class FuseFileSystem
     /// <returns>The argument vector passed to <c>fuse_new</c>.</returns>
     internal static string[] BuildMountArguments(bool isMacOs, bool debug, string volumeLabel)
     {
-        var arguments = new List<string> { "SimpleXisoDrive", "-o", "ro" };
+        var arguments = new List<string> { "CHDMounter", "-o", "ro" };
         if (debug)
         {
             arguments.Add("-d");
@@ -621,7 +622,7 @@ public sealed class FuseFileSystem
             var result = new string(filtered).Trim();
             if (string.IsNullOrEmpty(result))
             {
-                return "SimpleXisoDrive";
+                return "CHDMounter";
             }
 
             return result.Length > 32 ? result[..32] : result;
@@ -629,7 +630,7 @@ public sealed class FuseFileSystem
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to sanitize the volume label '{Label}'", label);
-            return "SimpleXisoDrive";
+            return "CHDMounter";
         }
     }
 }

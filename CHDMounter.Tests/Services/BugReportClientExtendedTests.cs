@@ -163,6 +163,13 @@ public class BugReportClientExtendedTests
     }
 
     [Fact]
+    public void BuildEnvironmentDetailsContainsCrossPlatformOsVersionLabel()
+    {
+        var result = InvokeBuildEnvironmentDetails();
+        Assert.Contains("Windows, Linux or MacOsX Version:", result, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void BuildEnvironmentDetailsContainsBitness()
     {
         var result = InvokeBuildEnvironmentDetails();

@@ -5,14 +5,17 @@
         Width="440" SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-        ShowInTaskbar="False">
-    <Grid Margin="24,20" RowDefinitions="Auto,Auto">
-        <TextBlock Grid.Row="0" x:Name="MessageText" TextWrapping="Wrap" FontSize="13" />
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+        ShowInTaskbar="False"
+        ToolTip.Tip="Confirmation message dialog">
+    <Grid Margin="24,20" RowDefinitions="Auto,Auto" ToolTip.Tip="Message dialog content">
+        <TextBlock Grid.Row="0" x:Name="MessageText" TextWrapping="Wrap" FontSize="13"
+                   ToolTip.Tip="The message this dialog is asking the user about" />
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0"
+                    ToolTip.Tip="Dialog action buttons">
             <Button x:Name="NoButton" Content="No" Width="80" Margin="0,0,10,0"
-                    Click="No_Click" />
+                    Click="No_Click" ToolTip.Tip="Dismiss the dialog without confirming" />
             <Button x:Name="YesButton" Content="Yes" Width="80" Classes="primary"
-                    Click="Yes_Click" />
+                    Click="Yes_Click" ToolTip.Tip="Confirm the dialog action" />
         </StackPanel>
     </Grid>
 </Window>

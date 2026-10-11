@@ -23,45 +23,55 @@ public partial class App
     {
         base.OnStartup(e);
 
-        var logDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "CHDMounter_Tester", "logs");
-        Directory.CreateDirectory(logDir);
-        LogFilePath = Path.Combine(logDir, $"tester_{DateTime.Now:yyyyMMdd_HHmmss}.log");
-
-        BugReportClient.IsSendingEnabled = true;
-
-        var loggerConfig = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.Debug(formatProvider: CultureInfo.InvariantCulture)
-            .WriteTo.File(LogFilePath,
-                formatProvider: CultureInfo.InvariantCulture,
-                rollingInterval: RollingInterval.Infinite,
-                outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-            .WriteTo.Sink(new BugReportSink());
-
-        Logger = loggerConfig.CreateLogger();
-        Log.Logger = Logger;
-
-        Logger.Information("Tester application starting");
-        Logger.Information("Log file: {LogFilePath}", LogFilePath);
-
-        StatsClient.SendStats();
-        UpdateChecker.CheckForUpdates();
-
-        DispatcherUnhandledException += (_, args) =>
+        try
         {
-            Logger.Fatal(args.Exception, "Unhandled UI exception");
-            MessageBox.Show($"Unhandled error: {args.Exception.Message}", "Error",
+            var logDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "CHDMounter_Tester", "logs");
+            Directory.CreateDirectory(logDir);
+            LogFilePath = Path.Combine(logDir, $"tester_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+
+            BugReportClient.IsSendingEnabled = true;
+
+            var loggerConfig = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Debug(formatProvider: CultureInfo.InvariantCulture)
+                .WriteTo.File(LogFilePath,
+                    formatProvider: CultureInfo.InvariantCulture,
+                    rollingInterval: RollingInterval.Infinite,
+                    outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.Sink(new BugReportSink());
+
+            Logger = loggerConfig.CreateLogger();
+            Log.Logger = Logger;
+
+            Logger.Information("Tester application starting");
+            Logger.Information("Log file: {LogFilePath}", LogFilePath);
+
+            StatsClient.SendStats();
+            UpdateChecker.CheckForUpdates();
+
+            DispatcherUnhandledException += (_, args) =>
+            {
+                Logger.Fatal(args.Exception, "Unhandled UI exception");
+                MessageBox.Show($"Unhandled error: {args.Exception.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                args.Handled = true;
+            };
+
+            AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+            {
+                if (args.ExceptionObject is Exception ex)
+                    Logger.Fatal(ex, "Unhandled domain exception");
+            };
+        }
+        catch (Exception ex)
+        {
+            Logger?.Fatal(ex, "Tester startup failed");
+            MessageBox.Show($"The application failed to start: {ex.Message}", "Startup Error",
                 MessageBoxButton.OK, MessageBoxImage.Error);
-            args.Handled = true;
-        };
-
-        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
-        {
-            if (args.ExceptionObject is Exception ex)
-                Logger.Fatal(ex, "Unhandled domain exception");
-        };
+            Shutdown(1);
+        }
     }
 
     /// <summary>

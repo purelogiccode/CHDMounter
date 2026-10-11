@@ -7,7 +7,7 @@ namespace CHDMounter.Services;
 /// <summary>
 ///     Sends bug reports and warnings to a remote API endpoint with rate-limited queuing.
 /// </summary>
-public static class BugReportClient
+internal static class BugReportClient
 {
     private const string BaseUrl = "https://www.purelogiccode.com/bugreport/api/send-bug-report";
     private static readonly HttpClient Client = new();
@@ -103,8 +103,9 @@ public static class BugReportClient
         {
             appName = AppInfoHelper.GetAppName();
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Debug(ex, "BugReportClient: Failed to resolve the application name for test-harness detection");
             return false;
         }
 
@@ -195,7 +196,7 @@ public static class BugReportClient
                $"OS Version: {Environment.OSVersion}\n" +
                $"Architecture: {RuntimeInformation.OSArchitecture}\n" +
                $"Bitness: {(Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit")}\n" +
-               $"Windows Version: {RuntimeInformation.OSDescription}\n" +
+               $"Windows, Linux or MacOsX Version: {RuntimeInformation.OSDescription}\n" +
                $"Processor Count: {Environment.ProcessorCount}\n" +
                $"Base Directory: {AppContext.BaseDirectory}\n" +
                $"Temp Path: {Path.GetTempPath()}";

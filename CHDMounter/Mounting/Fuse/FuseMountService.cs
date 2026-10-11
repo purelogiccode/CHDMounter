@@ -2,6 +2,7 @@ using CHDMounter.FuseSharp;
 using CHDMounter.Interfaces;
 using CHDMounter.Services;
 using CHDMounter.Views;
+using Serilog;
 using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Mounting.Fuse;
@@ -283,8 +284,9 @@ internal sealed class FuseMountService : IMountService
         {
             return File.GetLastWriteTimeUtc(chdPath);
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Debug(ex, "FuseMountService: Failed to read creation time for '{ChdPath}'", chdPath);
             return DateTime.UtcNow;
         }
     }

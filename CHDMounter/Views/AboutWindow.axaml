@@ -34,13 +34,13 @@
             <Border x:Name="UpdateBanner" Background="{StaticResource AccentSecondaryBrush}"
                     CornerRadius="4" Padding="10,8" Margin="0,0,0,10" IsVisible="False"
                     ToolTip.Tip="Update notification banner">
-                <StackPanel>
+                <StackPanel ToolTip.Tip="Update notification content">
                     <TextBlock x:Name="UpdateText" Foreground="White" FontSize="12" FontWeight="SemiBold"
                                TextWrapping="Wrap" ToolTip.Tip="Update availability message" />
                     <Button x:Name="UpdateLink" Classes="link" Margin="0,4,0,0" Click="UpdateLink_Click"
                             ToolTip.Tip="Click to open the download page">
                         <TextBlock Text="Click here to download" Foreground="White" FontSize="12"
-                                   TextDecorations="Underline" />
+                                   TextDecorations="Underline" ToolTip.Tip="Opens the GitHub releases download page" />
                     </Button>
                 </StackPanel>
             </Border>
@@ -79,74 +79,98 @@
         <Border Grid.Row="4" Background="{StaticResource BgTertiaryBrush}"
                 CornerRadius="6" Padding="12,10" Margin="0,10,0,0" VerticalAlignment="Top"
                 ToolTip.Tip="Acknowledgments for third-party libraries and projects">
-            <StackPanel>
+            <StackPanel ToolTip.Tip="Third-party acknowledgments content">
                 <TextBlock Text="Acknowledgments" FontSize="13" FontWeight="SemiBold"
                            Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"
                            ToolTip.Tip="Acknowledgments section title" />
-                <StackPanel Spacing="2">
-                    <WrapPanel>
-                        <Button Classes="link" Tag="https://github.com/AvaloniaUI/Avalonia" Click="OpenUrl_Click">
+                <StackPanel Spacing="2" ToolTip.Tip="List of third-party libraries used by this application">
+                    <WrapPanel ToolTip.Tip="Avalonia UI framework credit">
+                        <Button Classes="link" Tag="https://github.com/AvaloniaUI/Avalonia" Click="OpenUrl_Click"
+                                ToolTip.Tip="Open the Avalonia GitHub repository">
                             <TextBlock Text="Avalonia" FontSize="11" TextDecorations="Underline"
-                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                                       Foreground="{StaticResource AccentSecondaryBrush}"
+                                       ToolTip.Tip="Avalonia project link" />
                         </Button>
                         <TextBlock Text=" - Cross-platform .NET UI framework" FontSize="11"
-                                   Foreground="{StaticResource TextMutedBrush}" />
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   ToolTip.Tip="Description of the Avalonia project" />
                     </WrapPanel>
-                    <WrapPanel>
-                        <Button Classes="link" Tag="https://github.com/drpetersonfernandes/CHDSharp" Click="OpenUrl_Click">
+                    <WrapPanel ToolTip.Tip="CHDSharp library credit">
+                        <Button Classes="link" Tag="https://github.com/drpetersonfernandes/CHDSharp" Click="OpenUrl_Click"
+                                ToolTip.Tip="Open the CHDSharp GitHub repository">
                             <TextBlock Text="CHDSharp" FontSize="11" TextDecorations="Underline"
-                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                                       Foreground="{StaticResource AccentSecondaryBrush}"
+                                       ToolTip.Tip="CHDSharp project link" />
                         </Button>
                         <TextBlock Text=" - CHD file format parser" FontSize="11"
-                                   Foreground="{StaticResource TextMutedBrush}" />
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   ToolTip.Tip="Description of the CHDSharp project" />
                     </WrapPanel>
-                    <WrapPanel>
-                        <Button Classes="link" Tag="https://github.com/dokan-dev/dokan-dotnet" Click="OpenUrl_Click">
+                    <WrapPanel ToolTip.Tip="DokanNet library credit">
+                        <Button Classes="link" Tag="https://github.com/dokan-dev/dokan-dotnet" Click="OpenUrl_Click"
+                                ToolTip.Tip="Open the DokanNet GitHub repository">
                             <TextBlock Text="DokanNet" FontSize="11" TextDecorations="Underline"
-                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                                       Foreground="{StaticResource AccentSecondaryBrush}"
+                                       ToolTip.Tip="DokanNet project link" />
                         </Button>
                         <TextBlock Text=" - User-mode filesystem driver for Windows" FontSize="11"
-                                   Foreground="{StaticResource TextMutedBrush}" />
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   ToolTip.Tip="Description of the DokanNet project" />
                     </WrapPanel>
-                    <WrapPanel>
-                        <Button Classes="link" Tag="https://github.com/libfuse/libfuse" Click="OpenUrl_Click">
+                    <WrapPanel ToolTip.Tip="FUSE / FuseSharp library credit">
+                        <Button Classes="link" Tag="https://github.com/libfuse/libfuse" Click="OpenUrl_Click"
+                                ToolTip.Tip="Open the libfuse GitHub repository">
                             <TextBlock Text="FUSE / FuseSharp" FontSize="11" TextDecorations="Underline"
-                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                                       Foreground="{StaticResource AccentSecondaryBrush}"
+                                       ToolTip.Tip="FUSE project link" />
                         </Button>
                         <TextBlock Text=" - FUSE 3 high-level mount library for Linux and macOS" FontSize="11"
-                                   Foreground="{StaticResource TextMutedBrush}" />
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   ToolTip.Tip="Description of the FUSE project" />
                     </WrapPanel>
-                    <WrapPanel>
-                        <Button Classes="link" Tag="https://github.com/mamedev/mame" Click="OpenUrl_Click">
+                    <WrapPanel ToolTip.Tip="MAME project credit">
+                        <Button Classes="link" Tag="https://github.com/mamedev/mame" Click="OpenUrl_Click"
+                                ToolTip.Tip="Open the MAME GitHub repository">
                             <TextBlock Text="MAME" FontSize="11" TextDecorations="Underline"
-                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                                       Foreground="{StaticResource AccentSecondaryBrush}"
+                                       ToolTip.Tip="MAME project link" />
                         </Button>
                         <TextBlock Text=" - CHD file format specification" FontSize="11"
-                                   Foreground="{StaticResource TextMutedBrush}" />
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   ToolTip.Tip="Description of the MAME project" />
                     </WrapPanel>
-                    <WrapPanel>
-                        <Button Classes="link" Tag="https://github.com/serilog/serilog" Click="OpenUrl_Click">
+                    <WrapPanel ToolTip.Tip="Serilog library credit">
+                        <Button Classes="link" Tag="https://github.com/serilog/serilog" Click="OpenUrl_Click"
+                                ToolTip.Tip="Open the Serilog GitHub repository">
                             <TextBlock Text="Serilog" FontSize="11" TextDecorations="Underline"
-                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                                       Foreground="{StaticResource AccentSecondaryBrush}"
+                                       ToolTip.Tip="Serilog project link" />
                         </Button>
                         <TextBlock Text=" - Diagnostic logging library" FontSize="11"
-                                   Foreground="{StaticResource TextMutedBrush}" />
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   ToolTip.Tip="Description of the Serilog project" />
                     </WrapPanel>
-                    <WrapPanel>
-                        <Button Classes="link" Tag="https://github.com/drpetersonfernandes/VideoGameFileSystemParser" Click="OpenUrl_Click">
+                    <WrapPanel ToolTip.Tip="VideoGameFileSystemParser library credit">
+                        <Button Classes="link" Tag="https://github.com/drpetersonfernandes/VideoGameFileSystemParser" Click="OpenUrl_Click"
+                                ToolTip.Tip="Open the VideoGameFileSystemParser GitHub repository">
                             <TextBlock Text="VideoGameFileSystemParser" FontSize="11" TextDecorations="Underline"
-                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                                       Foreground="{StaticResource AccentSecondaryBrush}"
+                                       ToolTip.Tip="VideoGameFileSystemParser project link" />
                         </Button>
                         <TextBlock Text=" - Console filesystem parser" FontSize="11"
-                                   Foreground="{StaticResource TextMutedBrush}" />
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   ToolTip.Tip="Description of the VideoGameFileSystemParser project" />
                     </WrapPanel>
-                    <WrapPanel>
-                        <Button Classes="link" Tag="https://github.com/winfsp/winfsp" Click="OpenUrl_Click">
+                    <WrapPanel ToolTip.Tip="WinFsp library credit">
+                        <Button Classes="link" Tag="https://github.com/winfsp/winfsp" Click="OpenUrl_Click"
+                                ToolTip.Tip="Open the WinFsp GitHub repository">
                             <TextBlock Text="WinFsp" FontSize="11" TextDecorations="Underline"
-                                       Foreground="{StaticResource AccentSecondaryBrush}" />
+                                       Foreground="{StaticResource AccentSecondaryBrush}"
+                                       ToolTip.Tip="WinFsp project link" />
                         </Button>
                         <TextBlock Text=" - Windows File System Proxy" FontSize="11"
-                                   Foreground="{StaticResource TextMutedBrush}" />
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   ToolTip.Tip="Description of the WinFsp project" />
                     </WrapPanel>
                 </StackPanel>
             </StackPanel>

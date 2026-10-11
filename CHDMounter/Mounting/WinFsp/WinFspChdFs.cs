@@ -6,6 +6,7 @@ using System.Security.AccessControl;
 using CHDMounter.Services;
 using Fsp;
 using Fsp.Interop;
+using Serilog;
 using VideoGameFileSystemParser.Parsers;
 using FileInfo = Fsp.Interop.FileInfo;
 
@@ -322,8 +323,9 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
         {
             return (ulong)dateTime.ToFileTimeUtc();
         }
-        catch (ArgumentOutOfRangeException)
+        catch (ArgumentOutOfRangeException ex)
         {
+            Log.Debug(ex, "WinFspChdFs: DateTime {DateTime} is outside the valid FILETIME range", dateTime);
             return 0;
         }
     }
