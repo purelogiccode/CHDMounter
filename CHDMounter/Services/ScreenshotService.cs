@@ -82,20 +82,17 @@ public class ScreenshotService : IScreenshotService
     /// <returns>The full path to the primary screenshot directory.</returns>
     internal static string GetPrimaryScreenshotDirectory()
     {
-        return Path.Combine(AppContext.BaseDirectory, "Screenshot");
+        return ScreenshotPaths.GetPrimaryDirectory();
     }
 
     /// <summary>
     ///     Gets the fallback screenshot directory: the "Screenshot" folder inside
-    ///     %LOCALAPPDATA%\CHDMounter.
+    ///     %LOCALAPPDATA%\%APPLICATIONNAME%.
     /// </summary>
     /// <returns>The full path to the fallback screenshot directory.</returns>
     internal static string GetFallbackScreenshotDirectory()
     {
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            AppInfoHelper.GetAppName(),
-            "Screenshot");
+        return ScreenshotPaths.GetFallbackDirectory(AppInfoHelper.GetAppName());
     }
 
     private static string? TrySaveImage(RenderTargetBitmap bitmap, string fileName)

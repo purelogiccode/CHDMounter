@@ -186,7 +186,7 @@ internal static class WinFspEnvironment
 
     private static bool IsDllInPath(string path, string dllName)
     {
-        foreach (var entry in path.Split(';', StringSplitOptions.RemoveEmptyEntries))
+        foreach (var entry in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
             if (File.Exists(Path.Combine(entry.Trim('"'), dllName)))
                 return true;
 
@@ -196,12 +196,13 @@ internal static class WinFspEnvironment
     private static void PrependToPath(string binDir, string currentPath)
     {
         var separator = Path.DirectorySeparatorChar;
-        if (currentPath.Split(';', StringSplitOptions.RemoveEmptyEntries)
+        if (currentPath.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
             .Any(entry => string.Equals(entry.Trim('"').TrimEnd(separator),
                 binDir.TrimEnd(separator), StringComparison.OrdinalIgnoreCase)))
             return;
 
-        Environment.SetEnvironmentVariable("PATH", binDir + ";" + currentPath, EnvironmentVariableTarget.Process);
+        Environment.SetEnvironmentVariable("PATH", binDir + Path.PathSeparator + currentPath,
+            EnvironmentVariableTarget.Process);
     }
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]

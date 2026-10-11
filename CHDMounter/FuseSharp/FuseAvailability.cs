@@ -9,7 +9,8 @@ namespace CHDMounter.FuseSharp;
 public static class FuseAvailability
 {
     /// <summary>
-    /// Checks whether the FUSE 3 library and kernel support are available.
+    /// Checks whether the FUSE 3 library and kernel support are available, printing
+    /// installation guidance when the library is missing.
     /// </summary>
     /// <param name="libraryPath">When this method returns, the FUSE library that was found.</param>
     /// <returns><see langword="true"/> when mounting can be attempted; otherwise <see langword="false"/>.</returns>
@@ -24,12 +25,16 @@ public static class FuseAvailability
     /// </summary>
     /// <param name="libraryPath">When this method returns, the FUSE library that was found.</param>
     /// <param name="candidates">The library candidates to probe, or <see langword="null"/> for the platform list.</param>
+    /// <param name="printInstructions">
+    /// When <see langword="true"/> (the default), missing-library guidance is printed.
+    /// Capability probes pass <see langword="false"/> so they remain side-effect free.
+    /// </param>
     /// <returns><see langword="true"/> when mounting can be attempted; otherwise <see langword="false"/>.</returns>
-    internal static bool Check(out string? libraryPath, IEnumerable<string>? candidates)
+    internal static bool Check(out string? libraryPath, IEnumerable<string>? candidates, bool printInstructions = true)
     {
         try
         {
-            return CheckCore(out libraryPath, candidates);
+            return CheckCore(out libraryPath, candidates, printInstructions);
         }
         catch (Exception ex)
         {
@@ -40,7 +45,7 @@ public static class FuseAvailability
         }
     }
 
-    private static bool CheckCore(out string? libraryPath, IEnumerable<string>? candidates)
+    private static bool CheckCore(out string? libraryPath, IEnumerable<string>? candidates, bool printInstructions)
     {
         FuseInterop.RegisterResolver();
 
@@ -50,7 +55,9 @@ public static class FuseAvailability
 
         if (!loaded)
         {
-            PrintMissingLibraryInstructions();
+            if (printInstructions)
+                PrintMissingLibraryInstructions();
+
             return false;
         }
 

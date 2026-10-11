@@ -86,7 +86,7 @@ internal sealed class DokanMountService : IMountService
                 // Folder-path mount points are used as-is (no fallback).
                 var candidates = string.IsNullOrEmpty(mountPoint)
                     ? DriveHelper.GetAvailableDriveLetters().ToList()
-                    : IsDriveLetterMountPoint(mountPoint)
+                    : MountPathHelper.IsDriveLetterMountPoint(mountPoint)
                         ? [mountPoint, .. DriveHelper.GetAvailableDriveLetters()]
                         : [mountPoint];
 
@@ -95,9 +95,9 @@ internal sealed class DokanMountService : IMountService
                 var dokan = new DokanDriver(new DokanPrefixedLogger(_loggingService));
                 Exception? lastError = null;
 
-                foreach (var candidate in candidates)
+                for (var i = 0; i < candidates.Count; i++)
                 {
-                    MountPoint = candidate;
+                    MountPoint = candidates[i];
                     _loggingService.Log($"Mounting at {MountPoint}...");
 
                     try
@@ -106,7 +106,7 @@ internal sealed class DokanMountService : IMountService
                         // a missing directory produces "Can't assign a drive letter or mount
                         // point". Created inside the retry guard so an unusable path does not
                         // abort the remaining candidates.
-                        if (!IsDriveLetterMountPoint(MountPoint))
+                        if (!MountPathHelper.IsDriveLetterMountPoint(MountPoint))
                             Directory.CreateDirectory(MountPoint);
 
                         var builder = new DokanInstanceBuilder(dokan)
@@ -126,7 +126,9 @@ internal sealed class DokanMountService : IMountService
                         // The drive letter may be used by another volume (per-session
                         // drives can be invisible to DriveInfo.GetDrives()). Try the next one.
                         lastError = ex;
-                        _loggingService.Log($"Mount point {MountPoint} is unavailable ({ex.Message}). Trying next...");
+                        if (i < candidates.Count - 1)
+                            _loggingService.Log(
+                                $"Mount point {MountPoint} is unavailable ({ex.Message}). Trying next...");
                     }
                 }
 
@@ -140,9 +142,19 @@ internal sealed class DokanMountService : IMountService
                 {
                     _dokanInstance?.Dispose();
                     _dokanInstance = null;
-                    _currentFs?.Dispose();
-                    _currentFs = null;
-                    _container?.Dispose();
+
+                    // ChdFs owns and disposes the container: only dispose the container
+                    // directly when the wrapper was never created.
+                    if (_currentFs is not null)
+                    {
+                        _currentFs.Dispose();
+                        _currentFs = null;
+                    }
+                    else
+                    {
+                        _container?.Dispose();
+                    }
+
                     _container = null;
                     MountPoint = "";
                 }
@@ -170,9 +182,19 @@ internal sealed class DokanMountService : IMountService
                 }
 
             _dokanInstance = null;
-            _currentFs?.Dispose();
-            _currentFs = null;
-            _container?.Dispose();
+
+            // ChdFs owns and disposes the container; only dispose the container directly
+            // when the wrapper does not exist.
+            if (_currentFs is not null)
+            {
+                _currentFs.Dispose();
+                _currentFs = null;
+            }
+            else
+            {
+                _container?.Dispose();
+            }
+
             _container = null;
             IsMounted = false;
             MountPoint = "";
@@ -211,12 +233,6 @@ internal sealed class DokanMountService : IMountService
         }
     }
 
-    private static bool IsDriveLetterMountPoint(string mountPoint)
-    {
-        return mountPoint is [_, ':', ..] && char.IsLetter(mountPoint[0])
-                                          && (mountPoint.Length == 2 || mountPoint is [_, _, '\\']);
-    }
-
     private static Exception TranslateMountFailure(Exception lastError)
     {
         if (lastError.Message.Contains("drive letter or mount point", StringComparison.OrdinalIgnoreCase))
@@ -241,8 +257,10 @@ internal sealed class DokanMountService : IMountService
             "It does not appear to be installed on this system.\n\n" +
             "Would you like to open the Dokan download page?";
 
-        if (Dialogs.Confirm("Dokan Driver Not Found", message))
-            PlatformHelper.OpenUrl("https://github.com/dokan-dev/dokany/releases");
+        // Shown without blocking the mount worker so no mount lock is held while the
+        // dialog waits for the UI thread (prevents a UI-thread Unmount/exit deadlock).
+        Dialogs.ConfirmLater("Dokan Driver Not Found", message,
+            () => PlatformHelper.OpenUrl("https://github.com/dokan-dev/dokany/releases"));
     }
 }
 

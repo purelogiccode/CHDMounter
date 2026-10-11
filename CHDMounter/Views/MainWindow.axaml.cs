@@ -27,6 +27,7 @@ public partial class MainWindow : Window
 
     private bool _isClosing;
     private bool _launchExplorer;
+    private int _renderedLogEntries;
     private ConsoleType _selectedConsoleType = ConsoleType.Unknown;
 
     /// <summary>
@@ -80,10 +81,33 @@ public partial class MainWindow : Window
                 if (e.NewItems is null) return;
 
                 foreach (LogEntry entry in e.NewItems)
-                    LogTextBlock.Text += $"[{entry.Timestamp:HH:mm:ss}] {entry.Message}{Environment.NewLine}";
+                    LogTextBlock.Text += FormatLogEntry(entry);
+
+                _renderedLogEntries += e.NewItems.Count;
+
+                // ILoggingService trims its collection at MaxEntries; rebuild the
+                // rendered text at the same bound so it cannot grow without limit.
+                if (_renderedLogEntries > CHDMounter.Services.LoggingService.MaxEntries)
+                    RebuildLogText();
+
                 LogScrollViewer.Offset = LogScrollViewer.Offset.WithY(LogScrollViewer.Extent.Height);
             }, DispatcherPriority.Background);
         };
+    }
+
+    private void RebuildLogText()
+    {
+        var builder = new StringBuilder();
+        foreach (var entry in LoggingService.LogEntries)
+            builder.Append(FormatLogEntry(entry));
+
+        LogTextBlock.Text = builder.ToString();
+        _renderedLogEntries = LoggingService.LogEntries.Count;
+    }
+
+    private static string FormatLogEntry(LogEntry entry)
+    {
+        return $"[{entry.Timestamp:HH:mm:ss}] {entry.Message}{Environment.NewLine}";
     }
 
     private void PopulateConsoleTypes()
@@ -128,21 +152,11 @@ public partial class MainWindow : Window
         timer.Start();
     }
 
-    private void UpdateBannerButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (sender is Control { Tag: string url })
-            PlatformHelper.OpenUrl(url);
-    }
-
-    private void UpdateDismiss_Click(object? sender, RoutedEventArgs e)
-    {
-        UpdateBanner.IsVisible = false;
-    }
-
     private void HandleCommandLineArgs(string[] args)
     {
         ConsoleType? consoleType = null;
         string? chdPath = null;
+        var autoSelectMountPoint = false;
 
         var positional = new List<string>();
 
@@ -154,6 +168,7 @@ public partial class MainWindow : Window
                         _launchExplorer = true;
                         break;
                     case "/a":
+                        autoSelectMountPoint = true;
                         break;
                     case var s when s.StartsWith("/s:", StringComparison.Ordinal):
                     {
@@ -198,6 +213,10 @@ public partial class MainWindow : Window
         }
 
         if (positional.Count > pos) _cliMountPoint = positional[pos];
+
+        // /a forces automatic drive-letter selection even when a mount point is given.
+        if (autoSelectMountPoint)
+            _cliMountPoint = null;
 
         if (chdPath is not null)
         {

@@ -8,7 +8,7 @@
         WindowStartupLocation="CenterScreen"
         Icon="/Icon/chd.ico"
         ToolTip.Tip="CHDMounter main window">
-    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
         <Menu Grid.Row="0" Margin="0" ToolTip.Tip="Application menu bar">
             <MenuItem Header="File" ToolTip.Tip="File operations">
                 <MenuItem Header="Open CHD..." Click="OpenChd_Click"
@@ -26,26 +26,7 @@
             </MenuItem>
         </Menu>
 
-        <Border x:Name="UpdateBanner" Grid.Row="1" Background="{StaticResource AccentSecondaryBrush}"
-                IsVisible="False" Padding="10,6"
-                ToolTip.Tip="Notification banner for available application updates">
-            <Grid ColumnDefinitions="*,Auto,Auto" ToolTip.Tip="Update notification banner content">
-                <TextBlock Grid.Column="0" x:Name="UpdateBannerText" Foreground="White" FontSize="12"
-                           VerticalAlignment="Center"
-                           ToolTip.Tip="Description of the available update" />
-                <Button Grid.Column="1" x:Name="UpdateBannerButton" Content="Download" Width="80" Height="24"
-                        Margin="10,0,0,0" Click="UpdateBannerButton_Click"
-                        Foreground="White" Background="Transparent" BorderBrush="White" BorderThickness="1"
-                        FontSize="11" Cursor="Hand"
-                        ToolTip.Tip="Download the latest version" />
-                <Button Grid.Column="2" Content="X" Width="24" Height="24" Margin="4,0,0,0"
-                        Background="Transparent" Foreground="White" BorderThickness="0"
-                        FontWeight="Bold" Click="UpdateDismiss_Click" Cursor="Hand"
-                        ToolTip.Tip="Dismiss this update notification" />
-            </Grid>
-        </Border>
-
-        <Grid Grid.Row="2" Margin="10,8" ToolTip.Tip="CHD file and console selection controls"
+        <Grid Grid.Row="1" Margin="10,8" ToolTip.Tip="CHD file and console selection controls"
               ColumnDefinitions="Auto,*,Auto,Auto,Auto">
             <Label Grid.Column="0" Content="CHD File:" VerticalAlignment="Center"
                    ToolTip.Tip="Label for the CHD file path field" />
@@ -68,7 +49,7 @@
             </ComboBox>
         </Grid>
 
-        <Grid Grid.Row="3" Margin="10,0,10,8" ToolTip.Tip="Mount and unmount controls"
+        <Grid Grid.Row="2" Margin="10,0,10,8" ToolTip.Tip="Mount and unmount controls"
               ColumnDefinitions="Auto,Auto,*">
             <Button Grid.Column="0" x:Name="MountButton" Content="Mount" Width="100"
                     Click="Mount_ClickAsync" IsEnabled="False" ToolTip.Tip="Mount the CHD file as a virtual drive" />
@@ -77,7 +58,7 @@
                     Click="Unmount_ClickAsync" ToolTip.Tip="Unmount the virtual drive" />
         </Grid>
 
-        <Border Grid.Row="4" Background="{StaticResource BgPrimaryBrush}" Margin="10,0,10,8"
+        <Border Grid.Row="3" Background="{StaticResource BgPrimaryBrush}" Margin="10,0,10,8"
                 ToolTip.Tip="Activity log output">
             <ScrollViewer x:Name="LogScrollViewer" Padding="10"
                           HorizontalScrollBarVisibility="Disabled"
@@ -90,7 +71,7 @@
             </ScrollViewer>
         </Border>
 
-        <Border Grid.Row="5" Background="{StaticResource BgSecondaryBrush}"
+        <Border Grid.Row="4" Background="{StaticResource BgSecondaryBrush}"
                 ToolTip.Tip="Application status bar">
             <Grid ColumnDefinitions="Auto,Auto,*,Auto" ToolTip.Tip="Status bar content">
                 <TextBlock Grid.Column="0" x:Name="StatusText" Text="Ready" Margin="12,4"

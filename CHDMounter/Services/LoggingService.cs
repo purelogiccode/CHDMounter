@@ -11,7 +11,11 @@ namespace CHDMounter.Services;
 /// </summary>
 public class LoggingService : ILoggingService
 {
-    private const int MaxEntries = 5000;
+    /// <summary>
+    ///     The maximum number of log entries retained in <see cref="LogEntries" />.
+    /// </summary>
+    internal const int MaxEntries = 5000;
+
     private readonly Lock _dedupLock = new();
     private readonly Dispatcher? _dispatcher;
     private string _lastMessage = "";

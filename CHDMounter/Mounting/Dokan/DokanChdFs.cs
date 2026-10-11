@@ -111,15 +111,7 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
         if (entry is null)
             return DokanResult.FileNotFound;
 
-        fileInfo.Attributes = entry.IsDirectory
-            ? FileAttributes.Directory
-            : FileAttributes.Archive | FileAttributes.ReadOnly;
-        fileInfo.FileName = entry.Name;
-        fileInfo.Length = (long)entry.Size;
-        fileInfo.LastWriteTime = entry.ModifiedTime;
-        fileInfo.CreationTime = entry.ModifiedTime;
-        fileInfo.LastAccessTime = entry.ModifiedTime;
-
+        fileInfo = ToFileInformation(entry);
         info.IsDirectory = entry.IsDirectory;
         return DokanResult.Success;
     }
@@ -129,11 +121,22 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
         var entries = _container.ListDirectory(fileName).ToList();
 
         if (entries.Count == 0)
-            if (_container.FindFile(fileName) is null)
+        {
+            var self = _container.FindFile(fileName);
+            if (self is null)
             {
                 files = Array.Empty<FileInformation>();
                 return DokanResult.FileNotFound;
             }
+
+            // A file queried directly enumerates as itself; a real but empty directory
+            // falls through to the "." and ".." entries below.
+            if (!self.IsDirectory)
+            {
+                files = new List<FileInformation> { ToFileInformation(self) };
+                return DokanResult.Success;
+            }
+        }
 
         var result = new List<FileInformation>
         {
@@ -142,20 +145,25 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
         };
 
         foreach (var entry in entries)
-            result.Add(new FileInformation
-            {
-                FileName = entry.Name,
-                Attributes = entry.IsDirectory
-                    ? FileAttributes.Directory
-                    : FileAttributes.Archive | FileAttributes.ReadOnly,
-                Length = (long)entry.Size,
-                LastWriteTime = entry.ModifiedTime,
-                CreationTime = entry.ModifiedTime,
-                LastAccessTime = entry.ModifiedTime
-            });
+            result.Add(ToFileInformation(entry));
 
         files = result;
         return DokanResult.Success;
+    }
+
+    private static FileInformation ToFileInformation(FileEntry entry)
+    {
+        return new FileInformation
+        {
+            FileName = entry.Name,
+            Attributes = entry.IsDirectory
+                ? FileAttributes.Directory
+                : FileAttributes.Archive | FileAttributes.ReadOnly,
+            Length = (long)entry.Size,
+            LastWriteTime = entry.ModifiedTime,
+            CreationTime = entry.ModifiedTime,
+            LastAccessTime = entry.ModifiedTime
+        };
     }
 
     public NtStatus FindFilesWithPattern(string fileName, string searchPattern, out IList<FileInformation> files,

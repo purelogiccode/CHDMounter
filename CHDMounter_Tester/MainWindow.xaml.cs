@@ -6,6 +6,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using CHDMounter.Logging;
 using CHDMounter.Services;
 using Microsoft.Win32;
 using Serilog;
@@ -30,7 +31,7 @@ public partial class MainWindow
     private static readonly SolidColorBrush LightGrayBrush = new(Colors.LightGray);
     private readonly DispatcherTimer _elapsedTimer;
     private readonly ILogger _logger;
-    private readonly ScreenshotService _screenshotService;
+    private readonly WpfScreenshotService _screenshotService;
     private CancellationTokenSource? _cts;
     private TestSummary? _lastSummary;
     private Stopwatch? _stopwatch;
@@ -55,7 +56,7 @@ public partial class MainWindow
 
         _logger = App.Logger ?? new LoggerConfiguration().WriteTo.Debug(formatProvider: CultureInfo.InvariantCulture)
             .CreateLogger();
-        _screenshotService = new ScreenshotService(new LoggingService());
+        _screenshotService = new WpfScreenshotService();
 
         _elapsedTimer = new DispatcherTimer(DispatcherPriority.Normal, Dispatcher)
         {
@@ -82,12 +83,23 @@ public partial class MainWindow
     {
         var timer = new DispatcherTimer(DispatcherPriority.Background, Dispatcher)
         {
-            Interval = TimeSpan.FromSeconds(2)
+            Interval = TimeSpan.FromSeconds(1)
         };
+        var elapsed = TimeSpan.Zero;
+
         timer.Tick += (_, _) =>
         {
-            timer.Stop();
             var result = UpdateChecker.Result;
+
+            // The check runs in the background; keep polling until it completes so the
+            // banner is not missed when the window opens before the check finishes.
+            if (result is null && elapsed < TimeSpan.FromSeconds(30))
+            {
+                elapsed += timer.Interval;
+                return;
+            }
+
+            timer.Stop();
             if (result is { HasUpdate: true })
             {
                 UpdateBanner.Visibility = Visibility.Visible;
@@ -101,14 +113,7 @@ public partial class MainWindow
     private void UpdateBannerButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: string url })
-            try
-            {
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Failed to open update URL: {Url}", url);
-            }
+            PlatformHelper.OpenUrl(url);
     }
 
     private void UpdateDismiss_Click(object sender, RoutedEventArgs e)
@@ -139,70 +144,70 @@ public partial class MainWindow
 
     private async void RunButton_ClickAsync(object sender, RoutedEventArgs e)
     {
+        var folderPath = ChdFolderTextBox.Text.Trim();
+        if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
+        {
+            MessageBox.Show("Please select a valid folder containing .chd files.", "Invalid Folder",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (ConsoleComboBox.SelectedItem is not ConsoleInfo consoleInfo)
+        {
+            MessageBox.Show("Please select a console type.", "Invalid Console",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        RunButton.IsEnabled = false;
+        RunButton.Visibility = Visibility.Collapsed;
+        CancelButton.IsEnabled = true;
+        CancelButton.Visibility = Visibility.Visible;
+        ExportPdfButton.Visibility = Visibility.Collapsed;
+        SummaryPanel.Visibility = Visibility.Collapsed;
+
+        ClearLog();
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+        _lastSummary = null;
+
+        _testRunner = new TestRunnerService(_logger);
+        _testRunner.LogMessage += OnLogMessage;
+        _testRunner.AllCompleted += OnAllCompleted;
+
+        _stopwatch = Stopwatch.StartNew();
+        _elapsedTimer.Start();
+
+        StatusText.Text = "Running tests...";
+
         try
         {
-            var folderPath = ChdFolderTextBox.Text.Trim();
-            if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
-            {
-                MessageBox.Show("Please select a valid folder containing .chd files.", "Invalid Folder",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (ConsoleComboBox.SelectedItem is not ConsoleInfo consoleInfo)
-            {
-                MessageBox.Show("Please select a console type.", "Invalid Console",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            RunButton.IsEnabled = false;
-            RunButton.Visibility = Visibility.Collapsed;
-            CancelButton.IsEnabled = true;
-            CancelButton.Visibility = Visibility.Visible;
-            ExportPdfButton.Visibility = Visibility.Collapsed;
-            SummaryPanel.Visibility = Visibility.Collapsed;
-
-            ClearLog();
-            _cts?.Dispose();
-            _cts = new CancellationTokenSource();
-            _lastSummary = null;
-
-            _testRunner = new TestRunnerService(_logger);
-            _testRunner.LogMessage += OnLogMessage;
-            _testRunner.AllCompleted += OnAllCompleted;
-
-            _stopwatch = Stopwatch.StartNew();
-            _elapsedTimer.Start();
-
-            StatusText.Text = "Running tests...";
-
-            try
-            {
-                await _testRunner.RunTestsAsync(folderPath, consoleInfo, _cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                AppendLog("[Cancelled] Test run was cancelled.", YellowBrush);
-                _logger.Warning("Test run cancelled");
-            }
-            catch (Exception ex)
-            {
-                AppendLog($"[Error] {ex.Message}", RedBrush);
-                _logger.Error(ex, "Error during test run");
-            }
+            await _testRunner.RunTestsAsync(folderPath, consoleInfo, _cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            AppendLog("[Cancelled] Test run was cancelled.", YellowBrush);
+            _logger.Warning("Test run cancelled");
         }
         catch (Exception ex)
         {
             AppendLog($"[Error] {ex.Message}", RedBrush);
             _logger.Error(ex, "Error during test run");
+        }
+        finally
+        {
+            // Always restore the idle UI once the run has ended (success, cancel or error).
+            _elapsedTimer.Stop();
+            _stopwatch?.Stop();
+            _stopwatch = null;
             RunButton.Visibility = Visibility.Visible;
             RunButton.IsEnabled = true;
             CancelButton.Visibility = Visibility.Collapsed;
             CancelButton.IsEnabled = true;
-            _elapsedTimer.Stop();
             StatusText.Text = "Ready";
-            _stopwatch = null;
+
+            _cts?.Dispose();
+            _cts = null;
         }
     }
 
@@ -348,11 +353,9 @@ public partial class MainWindow
 
     private void OpenAppDataFolder_Click(object sender, RoutedEventArgs e)
     {
-        var folder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "CHDMounter_Tester");
+        var folder = DiagnosticLogger.GetAppDataFolder("CHDMounter_Tester");
         if (Directory.Exists(folder))
-            Process.Start("explorer.exe", folder);
+            PlatformHelper.OpenInFileManager(folder);
         else
             AppendLog("[Error] AppData folder not found.", RedBrush);
     }
@@ -368,9 +371,9 @@ public partial class MainWindow
 
     private void MainWindow_Closing(object sender, CancelEventArgs e)
     {
+        // Cancel only: the run's finally disposes the source once it stops observing
+        // the token (disposing here could race with Task.Run(..., token)).
         _cts?.Cancel();
-        _cts?.Dispose();
-        _cts = null;
         _elapsedTimer.Stop();
         _elapsedTimer.Tick -= ElapsedTimer_Tick;
 

@@ -26,6 +26,28 @@ internal static class Dialogs
     }
 
     /// <summary>
+    ///     Shows a modal confirmation dialog without blocking the calling thread, invoking
+    ///     <paramref name="onConfirmed" /> when the user confirms. Unlike
+    ///     <see cref="Confirm" />, callers holding locks return immediately: the dialog is
+    ///     queued to the UI thread instead of being waited on from a worker thread, which
+    ///     prevents deadlocks with UI-thread code that needs the same lock.
+    /// </summary>
+    /// <param name="title">The dialog title.</param>
+    /// <param name="message">The message to display.</param>
+    /// <param name="onConfirmed">The action to run when the user confirms.</param>
+    /// <param name="yesText">The text of the affirmative button.</param>
+    /// <param name="noText">The text of the negative button.</param>
+    internal static void ConfirmLater(string title, string message, Action onConfirmed,
+        string yesText = "Yes", string noText = "No")
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (Show(title, message, yesText, noText))
+                onConfirmed();
+        });
+    }
+
+    /// <summary>
     ///     Shows a modal information dialog with a single OK button.
     /// </summary>
     /// <param name="title">The dialog title.</param>

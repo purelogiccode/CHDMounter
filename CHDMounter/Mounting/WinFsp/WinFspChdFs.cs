@@ -21,7 +21,9 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
 {
     private static long _nextIndexNumber;
     private readonly ChdContainer _container;
+    private readonly ConcurrentDictionary<string, ulong> _indexNumbers = new(StringComparer.OrdinalIgnoreCase);
     private readonly bool _persistentAcls;
+    private readonly DateTime _volumeCreationTime;
 
     private byte[]? _cachedSecurityDescriptor;
 
@@ -31,10 +33,12 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
     ///     Initializes a new instance of the <see cref="ChdFs" /> class.
     /// </summary>
     /// <param name="container">The parsed CHD container to serve files from.</param>
+    /// <param name="volumeCreationTime">The volume creation time reported to the operating system.</param>
     /// <param name="persistentAcls">If <c>true</c>, enables persistent ACL support for cross-integrity mounts.</param>
-    public ChdFs(ChdContainer container, bool persistentAcls = false)
+    public ChdFs(ChdContainer container, DateTime volumeCreationTime, bool persistentAcls = false)
     {
         _container = container;
+        _volumeCreationTime = volumeCreationTime;
         _persistentAcls = persistentAcls;
     }
 
@@ -65,7 +69,7 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
             fsHost.MaxComponentLength = 255;
             fsHost.SectorSize = 2048;
             fsHost.FileSystemName = _container.VolumeName;
-            fsHost.VolumeCreationTime = DateTimeToFileTimeUtc(DateTime.UtcNow);
+            fsHost.VolumeCreationTime = DateTimeToFileTimeUtc(_volumeCreationTime);
             fsHost.VolumeSerialNumber = (uint)Environment.TickCount;
         }
 
@@ -295,7 +299,7 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
         return bytes;
     }
 
-    private static FileInfo EntryToFileInfo(FileEntry entry)
+    private FileInfo EntryToFileInfo(FileEntry entry)
     {
         return new FileInfo
         {
@@ -308,8 +312,19 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
             LastAccessTime = DateTimeToFileTimeUtc(entry.ModifiedTime),
             LastWriteTime = DateTimeToFileTimeUtc(entry.ModifiedTime),
             ChangeTime = DateTimeToFileTimeUtc(entry.ModifiedTime),
-            IndexNumber = (ulong)Interlocked.Increment(ref _nextIndexNumber)
+            IndexNumber = GetIndexNumber(entry.FullPath)
         };
+    }
+
+    /// <summary>
+    ///     Gets a stable file index for a path. Windows treats the index as the file's
+    ///     identity, so it must not change between queries.
+    /// </summary>
+    /// <param name="path">The full entry path.</param>
+    /// <returns>The stable index number for the path.</returns>
+    private ulong GetIndexNumber(string path)
+    {
+        return _indexNumbers.GetOrAdd(path, static _ => (ulong)Interlocked.Increment(ref _nextIndexNumber));
     }
 
     private static string ResolvePath(object fileNode)

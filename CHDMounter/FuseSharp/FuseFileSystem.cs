@@ -448,12 +448,19 @@ public sealed class FuseFileSystem
     {
         try
         {
-            var names = GetDirectoryNames(path);
-            if (names is null)
+            var fusePath = ToFusePath(path);
+            var entry = _vfs.GetEntry(fusePath);
+            if (entry is null)
             {
                 return -PosixError.Enoent;
             }
 
+            if (!entry.IsDirectory)
+            {
+                return -PosixError.Enotdir;
+            }
+
+            var names = GetDirectoryNames(fusePath);
             var fill = Marshal.GetDelegateForFunctionPointer<FillDirDelegate>(filler);
             return FillDirectory(names, offset, (name, nextOffset) => fill(buffer, name, IntPtr.Zero, nextOffset, 0));
         }
@@ -486,14 +493,8 @@ public sealed class FuseFileSystem
         return 0;
     }
 
-    private List<string>? GetDirectoryNames(IntPtr path)
+    private List<string> GetDirectoryNames(string fusePath)
     {
-        var fusePath = ToFusePath(path);
-        if (_vfs.GetEntry(fusePath) is not { IsDirectory: true })
-        {
-            return null;
-        }
-
         var names = new List<string> { "." };
         if (!string.Equals(fusePath, "/", StringComparison.Ordinal))
         {

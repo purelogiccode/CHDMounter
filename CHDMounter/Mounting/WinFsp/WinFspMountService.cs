@@ -89,7 +89,7 @@ internal sealed class WinFspMountService : IMountService
                 {
                     if (crossIntegrity)
                     {
-                        candidates = GetCrossIntegrityMountCandidates(chdPath);
+                        candidates = MountPathHelper.BuildFolderMountCandidates(chdPath);
                     }
                     else
                     {
@@ -101,13 +101,13 @@ internal sealed class WinFspMountService : IMountService
                 }
                 else
                 {
-                    if (crossIntegrity && IsDriveLetterMountPoint(mountPoint))
+                    if (crossIntegrity && MountPathHelper.IsDriveLetterMountPoint(mountPoint))
                     {
                         _loggingService.Log(
                             "Cross-integrity mode: Drive letter mounts are not supported. Redirecting to folder mount.");
-                        candidates = GetCrossIntegrityMountCandidates(chdPath);
+                        candidates = MountPathHelper.BuildFolderMountCandidates(chdPath);
                     }
-                    else if (IsDriveLetterMountPoint(mountPoint))
+                    else if (MountPathHelper.IsDriveLetterMountPoint(mountPoint))
                     {
                         // Try the explicitly requested letter first; if it is
                         // unavailable (e.g. NTSTATUS 0xC000000E when the device
@@ -129,11 +129,12 @@ internal sealed class WinFspMountService : IMountService
                 // when winfsp-x64/x86.dll is missing or mismatched. Keep it inside the
                 // translated region so users get the friendly "install or repair WinFsp"
                 // message instead of a raw "type initializer" crash (previously filed as a bug).
-                var isDriveLetter = IsDriveLetterMountPoint(candidates[0]);
+                var isDriveLetter = MountPathHelper.IsDriveLetterMountPoint(candidates[0]);
                 var persistentAcls = crossIntegrity && !isDriveLetter;
                 try
                 {
-                    _currentFs = new ChdFs(_container, persistentAcls);
+                    _currentFs = new ChdFs(_container, MountPathHelper.GetVolumeCreationTime(chdPath),
+                        persistentAcls);
                 }
                 catch (Exception ex)
                 {
@@ -141,9 +142,9 @@ internal sealed class WinFspMountService : IMountService
                 }
 
                 Exception? lastError = null;
-                foreach (var candidate in candidates)
+                for (var i = 0; i < candidates.Count; i++)
                 {
-                    MountPoint = candidate;
+                    MountPoint = candidates[i];
                     _loggingService.Log($"Mounting at {MountPoint} (WinFsp)...");
 
                     try
@@ -151,7 +152,7 @@ internal sealed class WinFspMountService : IMountService
                         // Folder mounts need the target directory to exist before
                         // WinFsp can mount at it. Created inside the retry guard so
                         // an unusable path does not abort the remaining candidates.
-                        if (!IsDriveLetterMountPoint(MountPoint))
+                        if (!MountPathHelper.IsDriveLetterMountPoint(MountPoint))
                             Directory.CreateDirectory(MountPoint);
 
                         _host = new FileSystemHost(_currentFs);
@@ -183,7 +184,9 @@ internal sealed class WinFspMountService : IMountService
                         lastError = ex;
                         _host?.Dispose();
                         _host = null;
-                        _loggingService.Log($"Mount point {MountPoint} is unavailable ({ex.Message}). Trying next...");
+                        if (i < candidates.Count - 1)
+                            _loggingService.Log(
+                                $"Mount point {MountPoint} is unavailable ({ex.Message}). Trying next...");
                     }
                 }
 
@@ -197,14 +200,20 @@ internal sealed class WinFspMountService : IMountService
                 {
                     _host?.Dispose();
                     _host = null;
-                    _currentFs?.Dispose();
-                    _currentFs = null;
-                    if (_container is not null)
+
+                    // ChdFs owns and disposes the container: only dispose the container
+                    // directly when the wrapper was never created.
+                    if (_currentFs is not null)
                     {
-                        _container.Dispose();
-                        _container = null;
+                        _currentFs.Dispose();
+                        _currentFs = null;
+                    }
+                    else
+                    {
+                        _container?.Dispose();
                     }
 
+                    _container = null;
                     MountPoint = "";
                 }
             }
@@ -233,9 +242,19 @@ internal sealed class WinFspMountService : IMountService
 
             _host?.Dispose();
             _host = null;
-            _currentFs?.Dispose();
-            _currentFs = null;
-            _container?.Dispose();
+
+            // ChdFs owns and disposes the container; only dispose the container directly
+            // when the wrapper does not exist.
+            if (_currentFs is not null)
+            {
+                _currentFs.Dispose();
+                _currentFs = null;
+            }
+            else
+            {
+                _container?.Dispose();
+            }
+
             _container = null;
             IsMounted = false;
             MountPoint = "";
@@ -269,44 +288,6 @@ internal sealed class WinFspMountService : IMountService
         var bytes = new byte[sd.BinaryLength];
         sd.GetBinaryForm(bytes, 0);
         return bytes;
-    }
-
-    private static List<string> GetCrossIntegrityMountCandidates(string chdPath)
-    {
-        var baseDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "CHDMounter", "Mounts");
-        var folderName = Path.GetFileNameWithoutExtension(chdPath);
-
-        // The base folder may already be an active mount point (e.g. leftover
-        // from a crashed session, or the same game mounted twice), which makes
-        // WinFsp fail with STATUS_OBJECT_NAME_COLLISION (0xC0000035). Provide
-        // suffixed fallback folders so the mount can still succeed.
-        var candidates = new List<string>();
-        for (var i = 1; i <= 5; i++)
-        {
-            var name = i == 1 ? folderName : $"{folderName} ({i})";
-            candidates.Add(Path.Combine(baseDir, SanitizeFolderName(name)));
-        }
-
-        return candidates;
-    }
-
-    private static string SanitizeFolderName(string name)
-    {
-        var invalid = Path.GetInvalidFileNameChars();
-        var chars = name.ToCharArray();
-        for (var i = 0; i < chars.Length; i++)
-            if (invalid.Contains(chars[i]))
-                chars[i] = '_';
-
-        return new string(chars);
-    }
-
-    private static bool IsDriveLetterMountPoint(string mountPoint)
-    {
-        return mountPoint is [_, ':', ..] && char.IsLetter(mountPoint[0])
-                                          && (mountPoint.Length == 2 || mountPoint is [_, _, '\\']);
     }
 
     private static bool IsWinFspInstalled()
@@ -350,7 +331,9 @@ internal sealed class WinFspMountService : IMountService
                                "by this application.\n\n" +
                                "Would you like to open the WinFsp download page?";
 
-        if (Dialogs.Confirm("WinFsp Not Found or Outdated", message))
-            PlatformHelper.OpenUrl("https://github.com/winfsp/winfsp/releases");
+        // Shown without blocking the mount worker so no mount lock is held while the
+        // dialog waits for the UI thread (prevents a UI-thread Unmount/exit deadlock).
+        Dialogs.ConfirmLater("WinFsp Not Found or Outdated", message,
+            () => PlatformHelper.OpenUrl("https://github.com/winfsp/winfsp/releases"));
     }
 }

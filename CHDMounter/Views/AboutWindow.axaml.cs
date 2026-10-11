@@ -1,6 +1,7 @@
 using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using CHDMounter.Services;
 using Serilog;
 
@@ -37,13 +38,33 @@ public partial class AboutWindow : Window
 
     private void CheckForUpdates()
     {
-        var result = UpdateChecker.Result;
-        if (result is { HasUpdate: true })
+        var timer = new DispatcherTimer(DispatcherPriority.Background)
         {
-            UpdateBanner.IsVisible = true;
-            UpdateText.Text = $"A new version ({result.LatestVersion}) is available!";
-            UpdateLink.Tag = result.DownloadUrl;
-        }
+            Interval = TimeSpan.FromSeconds(1)
+        };
+        var elapsed = TimeSpan.Zero;
+
+        timer.Tick += (_, _) =>
+        {
+            var result = UpdateChecker.Result;
+
+            // The check runs in the background; keep polling until it completes so the
+            // banner is not missed when the window opens before the check finishes.
+            if (result is null && elapsed < TimeSpan.FromSeconds(30))
+            {
+                elapsed += timer.Interval;
+                return;
+            }
+
+            timer.Stop();
+            if (result is { HasUpdate: true })
+            {
+                UpdateBanner.IsVisible = true;
+                UpdateText.Text = $"A new version ({result.LatestVersion}) is available!";
+                UpdateLink.Tag = result.DownloadUrl;
+            }
+        };
+        timer.Start();
     }
 
     private void UpdateLink_Click(object? sender, RoutedEventArgs e)

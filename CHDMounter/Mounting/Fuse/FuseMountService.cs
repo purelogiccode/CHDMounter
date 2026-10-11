@@ -2,7 +2,6 @@ using CHDMounter.FuseSharp;
 using CHDMounter.Interfaces;
 using CHDMounter.Services;
 using CHDMounter.Views;
-using Serilog;
 using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Mounting.Fuse;
@@ -39,7 +38,8 @@ internal sealed class FuseMountService : IMountService
     /// <inheritdoc />
     public bool CanMount()
     {
-        return FuseAvailability.Check(out _);
+        // A capability probe must not print installation guidance; Mount() reports it.
+        return FuseAvailability.Check(out _, candidates: null, printInstructions: false);
     }
 
     /// <inheritdoc />
@@ -76,13 +76,13 @@ internal sealed class FuseMountService : IMountService
 
                 _loggingService.Log($"Parsing complete. Volume: {_container.VolumeName}");
 
-                var creationTime = GetCreationTime(chdPath);
+                var creationTime = MountPathHelper.GetVolumeCreationTime(chdPath);
                 var candidates = ResolveMountCandidates(chdPath, mountPoint);
                 Exception? lastError = null;
 
-                foreach (var candidate in candidates)
+                for (var i = 0; i < candidates.Count; i++)
                 {
-                    MountPoint = candidate;
+                    MountPoint = candidates[i];
                     _loggingService.Log($"Mounting at {MountPoint} (FUSE)...");
 
                     try
@@ -97,7 +97,9 @@ internal sealed class FuseMountService : IMountService
                     {
                         lastError = ex;
                         StopMount(disposeContainer: false);
-                        _loggingService.Log($"Mount point {MountPoint} is unavailable ({ex.Message}). Trying next...");
+                        if (i < candidates.Count - 1)
+                            _loggingService.Log(
+                                $"Mount point {MountPoint} is unavailable ({ex.Message}). Trying next...");
                     }
                 }
 
@@ -247,48 +249,9 @@ internal sealed class FuseMountService : IMountService
     /// <returns>The candidate mount point directories, in priority order.</returns>
     private static List<string> ResolveMountCandidates(string chdPath, string? mountPoint)
     {
-        if (!string.IsNullOrEmpty(mountPoint))
-            return [mountPoint];
-
-        var baseDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "CHDMounter", "Mounts");
-        var folderName = Path.GetFileNameWithoutExtension(chdPath);
-        if (string.IsNullOrEmpty(folderName)) folderName = "CHD";
-        folderName = SanitizeFolderName(folderName);
-
-        var candidates = new List<string>();
-        for (var i = 1; i <= 5; i++)
-        {
-            var name = i == 1 ? folderName : $"{folderName} ({i})";
-            candidates.Add(Path.Combine(baseDir, name));
-        }
-
-        return candidates;
-    }
-
-    private static string SanitizeFolderName(string name)
-    {
-        var invalid = Path.GetInvalidFileNameChars();
-        var chars = name.ToCharArray();
-        for (var i = 0; i < chars.Length; i++)
-            if (invalid.Contains(chars[i]))
-                chars[i] = '_';
-
-        return new string(chars);
-    }
-
-    private static DateTime GetCreationTime(string chdPath)
-    {
-        try
-        {
-            return File.GetLastWriteTimeUtc(chdPath);
-        }
-        catch (Exception ex)
-        {
-            Log.Debug(ex, "FuseMountService: Failed to read creation time for '{ChdPath}'", chdPath);
-            return DateTime.UtcNow;
-        }
+        return !string.IsNullOrEmpty(mountPoint)
+            ? [mountPoint]
+            : MountPathHelper.BuildFolderMountCandidates(chdPath);
     }
 
     private static void ShowFuseNotInstalledDialog()
@@ -302,7 +265,9 @@ internal sealed class FuseMountService : IMountService
               "It does not appear to be installed on this system.\n\n" +
               "Would you like to open the FUSE project page for installation instructions?";
 
-        if (Dialogs.Confirm("FUSE Library Not Found", message))
-            PlatformHelper.OpenUrl(isMac ? "https://macfuse.io" : "https://github.com/libfuse/libfuse");
+        // Shown without blocking the mount worker so no mount lock is held while the
+        // dialog waits for the UI thread (prevents a UI-thread Unmount/exit deadlock).
+        Dialogs.ConfirmLater("FUSE Library Not Found", message,
+            () => PlatformHelper.OpenUrl(isMac ? "https://macfuse.io" : "https://github.com/libfuse/libfuse"));
     }
 }
