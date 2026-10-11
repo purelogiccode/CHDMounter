@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using CHDMounter.Interfaces;
 using CHDMounter.Logging;
 using CHDMounter.Services;
@@ -20,6 +21,9 @@ public class App : Application
     private static TextWriter? _originalConsoleOut;
     private static TextWriter? _originalConsoleError;
     private static LogTextWriter? _logTextWriter;
+    private static PosixSignalRegistration? _sigTermRegistration;
+    private static PosixSignalRegistration? _sigHupRegistration;
+    private static PosixSignalRegistration? _sigIntRegistration;
 
     /// <summary>
     ///     Gets the command-line arguments captured at startup.
@@ -41,9 +45,35 @@ public class App : Application
 
             desktop.MainWindow = new MainWindow();
             desktop.Exit += OnDesktopExit;
+            RegisterUnixExitSignals(desktop);
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>
+    ///     Registers Unix termination signals so the application shuts down cleanly
+    ///     (unmounting and flushing logs) when the session manager sends SIGTERM/SIGHUP
+    ///     or the user presses Ctrl+C. The FUSE layer registers its own handlers to stop
+    ///     the session; both handlers run for the same signal.
+    /// </summary>
+    /// <param name="desktop">The desktop application lifetime to shut down.</param>
+    private static void RegisterUnixExitSignals(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        if (OperatingSystem.IsWindows())
+            return;
+
+        void OnExitSignal(PosixSignalContext context)
+        {
+            // Cancel the default termination so the desktop lifetime can run its
+            // shutdown path (which unmounts and flushes the log).
+            context.Cancel = true;
+            Dispatcher.UIThread.Post(() => desktop.Shutdown());
+        }
+
+        _sigTermRegistration = PosixSignalRegistration.Create(PosixSignal.SIGTERM, OnExitSignal);
+        _sigHupRegistration = PosixSignalRegistration.Create(PosixSignal.SIGHUP, OnExitSignal);
+        _sigIntRegistration = PosixSignalRegistration.Create(PosixSignal.SIGINT, OnExitSignal);
     }
 
     /// <summary>
@@ -134,6 +164,13 @@ public class App : Application
     /// </summary>
     private static void OnDesktopExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
     {
+        _sigTermRegistration?.Dispose();
+        _sigTermRegistration = null;
+        _sigHupRegistration?.Dispose();
+        _sigHupRegistration = null;
+        _sigIntRegistration?.Dispose();
+        _sigIntRegistration = null;
+
         DiagnosticLogger.LogSection("APPLICATION SHUTDOWN");
         try
         {

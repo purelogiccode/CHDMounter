@@ -68,6 +68,12 @@ See [Command Line](command-line.md) for all flags and examples.
 CHDMounter never writes to your CHD files. The mounted volume reports a read-only filesystem and
 the image is opened in read-only mode. Windows shows the volume as **CHDFS**.
 
+## Closing and signals
+
+- Closing the window (or **File → Exit**) unmounts the drive before the application exits.
+- On Linux and macOS, `SIGTERM`, `SIGHUP` and Ctrl+C (`SIGINT`) also shut the application down
+  cleanly: the drive is unmounted and the log is flushed before the process exits.
+
 ## Logs
 
 Structured Serilog logs are written to the `logs` folder inside the application data folder

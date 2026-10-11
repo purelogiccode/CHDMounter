@@ -154,88 +154,32 @@ public partial class MainWindow : Window
 
     private void HandleCommandLineArgs(string[] args)
     {
-        ConsoleType? consoleType = null;
-        string? chdPath = null;
-        var autoSelectMountPoint = false;
+        var options = CommandLineParser.Parse(args);
 
-        var positional = new List<string>();
+        _launchExplorer = options.LaunchExplorer;
+        _cliMountPoint = options.MountPoint;
 
-        foreach (var arg in args)
-            if (arg.StartsWith('/'))
-                switch (arg.ToLowerInvariant())
-                {
-                    case "/l":
-                        _launchExplorer = true;
-                        break;
-                    case "/a":
-                        autoSelectMountPoint = true;
-                        break;
-                    case var s when s.StartsWith("/s:", StringComparison.Ordinal):
-                    {
-                        consoleType = ConsoleTypeRegistry.Parse(s[3..]);
-                        if (consoleType == ConsoleType.Unknown) consoleType = null;
-
-                        break;
-                    }
-                }
-            else
-                positional.Add(arg);
-
-        var pos = 0;
-
-        // A leading positional that is a console alias (followed by a path)
-        // selects the console type; otherwise the first positional is the
-        // CHD path. Console types are resolved exclusively through
-        // ConsoleTypeRegistry - numeric indexes are not supported.
-        if (positional.Count >= 2
-            && ConsoleTypeRegistry.Parse(positional[0]) is var firstType
-            && firstType != ConsoleType.Unknown)
+        if (options.ChdPath is not null)
         {
-            consoleType ??= firstType;
-            pos++;
+            ChdFilePathTextBox.Text = options.ChdPath;
+            _chdPath = options.ChdPath;
         }
 
-        if (positional.Count > pos)
+        if (options.ConsoleType != ConsoleType.Unknown)
         {
-            chdPath = positional[pos];
-            pos++;
-        }
-
-        if (positional.Count > pos)
-        {
-            var ct = ConsoleTypeRegistry.Parse(positional[pos]);
-            if (ct != ConsoleType.Unknown)
-                consoleType ??= ct;
-            else
-                _cliMountPoint = positional[pos];
-
-            pos++;
-        }
-
-        if (positional.Count > pos) _cliMountPoint = positional[pos];
-
-        // /a forces automatic drive-letter selection even when a mount point is given.
-        if (autoSelectMountPoint)
-            _cliMountPoint = null;
-
-        if (chdPath is not null)
-        {
-            ChdFilePathTextBox.Text = chdPath;
-            _chdPath = chdPath;
-        }
-
-        if (consoleType.HasValue)
-        {
-            _selectedConsoleType = consoleType.Value;
-            SelectConsoleTypeInCombo(consoleType.Value);
+            _selectedConsoleType = options.ConsoleType;
+            SelectConsoleTypeInCombo(options.ConsoleType);
         }
 
         ValidateAndEnableMount();
 
-        if (consoleType.HasValue && chdPath is not null && File.Exists(chdPath))
+        if (options.ChdPath is null || !File.Exists(options.ChdPath))
+            return;
+
+        if (options.ConsoleType != ConsoleType.Unknown)
             MountDisk();
-        else if (chdPath is not null && File.Exists(chdPath) && !consoleType.HasValue)
-            ShowDragDropConsoleModal(chdPath);
+        else
+            ShowDragDropConsoleModal(options.ChdPath);
     }
 
     private void ShowDragDropConsoleModal(string chdPath)

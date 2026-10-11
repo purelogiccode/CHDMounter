@@ -8,12 +8,19 @@ internal static class ScreenshotPaths
 {
     /// <summary>
     ///     Gets the primary screenshot directory: the "Screenshot" folder inside the
-    ///     application folder.
+    ///     application folder (the folder that contains the executable). For single-file
+    ///     builds this intentionally uses the executable path instead of
+    ///     <see cref="AppContext.BaseDirectory" />, which points at the runtime's
+    ///     extraction directory.
     /// </summary>
     /// <returns>The full path to the primary screenshot directory.</returns>
     internal static string GetPrimaryDirectory()
     {
-        return Path.Combine(AppContext.BaseDirectory, "Screenshot");
+        var executableDirectory = Path.GetDirectoryName(Environment.ProcessPath);
+        if (string.IsNullOrEmpty(executableDirectory))
+            executableDirectory = AppContext.BaseDirectory;
+
+        return Path.Combine(executableDirectory, "Screenshot");
     }
 
     /// <summary>

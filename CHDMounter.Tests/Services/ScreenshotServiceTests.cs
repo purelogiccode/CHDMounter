@@ -28,9 +28,11 @@ public class ScreenshotServiceTests
     [Fact]
     public void GetPrimaryScreenshotDirectoryIsInsideApplicationFolder()
     {
+        var executableDirectory = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+
         var result = ScreenshotService.GetPrimaryScreenshotDirectory();
 
-        Assert.StartsWith(AppContext.BaseDirectory, result, StringComparison.OrdinalIgnoreCase);
+        Assert.StartsWith(executableDirectory, result, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

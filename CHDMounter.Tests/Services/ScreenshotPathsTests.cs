@@ -7,10 +7,24 @@ public class ScreenshotPathsTests
     [Fact]
     public void GetPrimaryDirectoryIsInsideApplicationFolder()
     {
+        var executableDirectory = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+
         var result = ScreenshotPaths.GetPrimaryDirectory();
 
-        Assert.StartsWith(AppContext.BaseDirectory, result, StringComparison.OrdinalIgnoreCase);
+        Assert.StartsWith(executableDirectory, result, StringComparison.OrdinalIgnoreCase);
         Assert.EndsWith("Screenshot", result, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GetPrimaryDirectoryIsExecutableDirectoryNotBaseDirectory()
+    {
+        var executableDirectory = Path.GetDirectoryName(Environment.ProcessPath);
+        if (string.IsNullOrEmpty(executableDirectory))
+            return; // Fallback path: nothing to compare against.
+
+        var result = ScreenshotPaths.GetPrimaryDirectory();
+
+        Assert.Equal(Path.Combine(executableDirectory, "Screenshot"), result);
     }
 
     [Fact]
