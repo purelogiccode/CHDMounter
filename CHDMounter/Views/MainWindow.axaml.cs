@@ -446,7 +446,7 @@ public partial class MainWindow : Window
                 await Task.Run(() => MountService.Unmount());
                 StatusText.Text = "Unmounted";
                 DriveLetterText.Text = "";
-                ValidateAndEnableMount();
+                MountButton.IsEnabled = true;
             }
             catch (Exception ex)
             {
@@ -503,7 +503,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to open the settings dialog");
+            LoggingService.LogError("Error in method Settings_Click", ex);
         }
     }
 
@@ -519,7 +519,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to open the about dialog");
+            LoggingService.LogError("Error in method About_Click", ex);
         }
     }
 
@@ -544,9 +544,7 @@ public partial class MainWindow : Window
                 Log.Warning(ex, "Failed to unmount during window close");
             }
 
-            // Leave _isClosing set. If the unmount failed and the drive is still mounted,
-            // a re-entrant Closing event must not cancel the close again, otherwise the
-            // window could never be closed.
+            _isClosing = false;
             Close();
         }
         catch (Exception ex)

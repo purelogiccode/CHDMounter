@@ -84,7 +84,8 @@ If the library is missing, CHDMounter shows a dialog with the download/install p
 ## Verifying the installation
 
 1. Start CHDMounter. The main window opens without an error dialog.
-2. The title bar shows the selected mount core, for example `CHDMounter (Dokan)`.
+2. The window title is `CHDMounter`; the active mount core is shown in **Settings** and in the
+   log pane when you mount.
 3. Mount any `.chd` file. The status bar shows **Mounted** and the drive letter/folder.
 4. If the driver is missing, a dialog offers to open the driver download page; the log pane
    explains the exact reason.
