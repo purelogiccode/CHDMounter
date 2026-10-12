@@ -117,17 +117,17 @@
                                    Foreground="{StaticResource TextMutedBrush}"
                                    ToolTip.Tip="Description of the DokanNet project" />
                     </WrapPanel>
-                <WrapPanel ToolTip.Tip="FuseSharp library credit">
-                    <Button Classes="link" Tag="https://github.com/purelogiccode/LibFuseSharp" Click="OpenUrl_Click"
-                            ToolTip.Tip="Open the LibFuseSharp source on GitHub">
-                        <TextBlock Text="FuseSharp" FontSize="11" TextDecorations="Underline"
-                                   Foreground="{StaticResource AccentSecondaryBrush}"
-                                   ToolTip.Tip="LibFuseSharp project link" />
-                    </Button>
-                    <TextBlock Text=" - FUSE 3 high-level mount library for Linux and macOS (by PureLogicCode)" FontSize="11"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               ToolTip.Tip="Description of the FuseSharp project" />
-                </WrapPanel>
+                    <WrapPanel ToolTip.Tip="FuseSharp library credit">
+                        <Button Classes="link" Tag="https://github.com/purelogiccode/LibFuseSharp" Click="OpenUrl_Click"
+                                ToolTip.Tip="Open the LibFuseSharp source on GitHub">
+                            <TextBlock Text="FuseSharp" FontSize="11" TextDecorations="Underline"
+                                       Foreground="{StaticResource AccentSecondaryBrush}"
+                                       ToolTip.Tip="LibFuseSharp project link" />
+                        </Button>
+                        <TextBlock Text=" - FUSE 3 high-level mount library for Linux and macOS (by PureLogicCode)" FontSize="11"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   ToolTip.Tip="Description of the FuseSharp project" />
+                    </WrapPanel>
                     <WrapPanel ToolTip.Tip="MAME project credit">
                         <Button Classes="link" Tag="https://github.com/mamedev/mame" Click="OpenUrl_Click"
                                 ToolTip.Tip="Open the MAME GitHub repository">

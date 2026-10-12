@@ -26,7 +26,7 @@ The JSON body contains only:
 ```json
 {
   "applicationId": "chdmounter",
-  "version": "1.3.0"
+  "version": "1.3.1"
 }
 ```
 

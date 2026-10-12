@@ -1,5 +1,43 @@
 # What's New
 
+## 1.3.1
+
+### Fixed
+
+- **WinFsp folder mounts failed and were unreadable** — WinFsp creates the folder mount
+  point itself and rejects an existing directory with `STATUS_OBJECT_NAME_COLLISION`, yet
+  the app pre-created it, so every elevated (cross-integrity) mount failed. The directory
+  is no longer pre-created (only an empty leftover is cleaned up). The cross-integrity
+  security descriptor was also ownerless, which Windows' `AccessCheck` rejects with
+  "The security descriptor structure is invalid", leaving mounted drives unreadable; both
+  builders now share a descriptor with owner/group and Full Access for SYSTEM,
+  Administrators and Everyone.
+- **FUSE layer is now a NuGet package** — the vendored `FuseSharp` sources were replaced by
+  the [`LibFuseSharp`](https://github.com/purelogiccode/LibFuseSharp) 1.0.0 package
+  (MIT, `net8.0`/`net9.0`/`net10.0`), including the mount-exit, `ENOTDIR` and quiet-probe
+  improvements.
+
+### Changed
+
+- **Main window title is now just `CHDMounter`** (it no longer appends the mount core).
+- **Help → Donate** menu item opens the donation page.
+- **About → FuseSharp** now credits the standalone `LibFuseSharp` library.
+- **README badges** expanded (platforms, architecture, mount cores, docs, community).
+
+### Bundles
+
+| Bundle | Platform | Architecture |
+|--------|----------|--------------|
+| `release_1.3.1_win-x64.zip` | Windows | x64 |
+| `release_1.3.1_win-arm64.zip` | Windows | ARM64 |
+| `release_1.3.1_linux-x64.zip` | Linux | x64 |
+| `release_1.3.1_linux-arm64.zip` | Linux | ARM64 |
+| `release_1.3.1_osx-x64.zip` | macOS | Intel |
+| `release_1.3.1_osx-arm64.zip` | macOS | Apple silicon |
+
+Every bundle contains `CHDMounter` (`CHDMounter.exe` on Windows), `LICENSE.txt`, `README.md` and
+`WhatsNew.md`, and requires the **.NET 10 runtime**.
+
 ## 1.3.0
 
 ### Fixed
