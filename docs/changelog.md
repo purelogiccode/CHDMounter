@@ -1,6 +1,55 @@
-# Changelog
+# What's New
 
-> This page mirrors `WhatsNew.md` from the repository root and is included in every release bundle.
+## 1.3.0
+
+### Fixed
+
+- **Settings and About windows were unresponsive** — every modal dialog was opened by
+  blocking the UI thread on the dialog task, so the window rendered but never processed
+  input: the settings check-boxes/radio buttons could not be toggled and the About links
+  (and the update banner) did nothing. Dialogs are now awaited, so the UI stays responsive
+  while a dialog is open.
+- **Absolute Linux/macOS paths were dropped from the command line** — the parser treated
+  any argument starting with `/` as a flag, so `/home/user/game.chd` was ignored and nothing
+  mounted. Only the documented `/l`, `/a` and `/s:<alias>` flags are recognised now.
+- **F8 screenshots in single-file builds** were written to the .NET extraction directory
+  instead of the application folder; the screenshot folder is now resolved from the running
+  executable's path.
+- **SIGTERM/SIGHUP/Ctrl+C left the GUI running** after unmounting; the application now shuts
+  down cleanly on these signals (documented in the usage guide).
+- **Bug-report queue could stall** — a race in the queue hand-off could pin a thread at 100%
+  CPU and stop all later reports from being sent.
+- **Window could not be closed** if unmounting kept failing; the closing path now gives up
+  after one attempt instead of retrying forever.
+
+### Changed
+
+- **One application instead of two** — the Dokan, WinFsp and Core projects are merged into a
+  single `CHDMounter` application. There is now one download per platform/architecture
+  (`release_<version>_<rid>.zip`) instead of separate Dokan and WinFsp bundles.
+- **Cross-platform UI** — the WPF interface was ported to Avalonia with the same dark theme and
+  layout, and the application now runs on Windows, Linux and macOS (x64 and ARM64).
+- **Selectable mount core** — choose Dokan (default) or WinFsp on Windows in
+  **Settings → Mount core**. Linux and macOS mount through FUSE 3 (libfuse3 / macFUSE) using the
+  bundled `FuseSharp` library.
+- **Per-platform settings** — settings stay DPAPI-encrypted on Windows and are stored as plain
+  JSON on Linux/macOS.
+- **VideoGameFileSystemParser is now a NuGet package** — the vendored parser project was removed
+  from the solution; `CHDMounter` references the `VideoGameFileSystemParser` 1.4.0 package.
+
+### Bundles
+
+| Bundle | Platform | Architecture |
+|--------|----------|--------------|
+| `release_1.3.0_win-x64.zip` | Windows | x64 |
+| `release_1.3.0_win-arm64.zip` | Windows | ARM64 |
+| `release_1.3.0_linux-x64.zip` | Linux | x64 |
+| `release_1.3.0_linux-arm64.zip` | Linux | ARM64 |
+| `release_1.3.0_osx-x64.zip` | macOS | Intel |
+| `release_1.3.0_osx-arm64.zip` | macOS | Apple silicon |
+
+Every bundle contains `CHDMounter` (`CHDMounter.exe` on Windows), `LICENSE.txt`, `README.md` and
+`WhatsNew.md`, and requires the **.NET 10 runtime**.
 
 ## 1.2.1
 

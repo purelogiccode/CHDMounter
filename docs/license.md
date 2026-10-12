@@ -16,6 +16,7 @@ the repository for the full text.
 | DokanNet | MIT | <https://github.com/dokan-dev/dokan-dotnet> |
 | WinFsp / winfsp.net | GPLv3 | <https://github.com/winfsp/winfsp> |
 | Serilog | Apache-2.0 | <https://github.com/serilog/serilog> |
-| WPF-UI | MIT | <https://github.com/lepoco/wpfui> |
+| Avalonia | MIT | <https://github.com/AvaloniaUI/Avalonia> |
+| FUSE / FuseSharp | MIT | <https://github.com/libfuse/libfuse> |
 | QuestPDF | Community | <https://github.com/QuestPDF/QuestPDF> |
 | MAME | GPLv2+ | <https://github.com/mamedev/mame> |

@@ -1,5 +1,4 @@
 using CHDMounter.Services;
-using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Tests.Services;
 

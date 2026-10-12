@@ -93,7 +93,13 @@ internal static class BugReportClient
             return;
 
         PendingReports.Enqueue(() => SendAsync(message, stackTrace));
-        if (Interlocked.CompareExchange(ref _isProcessing, 1, 0) == 0) _ = Task.Run(ProcessQueueAsync);
+        TryStartProcessing();
+    }
+
+    private static void TryStartProcessing()
+    {
+        if (Interlocked.CompareExchange(ref _isProcessing, 1, 0) == 0)
+            _ = Task.Run(ProcessQueueAsync);
     }
 
     private static bool IsTestHarnessApp()
@@ -144,18 +150,12 @@ internal static class BugReportClient
         }
         finally
         {
-            while (true)
-            {
-                if (PendingReports.IsEmpty)
-                    if (Interlocked.CompareExchange(ref _isProcessing, 0, 1) == 1)
-                        break;
-
-                if (Interlocked.CompareExchange(ref _isProcessing, 1, 0) == 0)
-                {
-                    _ = Task.Run(ProcessQueueAsync);
-                    break;
-                }
-            }
+            // Release the processing flag and, if reports arrived while we were finishing,
+            // start another drain. (The previous hand-off could spin forever when an item
+            // was enqueued in the window between the queue emptying and this block.)
+            Interlocked.Exchange(ref _isProcessing, 0);
+            if (!PendingReports.IsEmpty)
+                TryStartProcessing();
         }
     }
 

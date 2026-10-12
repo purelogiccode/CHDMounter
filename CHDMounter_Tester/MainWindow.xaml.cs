@@ -144,70 +144,78 @@ public partial class MainWindow
 
     private async void RunButton_ClickAsync(object sender, RoutedEventArgs e)
     {
-        var folderPath = ChdFolderTextBox.Text.Trim();
-        if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
-        {
-            MessageBox.Show("Please select a valid folder containing .chd files.", "Invalid Folder",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        if (ConsoleComboBox.SelectedItem is not ConsoleInfo consoleInfo)
-        {
-            MessageBox.Show("Please select a console type.", "Invalid Console",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        RunButton.IsEnabled = false;
-        RunButton.Visibility = Visibility.Collapsed;
-        CancelButton.IsEnabled = true;
-        CancelButton.Visibility = Visibility.Visible;
-        ExportPdfButton.Visibility = Visibility.Collapsed;
-        SummaryPanel.Visibility = Visibility.Collapsed;
-
-        ClearLog();
-        _cts?.Dispose();
-        _cts = new CancellationTokenSource();
-        _lastSummary = null;
-
-        _testRunner = new TestRunnerService(_logger);
-        _testRunner.LogMessage += OnLogMessage;
-        _testRunner.AllCompleted += OnAllCompleted;
-
-        _stopwatch = Stopwatch.StartNew();
-        _elapsedTimer.Start();
-
-        StatusText.Text = "Running tests...";
-
         try
         {
-            await _testRunner.RunTestsAsync(folderPath, consoleInfo, _cts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            AppendLog("[Cancelled] Test run was cancelled.", YellowBrush);
-            _logger.Warning("Test run cancelled");
+            var folderPath = ChdFolderTextBox.Text.Trim();
+            if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
+            {
+                MessageBox.Show("Please select a valid folder containing .chd files.", "Invalid Folder",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (ConsoleComboBox.SelectedItem is not ConsoleInfo consoleInfo)
+            {
+                MessageBox.Show("Please select a console type.", "Invalid Console",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            RunButton.IsEnabled = false;
+            RunButton.Visibility = Visibility.Collapsed;
+            CancelButton.IsEnabled = true;
+            CancelButton.Visibility = Visibility.Visible;
+            ExportPdfButton.Visibility = Visibility.Collapsed;
+            SummaryPanel.Visibility = Visibility.Collapsed;
+
+            ClearLog();
+            _cts?.Dispose();
+            _cts = new CancellationTokenSource();
+            _lastSummary = null;
+
+            _testRunner = new TestRunnerService(_logger);
+            _testRunner.LogMessage += OnLogMessage;
+            _testRunner.AllCompleted += OnAllCompleted;
+
+            _stopwatch = Stopwatch.StartNew();
+            _elapsedTimer.Start();
+
+            StatusText.Text = "Running tests...";
+
+            try
+            {
+                await _testRunner.RunTestsAsync(folderPath, consoleInfo, _cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                AppendLog("[Cancelled] Test run was cancelled.", YellowBrush);
+                _logger.Warning("Test run cancelled");
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"[Error] {ex.Message}", RedBrush);
+                _logger.Error(ex, "Error during test run");
+            }
+            finally
+            {
+                // Always restore the idle UI once the run has ended (success, cancel or error).
+                _elapsedTimer.Stop();
+                _stopwatch?.Stop();
+                _stopwatch = null;
+                RunButton.Visibility = Visibility.Visible;
+                RunButton.IsEnabled = true;
+                CancelButton.Visibility = Visibility.Collapsed;
+                CancelButton.IsEnabled = true;
+                StatusText.Text = "Ready";
+
+                _cts?.Dispose();
+                _cts = null;
+            }
         }
         catch (Exception ex)
         {
             AppendLog($"[Error] {ex.Message}", RedBrush);
             _logger.Error(ex, "Error during test run");
-        }
-        finally
-        {
-            // Always restore the idle UI once the run has ended (success, cancel or error).
-            _elapsedTimer.Stop();
-            _stopwatch?.Stop();
-            _stopwatch = null;
-            RunButton.Visibility = Visibility.Visible;
-            RunButton.IsEnabled = true;
-            CancelButton.Visibility = Visibility.Collapsed;
-            CancelButton.IsEnabled = true;
-            StatusText.Text = "Ready";
-
-            _cts?.Dispose();
-            _cts = null;
         }
     }
 

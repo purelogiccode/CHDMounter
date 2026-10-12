@@ -128,7 +128,7 @@ public partial class MainWindow : Window
         };
         var elapsed = TimeSpan.Zero;
 
-        timer.Tick += (_, _) =>
+        timer.Tick += async (_, _) =>
         {
             var result = UpdateChecker.Result;
 
@@ -145,7 +145,7 @@ public partial class MainWindow : Window
             {
                 var message = $"A new version ({result.LatestVersion}) is available!\n\nWould you like to download it?";
                 const string caption = "Update Available";
-                if (Dialogs.Confirm(caption, message))
+                if (await Dialogs.ConfirmAsync(caption, message))
                     PlatformHelper.OpenUrl(result.DownloadUrl);
             }
         };
@@ -184,23 +184,28 @@ public partial class MainWindow : Window
 
     private void ShowDragDropConsoleModal(string chdPath)
     {
-        Dispatcher.UIThread.Post(() =>
+        Dispatcher.UIThread.Post(() => _ = ShowDragDropConsoleModalAsync(chdPath), DispatcherPriority.Background);
+    }
+
+    private async Task ShowDragDropConsoleModalAsync(string chdPath)
+    {
+        try
         {
-            try
+            var dialog = new ConsoleSelectionWindow(chdPath);
+
+            // Await rather than block: blocking the UI thread on the dialog task freezes
+            // input handling, leaving the selection window visible but unresponsive.
+            if (await dialog.ShowDialog<bool>(this))
             {
-                var dialog = new ConsoleSelectionWindow(chdPath);
-                if (dialog.ShowDialog<bool>(this).GetAwaiter().GetResult())
-                {
-                    _selectedConsoleType = dialog.SelectedConsoleType;
-                    SelectConsoleTypeInCombo(dialog.SelectedConsoleType);
-                    MountDisk();
-                }
+                _selectedConsoleType = dialog.SelectedConsoleType;
+                SelectConsoleTypeInCombo(dialog.SelectedConsoleType);
+                MountDisk();
             }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to open modal selection window");
-            }
-        }, DispatcherPriority.Background);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to open modal selection window");
+        }
     }
 
     private void SelectConsoleTypeInCombo(ConsoleType type)
@@ -441,7 +446,7 @@ public partial class MainWindow : Window
                 await Task.Run(() => MountService.Unmount());
                 StatusText.Text = "Unmounted";
                 DriveLetterText.Text = "";
-                MountButton.IsEnabled = true;
+                ValidateAndEnableMount();
             }
             catch (Exception ex)
             {
@@ -483,21 +488,39 @@ public partial class MainWindow : Window
     /// <summary>
     ///     Opens the settings dialog.
     /// </summary>
-    private void Settings_Click(object? sender, RoutedEventArgs e)
+    private async void Settings_Click(object? sender, RoutedEventArgs e)
     {
-        var settingsService = ServiceProvider.TryGet<ISettingsService>();
-        var dialog = new SettingsWindow(settingsService);
-        dialog.ShowDialog(this).GetAwaiter().GetResult();
-        UpdateTitle();
+        try
+        {
+            var settingsService = ServiceProvider.TryGet<ISettingsService>();
+            var dialog = new SettingsWindow(settingsService);
+
+            // Await the dialog instead of blocking the UI thread: blocking on the task
+            // returned by ShowDialog freezes the dispatcher, so the dialog would render
+            // but never process input (no control or link could be clicked).
+            await dialog.ShowDialog(this);
+            UpdateTitle();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to open the settings dialog");
+        }
     }
 
     /// <summary>
     ///     Opens the about dialog.
     /// </summary>
-    private void About_Click(object? sender, RoutedEventArgs e)
+    private async void About_Click(object? sender, RoutedEventArgs e)
     {
-        var dialog = new AboutWindow();
-        dialog.ShowDialog(this).GetAwaiter().GetResult();
+        try
+        {
+            var dialog = new AboutWindow();
+            await dialog.ShowDialog(this);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to open the about dialog");
+        }
     }
 
     private async void MainWindow_ClosingAsync(object? sender, WindowClosingEventArgs e)
@@ -521,7 +544,9 @@ public partial class MainWindow : Window
                 Log.Warning(ex, "Failed to unmount during window close");
             }
 
-            _isClosing = false;
+            // Leave _isClosing set. If the unmount failed and the drive is still mounted,
+            // a re-entrant Closing event must not cancel the close again, otherwise the
+            // window could never be closed.
             Close();
         }
         catch (Exception ex)

@@ -63,6 +63,11 @@ public class App : Application
         if (OperatingSystem.IsWindows())
             return;
 
+        _sigTermRegistration = PosixSignalRegistration.Create(PosixSignal.SIGTERM, OnExitSignal);
+        _sigHupRegistration = PosixSignalRegistration.Create(PosixSignal.SIGHUP, OnExitSignal);
+        _sigIntRegistration = PosixSignalRegistration.Create(PosixSignal.SIGINT, OnExitSignal);
+        return;
+
         void OnExitSignal(PosixSignalContext context)
         {
             // Cancel the default termination so the desktop lifetime can run its
@@ -70,10 +75,6 @@ public class App : Application
             context.Cancel = true;
             Dispatcher.UIThread.Post(() => desktop.Shutdown());
         }
-
-        _sigTermRegistration = PosixSignalRegistration.Create(PosixSignal.SIGTERM, OnExitSignal);
-        _sigHupRegistration = PosixSignalRegistration.Create(PosixSignal.SIGHUP, OnExitSignal);
-        _sigIntRegistration = PosixSignalRegistration.Create(PosixSignal.SIGINT, OnExitSignal);
     }
 
     /// <summary>

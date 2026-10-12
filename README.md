@@ -323,9 +323,9 @@ WPF desktop application (Windows only, developer tool) for **batch testing and b
 
 | Package              | Version   | Purpose                                   |
 |----------------------|-----------|-------------------------------------------|
-| `Avalonia` / `Avalonia.Desktop` | 12.1.3 | Cross-platform UI framework       |
-| `Avalonia.Themes.Fluent` | 12.1.3 | Fluent dark theme                     |
-| `Avalonia.Fonts.Inter` | 12.1.3  | Bundled UI font fallback                  |
+| `Avalonia` / `Avalonia.Desktop` | 12.1.4 | Cross-platform UI framework       |
+| `Avalonia.Themes.Fluent` | 12.1.4 | Fluent dark theme                     |
+| `Avalonia.Fonts.Inter` | 12.1.4  | Bundled UI font fallback                  |
 | `CHDSharp`           | 1.4.3     | MAME CHD format reader                    |
 | `coverlet.collector` | 10.1.0    | Code coverage (Tests only)                |
 | `DokanNet`           | 2.3.0.3   | Dokan virtual filesystem driver bindings  |
@@ -335,7 +335,7 @@ WPF desktop application (Windows only, developer tool) for **batch testing and b
 | `Serilog`            | 4.4.0     | Structured logging                        |
 | `Serilog.Sinks.Debug`| 3.0.0     | Visual Studio debug output logging        |
 | `Serilog.Sinks.File` | 7.0.0     | File-based log output                     |
-| `System.Security.Cryptography.ProtectedData` | 10.0.0 | DPAPI settings encryption (Windows) |
+| `System.Security.Cryptography.ProtectedData` | 10.0.12 | DPAPI settings encryption (Windows) |
 | `VideoGameFileSystemParser` | 1.4.0 | Console filesystem parser (NuGet package) |
 | `winfsp.net`         | 2.1.25156 | WinFsp virtual filesystem driver bindings |
 | `xUnit`              | 2.9.3     | Test framework (Tests only)               |
