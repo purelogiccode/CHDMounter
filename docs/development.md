@@ -24,11 +24,10 @@ See [Building from Source](building.md) for publishing and release packaging.
 | Path | Contents |
 |------|----------|
 | `CHDMounter/` | Cross-platform Avalonia application |
-| `CHDMounter/Interfaces/` | Service and FUSE contracts |
+| `CHDMounter/Interfaces/` | Service contracts |
 | `CHDMounter/Models/` | Settings, log entry, mount backend, update result |
 | `CHDMounter/Services/` | Logging, settings, mounting, screenshots, stats, updates, bug reports |
 | `CHDMounter/Mounting/` | Mount router, Dokan/WinFsp/FUSE backends, shared path helper |
-| `CHDMounter/FuseSharp/` | Bundled FUSE 3 interop layer |
 | `CHDMounter/Views/` | Windows, dialogs and code-behind |
 | `CHDMounter.Tests/` | xUnit unit and integration tests |
 | `CHDMounter_Tester/` | WPF batch-parsing/benchmarking tool (developer only) |

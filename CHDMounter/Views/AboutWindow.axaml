@@ -118,11 +118,11 @@
                                    ToolTip.Tip="Description of the DokanNet project" />
                     </WrapPanel>
                 <WrapPanel ToolTip.Tip="FuseSharp library credit">
-                    <Button Classes="link" Tag="https://github.com/purelogiccode/SimpleXisoDrive/tree/master/FuseSharp" Click="OpenUrl_Click"
-                            ToolTip.Tip="Open the FuseSharp source on GitHub">
+                    <Button Classes="link" Tag="https://github.com/purelogiccode/LibFuseSharp" Click="OpenUrl_Click"
+                            ToolTip.Tip="Open the LibFuseSharp source on GitHub">
                         <TextBlock Text="FuseSharp" FontSize="11" TextDecorations="Underline"
                                    Foreground="{StaticResource AccentSecondaryBrush}"
-                                   ToolTip.Tip="FuseSharp project link" />
+                                   ToolTip.Tip="LibFuseSharp project link" />
                     </Button>
                     <TextBlock Text=" - FUSE 3 high-level mount library for Linux and macOS (by PureLogicCode)" FontSize="11"
                                Foreground="{StaticResource TextMutedBrush}"

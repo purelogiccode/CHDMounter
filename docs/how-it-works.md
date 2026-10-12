@@ -42,8 +42,8 @@ The `ChdContainer` bridges the parsed `FsNode` tree to the driver-specific VFS l
 - **WinFsp**: `ChdFs` extends `FileSystemBase` — `Open` resolves paths and returns a `FileEntry`
   as both file node and descriptor, `Read` copies sector data into native memory via
   `Marshal.Copy`, `ReadDirectoryEntry` enumerates children including `.` and `..`.
-- **FUSE**: `ChdFuseVolume` implements the `IFuseVolume` contract of the bundled `FuseSharp`
-  layer — `GetEntry`/`GetFolderList` map POSIX paths to container entries and `ReadFile` copies
+- **FUSE**: `ChdFuseVolume` implements the `IFuseVolume` contract of the `LibFuseSharp`
+  package — `GetEntry`/`GetFolderList` map POSIX paths to container entries and `ReadFile` copies
   sector data into the FUSE read buffer. The blocking FUSE session runs on a background thread
   and is stopped through `FuseFileSystem.Exit()`.
 

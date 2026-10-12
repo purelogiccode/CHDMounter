@@ -1,5 +1,5 @@
 using System.Buffers;
-using CHDMounter.Interfaces;
+using FuseSharp;
 using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Mounting.Fuse;

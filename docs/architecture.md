@@ -122,8 +122,7 @@ unhandled errors ──► ErrorLogger ──► Serilog
 CHDMounter/
   App.axaml(.cs)        Application lifecycle and composition root
   Program.cs            Entry point
-  FuseSharp/            Bundled FUSE 3 interop (resolver, session, availability)
-  Interfaces/           Service and FUSE contracts
+  Interfaces/           Service contracts (FUSE contracts come from the LibFuseSharp NuGet package)
   Logging/              Serilog setup, sinks, console writer, error handlers
   Models/               Settings, log entry, mount backend, update result
   Mounting/             Mount router + Dokan/WinFsp/FUSE backends, shared path helper

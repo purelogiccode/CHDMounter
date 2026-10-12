@@ -346,7 +346,7 @@ WPF desktop application (Windows only, developer tool) for **batch testing and b
 | `CHDSharp`           | 1.4.3     | MAME CHD format reader                    |
 | `coverlet.collector` | 10.1.0    | Code coverage (Tests only)                |
 | `DokanNet`           | 2.3.0.3   | Dokan virtual filesystem driver bindings  |
-| `FuseSharp`          | vendored  | FUSE 3 high-level mount library (bundled from SimpleXisoDrive) |
+| `LibFuseSharp` | 1.0.0 | FUSE 3 high-level mount library ([source](https://github.com/purelogiccode/LibFuseSharp)) |
 | `Microsoft.NET.Test.Sdk` | 18.10.1 | Test SDK (Tests only)                    |
 | `QuestPDF`           | 2026.9.1  | PDF report generation (Tester only)       |
 | `Serilog`            | 4.4.0     | Structured logging                        |

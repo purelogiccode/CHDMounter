@@ -1,7 +1,7 @@
-using CHDMounter.FuseSharp;
 using CHDMounter.Interfaces;
 using CHDMounter.Services;
 using CHDMounter.Views;
+using FuseSharp;
 using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Mounting.Fuse;

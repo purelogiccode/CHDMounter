@@ -6,7 +6,7 @@ CHDMounter is a single executable that supports three mount cores. Pick the one 
 | Aspect | Dokan (Windows, default) | WinFsp (Windows) | FUSE (Linux/macOS) |
 |--------|--------------------------|------------------|--------------------|
 | Driver | Kernel-mode (`Dokan.sys`) | User-mode (WinFsp) | libfuse3 / macFUSE |
-| Bindings | `DokanNet` 2.3.0.3 | `winfsp.net` 2.1.25156 | bundled `FuseSharp` |
+| Bindings | `DokanNet` 2.3.0.3 | `winfsp.net` 2.1.25156 | `LibFuseSharp` 1.0.0 |
 | File system base | `IDokanOperations` | `FileSystemBase` | `IFuseVolume` |
 | Elevation | Standard mounts | Cross-integrity folder mounts with permissive DACL when elevated | Standard (mount points are folders) |
 | Vendor | <https://github.com/dokan-dev/dokany/releases> | <https://github.com/winfsp/winfsp/releases> | <https://github.com/libfuse/libfuse> / <https://macfuse.io> |

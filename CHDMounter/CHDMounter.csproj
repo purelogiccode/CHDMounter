@@ -38,6 +38,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="LibFuseSharp" Version="1.0.0" />
         <PackageReference Include="VideoGameFileSystemParser" Version="1.4.0" />
     </ItemGroup>
 
