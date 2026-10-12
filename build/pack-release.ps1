@@ -116,7 +116,7 @@ foreach ($runtime in $runtimes) {
         # Info-ZIP stores Unix permissions, which keeps the executable bit on extraction.
         Push-Location $bundleDir
         try {
-            & zip -r -q -- "$zipPath" . | Out-Null
+            & zip -r -q "$zipPath" .
             if ($LASTEXITCODE -ne 0) { throw "zip failed for $runtime" }
         }
         finally {
