@@ -1,5 +1,4 @@
 using System.Runtime.Versioning;
-using System.Security.AccessControl;
 using System.Security.Principal;
 using CHDMounter.Interfaces;
 using CHDMounter.Services;
@@ -149,15 +148,20 @@ internal sealed class WinFspMountService : IMountService
 
                     try
                     {
-                        // Folder mounts need the target directory to exist before
-                        // WinFsp can mount at it. Created inside the retry guard so
-                        // an unusable path does not abort the remaining candidates.
-                        if (!MountPathHelper.IsDriveLetterMountPoint(MountPoint))
-                            Directory.CreateDirectory(MountPoint);
+                        // WinFsp creates the folder mount point itself and removes it on
+                        // unmount; it fails with STATUS_OBJECT_NAME_COLLISION if the
+                        // directory already exists. An empty leftover directory is deleted,
+                        // while a busy or non-empty path fails this candidate so the loop
+                        // tries the next one.
+                        if (!MountPathHelper.IsDriveLetterMountPoint(MountPoint)
+                            && !MountPathHelper.TryPrepareWinFspMountPoint(MountPoint))
+                            throw new IOException(
+                                $"WinFsp cannot mount at {MountPoint}: the directory already exists " +
+                                "and is either an active mount point or not empty.");
 
                         _host = new FileSystemHost(_currentFs);
 
-                        var securityDescriptor = persistentAcls ? CreateCrossIntegritySecurityDescriptor() : null;
+                        var securityDescriptor = persistentAcls ? WinFspSecurityDescriptor.Create() : null;
                         if (securityDescriptor is not null)
                             _loggingService.Log("Cross-integrity: using permissive DACL (Everyone Full Access).");
 
@@ -279,15 +283,6 @@ internal sealed class WinFspMountService : IMountService
         using var identity = WindowsIdentity.GetCurrent();
         var principal = new WindowsPrincipal(identity);
         return principal.IsInRole(WindowsBuiltInRole.Administrator);
-    }
-
-    private static byte[] CreateCrossIntegritySecurityDescriptor()
-    {
-        const string sddl = "D:P(A;;FA;;;WD)";
-        var sd = new RawSecurityDescriptor(sddl);
-        var bytes = new byte[sd.BinaryLength];
-        sd.GetBinaryForm(bytes, 0);
-        return bytes;
     }
 
     private static bool IsWinFspInstalled()

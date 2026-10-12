@@ -2,7 +2,6 @@ using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Security.AccessControl;
 using CHDMounter.Services;
 using Fsp;
 using Fsp.Interop;
@@ -288,15 +287,7 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
 
     private byte[] CreateDefaultSecurityDescriptor()
     {
-        if (_cachedSecurityDescriptor is not null)
-            return _cachedSecurityDescriptor;
-
-        const string sddl = "D:P(A;;FA;;;WD)";
-        var sd = new RawSecurityDescriptor(sddl);
-        var bytes = new byte[sd.BinaryLength];
-        sd.GetBinaryForm(bytes, 0);
-        _cachedSecurityDescriptor = bytes;
-        return bytes;
+        return _cachedSecurityDescriptor ??= WinFspSecurityDescriptor.Create();
     }
 
     private FileInfo EntryToFileInfo(FileEntry entry)

@@ -508,6 +508,14 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    ///     Opens the donation page in the default browser.
+    /// </summary>
+    private void Donate_Click(object? sender, RoutedEventArgs e)
+    {
+        PlatformHelper.OpenUrl("https://www.purelogiccode.com/donate");
+    }
+
+    /// <summary>
     ///     Opens the about dialog.
     /// </summary>
     private async void About_Click(object? sender, RoutedEventArgs e)

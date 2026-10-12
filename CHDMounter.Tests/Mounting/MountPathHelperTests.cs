@@ -72,6 +72,50 @@ public class MountPathHelperTests
         Assert.Equal("CHD (2)", Path.GetFileName(candidates[1]));
     }
 
+    // --- TryPrepareWinFspMountPoint ---
+
+    [Fact]
+    public void TryPrepareWinFspMountPointAllowsMissingDirectory()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "chdmounter-winfsp-" + Guid.NewGuid().ToString("N"));
+
+        Assert.True(MountPathHelper.TryPrepareWinFspMountPoint(path));
+        Assert.False(Directory.Exists(path));
+    }
+
+    [Fact]
+    public void TryPrepareWinFspMountPointDeletesEmptyDirectory()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "chdmounter-winfsp-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        try
+        {
+            Assert.True(MountPathHelper.TryPrepareWinFspMountPoint(path));
+            Assert.False(Directory.Exists(path));
+        }
+        finally
+        {
+            if (Directory.Exists(path)) Directory.Delete(path, true);
+        }
+    }
+
+    [Fact]
+    public void TryPrepareWinFspMountPointRejectsNonEmptyDirectory()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "chdmounter-winfsp-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        File.WriteAllText(Path.Combine(path, "file.txt"), "x");
+        try
+        {
+            Assert.False(MountPathHelper.TryPrepareWinFspMountPoint(path));
+            Assert.True(Directory.Exists(path));
+        }
+        finally
+        {
+            Directory.Delete(path, true);
+        }
+    }
+
     // --- GetVolumeCreationTime ---
 
     [Fact]

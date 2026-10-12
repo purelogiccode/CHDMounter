@@ -22,6 +22,9 @@
                 <MenuItem Header="Open AppData Folder" Click="OpenAppDataFolder_Click"
                           ToolTip.Tip="Open the application data folder in the file manager" />
                 <Separator ToolTip.Tip="Menu item separator" />
+                <MenuItem Header="Donate" Click="Donate_Click"
+                          ToolTip.Tip="Support CHDMounter development by making a donation" />
+                <Separator ToolTip.Tip="Menu item separator" />
                 <MenuItem Header="About" Click="About_Click" ToolTip.Tip="About CHDMounter" />
             </MenuItem>
         </Menu>

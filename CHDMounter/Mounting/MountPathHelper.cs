@@ -51,6 +51,41 @@ internal static class MountPathHelper
     }
 
     /// <summary>
+    ///     Prepares a folder mount point for WinFsp, which requires the directory to
+    ///     <em>not</em> exist (WinFsp creates it and removes it on unmount). An empty
+    ///     leftover directory is deleted; an active mount point (reparse point) or a
+    ///     non-empty directory cannot be used and returns <c>false</c>.
+    /// </summary>
+    /// <param name="mountPoint">The folder mount point to prepare.</param>
+    /// <returns><c>true</c> when WinFsp can mount at the path; otherwise, <c>false</c>.</returns>
+    internal static bool TryPrepareWinFspMountPoint(string mountPoint)
+    {
+        try
+        {
+            if (!Directory.Exists(mountPoint))
+                return true;
+
+            var info = new DirectoryInfo(mountPoint);
+
+            // An active WinFsp/FUSE mount shows up as a reparse point; never delete it.
+            if (info.Attributes.HasFlag(FileAttributes.ReparsePoint))
+                return false;
+
+            // WinFsp cannot mount over a non-empty directory (NTFS forbids the reparse point).
+            if (info.EnumerateFileSystemInfos().Any())
+                return false;
+
+            info.Delete();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "MountPathHelper: Could not prepare WinFsp mount point '{MountPoint}'", mountPoint);
+            return false;
+        }
+    }
+
+    /// <summary>
     ///     Gets the volume creation time reported to the operating system for a CHD file:
     ///     the file's last-write time in UTC, or the current time when it cannot be read.
     /// </summary>
