@@ -69,6 +69,13 @@ public class MainWindowFailureClassificationTests
     }
 
     [Fact]
+    public void ExistingFileMountPointMessageIsExpected()
+    {
+        Assert.True(InvokeIsExpectedFailure(new InvalidOperationException(
+            "The mount point 'D:\\PCECD(CUE-BIN)\\TurboRip.exe' is an existing file.")));
+    }
+
+    [Fact]
     public void GenericFailureIsNotExpected()
     {
         Assert.False(InvokeIsExpectedFailure(new InvalidOperationException("something truly unexpected")));

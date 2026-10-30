@@ -156,8 +156,8 @@ internal sealed class WinFspMountService : IMountService
                         if (!MountPathHelper.IsDriveLetterMountPoint(MountPoint)
                             && !MountPathHelper.TryPrepareWinFspMountPoint(MountPoint))
                             throw new IOException(
-                                $"WinFsp cannot mount at {MountPoint}: the directory already exists " +
-                                "and is either an active mount point or not empty.");
+                                $"WinFsp cannot mount at {MountPoint}: the path is an existing file, " +
+                                "an active mount point, or a non-empty directory.");
 
                         _host = new FileSystemHost(_currentFs);
 

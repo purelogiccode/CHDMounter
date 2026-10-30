@@ -88,7 +88,9 @@ internal sealed class FuseMountService : IMountService
                     try
                     {
                         // FUSE requires the mount point directory to exist before mounting.
-                        Directory.CreateDirectory(MountPoint);
+                        // A path that exists as a file is reported as a user error instead
+                        // of an unhandled IOException.
+                        MountPathHelper.EnsureFolderMountPoint(MountPoint);
                         StartMount(MountPoint, creationTime);
                         _loggingService.Log($"Mounted at {MountPoint} (FUSE).");
                         return;

@@ -51,10 +51,39 @@ internal static class MountPathHelper
     }
 
     /// <summary>
+    ///     Ensures a folder mount point exists and is a directory, creating it when needed.
+    ///     A path that already exists as a file is rejected with a user-facing
+    ///     <see cref="InvalidOperationException" /> instead of letting
+    ///     <see cref="Directory.CreateDirectory(string)" /> throw the unhelpful
+    ///     "file or directory with the same name already exists" error.
+    /// </summary>
+    /// <param name="mountPoint">The folder mount point to create.</param>
+    /// <exception cref="InvalidOperationException">The path is an existing file or cannot be created.</exception>
+    internal static void EnsureFolderMountPoint(string mountPoint)
+    {
+        if (File.Exists(mountPoint))
+            throw new InvalidOperationException(
+                $"The mount point '{mountPoint}' is an existing file. Use a drive letter or a folder path instead.");
+
+        try
+        {
+            Directory.CreateDirectory(mountPoint);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+                                       or ArgumentException or NotSupportedException)
+        {
+            Log.Debug(ex, "MountPathHelper: Could not create mount point '{MountPoint}'", mountPoint);
+            throw new InvalidOperationException(
+                $"The mount point '{mountPoint}' cannot be created: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
     ///     Prepares a folder mount point for WinFsp, which requires the directory to
     ///     <em>not</em> exist (WinFsp creates it and removes it on unmount). An empty
-    ///     leftover directory is deleted; an active mount point (reparse point) or a
-    ///     non-empty directory cannot be used and returns <c>false</c>.
+    ///     leftover directory is deleted; an existing file, an active mount point
+    ///     (reparse point) or a non-empty directory cannot be used and returns
+    ///     <c>false</c>.
     /// </summary>
     /// <param name="mountPoint">The folder mount point to prepare.</param>
     /// <returns><c>true</c> when WinFsp can mount at the path; otherwise, <c>false</c>.</returns>
@@ -62,6 +91,9 @@ internal static class MountPathHelper
     {
         try
         {
+            if (File.Exists(mountPoint))
+                return false;
+
             if (!Directory.Exists(mountPoint))
                 return true;
 

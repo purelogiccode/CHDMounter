@@ -72,7 +72,75 @@ public class MountPathHelperTests
         Assert.Equal("CHD (2)", Path.GetFileName(candidates[1]));
     }
 
+    // --- EnsureFolderMountPoint ---
+
+    [Fact]
+    public void EnsureFolderMountPointCreatesMissingDirectory()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "chdmounter-mount-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            MountPathHelper.EnsureFolderMountPoint(path);
+
+            Assert.True(Directory.Exists(path));
+        }
+        finally
+        {
+            if (Directory.Exists(path)) Directory.Delete(path, true);
+        }
+    }
+
+    [Fact]
+    public void EnsureFolderMountPointAcceptsExistingDirectory()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "chdmounter-mount-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        try
+        {
+            MountPathHelper.EnsureFolderMountPoint(path);
+
+            Assert.True(Directory.Exists(path));
+        }
+        finally
+        {
+            if (Directory.Exists(path)) Directory.Delete(path, true);
+        }
+    }
+
+    [Fact]
+    public void EnsureFolderMountPointRejectsExistingFile()
+    {
+        var path = Path.GetTempFileName();
+        try
+        {
+            var ex = Assert.Throws<InvalidOperationException>(() => MountPathHelper.EnsureFolderMountPoint(path));
+
+            Assert.Contains("mount point", ex.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("existing file", ex.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.True(File.Exists(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     // --- TryPrepareWinFspMountPoint ---
+
+    [Fact]
+    public void TryPrepareWinFspMountPointRejectsExistingFile()
+    {
+        var path = Path.GetTempFileName();
+        try
+        {
+            Assert.False(MountPathHelper.TryPrepareWinFspMountPoint(path));
+            Assert.True(File.Exists(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
 
     [Fact]
     public void TryPrepareWinFspMountPointAllowsMissingDirectory()
