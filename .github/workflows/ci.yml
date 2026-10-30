@@ -6,13 +6,23 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
 jobs:
   build-test:
-    name: Build and test
+    name: Build and test (Windows)
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -20,18 +30,32 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            global.json
 
       - name: Restore
         run: dotnet restore CSharp_CHDMounter.sln
 
+      - name: Audit dependencies
+        shell: pwsh
+        run: |
+          $output = dotnet list CSharp_CHDMounter.sln package --vulnerable --include-transitive
+          $output | Write-Host
+          if ($output -match 'has the following vulnerable packages') {
+            throw 'Vulnerable NuGet packages were detected.'
+          }
+
       - name: Build
-        run: dotnet build CSharp_CHDMounter.sln -c Release --no-restore
+        run: dotnet build CSharp_CHDMounter.sln -c Release --no-restore -warnaserror
 
       - name: Test
         run: >
           dotnet test CHDMounter.Tests/CHDMounter.Tests.csproj
           -c Release --no-build
           --logger "trx;LogFileName=test-results.trx"
+          --collect:"XPlat Code Coverage"
           --results-directory TestResults
 
       - name: Upload test results
@@ -39,16 +63,20 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: TestResults/*.trx
+          path: |
+            TestResults/**/*.trx
+            TestResults/**/coverage.cobertura.xml
           if-no-files-found: ignore
+          retention-days: 14
 
   cross-platform-build:
-    name: Cross-platform build
+    name: Build app (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -56,8 +84,90 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            global.json
 
       # Only the app project is portable; the tests and the Tester tool target
       # net10.0-windows. This verifies the Linux/macOS build stays green.
+      - name: Restore app
+        run: dotnet restore CHDMounter/CHDMounter.csproj
+
       - name: Build app
-        run: dotnet build CHDMounter/CHDMounter.csproj -c Release
+        run: dotnet build CHDMounter/CHDMounter.csproj -c Release --no-restore -warnaserror
+
+  package:
+    name: Package release bundles
+    needs: build-test
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            global.json
+
+      - name: Pack all runtime bundles
+        shell: pwsh
+        run: ./build/pack-release.ps1 -OutputDir "${{ github.workspace }}/artifacts"
+
+      - name: Validate bundles
+        shell: pwsh
+        run: |
+          $zips = Get-ChildItem "${{ github.workspace }}/artifacts" -Filter 'release_*.zip'
+          if ($zips.Count -ne 6) { throw "Expected 6 bundles, found $($zips.Count)." }
+
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          foreach ($zip in $zips) {
+            $archive = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
+            try {
+              $names = $archive.Entries | ForEach-Object { $_.FullName -replace '^\./', '' }
+              $exe = if ($zip.Name -match '_win-') { 'CHDMounter.exe' } else { 'CHDMounter' }
+              foreach ($required in @($exe, 'LICENSE.txt', 'README.md', 'WhatsNew.md')) {
+                if ($names -notcontains $required) { throw "$($zip.Name) is missing $required." }
+              }
+            }
+            finally {
+              $archive.Dispose()
+            }
+          }
+
+      - name: Upload bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-bundles
+          path: artifacts/*.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  docs:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            global.json
+
+      - name: Install docfx
+        run: dotnet tool install --global docfx
+
+      - name: Sync changelog from WhatsNew
+        run: cp WhatsNew.md docs/changelog.md
+
+      - name: Build documentation
+        run: docfx docs/docfx.json

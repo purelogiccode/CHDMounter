@@ -63,6 +63,7 @@ See [Installation](installation.md) for details.
 
 - [Releases](https://github.com/purelogiccode/CHDMounter/releases)
 - [Issue tracker](https://github.com/purelogiccode/CHDMounter/issues)
+- [Security policy](https://github.com/purelogiccode/CHDMounter/blob/master/SECURITY.md)
 - [Source code](https://github.com/purelogiccode/CHDMounter)
 - [Documentation site](https://purelogiccode.github.io/CHDMounter/)
 - [Wiki](https://github.com/purelogiccode/CHDMounter/wiki)

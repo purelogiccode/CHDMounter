@@ -74,9 +74,14 @@ Unix executable permissions, run the script on the matching platform.
 
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
-| `.github/workflows/ci.yml` | Push to `master`, pull requests | Builds and tests on Windows; verifies the application builds on Linux and macOS |
+| `.github/workflows/ci.yml` | Push to `master`, pull requests | Builds and tests on Windows, builds the application on Linux and macOS, packages all six runtime bundles and builds the documentation site |
+| `.github/workflows/codeql.yml` | Push to `master`, pull requests, weekly schedule | Runs CodeQL security analysis for C# |
+| `.github/workflows/dependency-review.yml` | Pull requests | Blocks new high-severity vulnerable dependencies |
 | `.github/workflows/release.yml` | Tag `release_*` | Tests, packages all six runtime bundles across Windows/Linux/macOS runners and publishes a GitHub release |
 | `.github/workflows/docs.yml` | Changes under `docs/` (and on release) | Builds the docfx site to GitHub Pages and syncs `docs/` to the GitHub wiki |
+
+Dependabot checks NuGet packages and GitHub Actions weekly. Security reports are handled according
+to [SECURITY.md](https://github.com/purelogiccode/CHDMounter/blob/master/SECURITY.md).
 
 ## Versioning and releases
 

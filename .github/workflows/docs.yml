@@ -11,9 +11,7 @@ on:
       - '.github/workflows/docs.yml'
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 concurrency:
   group: docs-${{ github.ref }}
@@ -23,6 +21,11 @@ jobs:
   pages:
     name: Deploy documentation site
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -55,6 +58,9 @@ jobs:
   wiki:
     name: Deploy GitHub wiki
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 

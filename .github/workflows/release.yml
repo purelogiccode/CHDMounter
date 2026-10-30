@@ -6,9 +6,7 @@ on:
       - 'release_*'
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 concurrency:
   group: release-${{ github.ref }}
@@ -18,6 +16,7 @@ jobs:
   test:
     name: Test
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -61,6 +60,7 @@ jobs:
           - os: macos-latest
             rids: osx-x64,osx-arm64
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -94,6 +94,9 @@ jobs:
     name: Publish GitHub release
     needs: [test, package]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -122,6 +125,7 @@ jobs:
   docs:
     name: Deploy documentation
     needs: test
+    timeout-minutes: 30
     permissions:
       contents: write
       pages: write

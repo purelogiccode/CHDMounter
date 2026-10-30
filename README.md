@@ -15,6 +15,8 @@
 [![CI](https://github.com/purelogiccode/CHDMounter/actions/workflows/ci.yml/badge.svg)](https://github.com/purelogiccode/CHDMounter/actions/workflows/ci.yml)
 [![Release](https://github.com/purelogiccode/CHDMounter/actions/workflows/release.yml/badge.svg)](https://github.com/purelogiccode/CHDMounter/actions/workflows/release.yml)
 [![Docs build](https://github.com/purelogiccode/CHDMounter/actions/workflows/docs.yml/badge.svg)](https://github.com/purelogiccode/CHDMounter/actions/workflows/docs.yml)
+[![CodeQL](https://github.com/purelogiccode/CHDMounter/actions/workflows/codeql.yml/badge.svg)](https://github.com/purelogiccode/CHDMounter/actions/workflows/codeql.yml)
+[![Security Policy](https://img.shields.io/badge/security-policy-2ea44f)](SECURITY.md)
 [![Documentation](https://img.shields.io/badge/Docs-purelogiccode.github.io-2ea44f?logo=readthedocs)](https://purelogiccode.github.io/CHDMounter/)
 [![Wiki](https://img.shields.io/badge/Wiki-GitHub-6f42c1?logo=github)](https://github.com/purelogiccode/CHDMounter/wiki)
 [![Changelog](https://img.shields.io/badge/Changelog-WhatsNew.md-blue)](WhatsNew.md)
@@ -369,6 +371,13 @@ WPF desktop application (Windows only, developer tool) for **batch testing and b
 - **VideoGameFileSystemParser** — https://github.com/drpetersonfernandes/VideoGameFileSystemParser
 - **MAME** — https://github.com/mamedev/mame
 - **WinFsp** — https://github.com/winfsp/winfsp
+
+---
+
+## Security
+
+Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Do not open a
+public issue with exploit details.
 
 ---
 

@@ -19,6 +19,9 @@
 
 See [Building from Source](building.md) for publishing and release packaging.
 
+AI coding agents and automation should also follow the repository-level
+[AGENTS.md](https://github.com/purelogiccode/CHDMounter/blob/master/AGENTS.md).
+
 ## Repository layout
 
 | Path | Contents |
