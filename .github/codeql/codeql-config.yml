@@ -4,9 +4,9 @@ name: CHDMounter CodeQL configuration
 # developer tester and the vendored reference sources are not part of the
 # released product and mostly produce maintainability-only recommendations.
 paths-ignore:
-  - CHDMounter.Tests
-  - CHDMounter_Tester
-  - References
+  - CHDMounter.Tests/**
+  - CHDMounter_Tester/**
+  - References/**
   - '**/obj/**'
   - '**/bin/**'
 

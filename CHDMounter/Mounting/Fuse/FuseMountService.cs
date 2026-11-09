@@ -79,18 +79,27 @@ internal sealed class FuseMountService : IMountService
                 else
                 {
                     var container = new ChdContainer(chdPath);
-                    if (!container.MountAndParse(consoleType))
+                    var handedOff = false;
+                    try
                     {
-                        // A parse failure usually means the wrong console type was selected for this
-                        // disc. This is expected user error, not an app bug: no bug report.
-                        _loggingService.LogUserError(
-                            $"Failed to open or parse CHD as {consoleType}: {container.LastError ?? "unknown reason"}. " +
-                            "Try a different console type.");
-                        container.Dispose();
-                        return;
-                    }
+                        if (!container.MountAndParse(consoleType))
+                        {
+                            // A parse failure usually means the wrong console type was selected for this
+                            // disc. This is expected user error, not an app bug: no bug report.
+                            _loggingService.LogUserError(
+                                $"Failed to open or parse CHD as {consoleType}: {container.LastError ?? "unknown reason"}. " +
+                                "Try a different console type.");
+                            return;
+                        }
 
-                    volume = new ChdContainerVolume(container);
+                        volume = new ChdContainerVolume(container);
+                        handedOff = true;
+                    }
+                    finally
+                    {
+                        if (!handedOff)
+                            container.Dispose();
+                    }
                 }
 
                 _volume = volume;
