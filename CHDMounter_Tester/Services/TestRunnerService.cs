@@ -145,7 +145,8 @@ internal sealed class TestRunnerService
                         sw.Elapsed
                     );
 
-                    EmitLog($"  FAIL  Could not parse CHD file. Time: {sw.Elapsed.TotalSeconds:F2}s");
+                    EmitLog($"  FAIL  Could not parse CHD file: {result.FilePath} " +
+                            $"(Time: {sw.Elapsed.TotalSeconds:F2}s)");
                 }
             }
             catch (Exception ex)
@@ -163,7 +164,7 @@ internal sealed class TestRunnerService
                     sw.Elapsed
                 );
 
-                EmitLog($"  FAIL  {ex.Message}");
+                EmitLog($"  FAIL  {ex.Message} ({result.FilePath})");
                 _logger.Error(ex, "Error testing {ChdPath}", chdPath);
             }
 

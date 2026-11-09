@@ -274,9 +274,7 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
         if (_persistentAcls)
         {
             var sd = CreateDefaultSecurityDescriptor();
-            if (SecurityDescriptor is null || SecurityDescriptor.Length < sd.Length)
-                SecurityDescriptor = new byte[sd.Length];
-
+            SecurityDescriptor = new byte[sd.Length];
             Array.Copy(sd, SecurityDescriptor, sd.Length);
         }
 

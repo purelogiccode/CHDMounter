@@ -38,12 +38,12 @@ public static class ServiceProvider
     /// </summary>
     /// <typeparam name="T">The service type to resolve.</typeparam>
     /// <returns>The registered service instance, or <c>null</c> if not registered.</returns>
-    public static T TryGet<T>() where T : class
+    public static T? TryGet<T>() where T : class
     {
         if (Services.TryGetValue(typeof(T), out var service))
             return (T)service;
 
-        return null!;
+        return null;
     }
 
     /// <summary>

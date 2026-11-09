@@ -6,7 +6,7 @@ Guidance for AI coding agents and automation working in this repository.
 
 CHDMounter is a .NET 10 / Avalonia desktop application that mounts CHD (Compressed Hunks of
 Data) CD/DVD images as read-only virtual drives. It runs on Windows, Linux and macOS, supports
-37 console/format modes, and can use Dokan or WinFsp on Windows and FUSE on Linux/macOS as the
+38 console/format modes, and can use Dokan or WinFsp on Windows and FUSE on Linux/macOS as the
 mount core.
 
 - `CHDMounter/` - cross-platform Avalonia application.

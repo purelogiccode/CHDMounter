@@ -503,7 +503,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            var settingsService = ServiceProvider.TryGet<ISettingsService>();
+            var settingsService = ServiceProvider.Get<ISettingsService>();
             var dialog = new SettingsWindow(settingsService);
 
             // Await the dialog instead of blocking the UI thread: blocking on the task

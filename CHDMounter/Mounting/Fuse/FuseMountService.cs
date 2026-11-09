@@ -14,11 +14,11 @@ internal sealed class FuseMountService : IMountService
 {
     private readonly ILoggingService _loggingService;
     private readonly Lock _mountLock = new();
+    private readonly Lock _stateLock = new();
     private IDiscVolume? _volume;
     private FuseFileSystem? _fileSystem;
     private Thread? _mountThread;
-    private TaskCompletionSource<bool>? _mountedSource;
-    private volatile bool _isMounted;
+    private bool _isMounted;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="FuseMountService" /> class.
@@ -30,7 +30,16 @@ internal sealed class FuseMountService : IMountService
     }
 
     /// <inheritdoc />
-    public bool IsMounted => _isMounted;
+    public bool IsMounted
+    {
+        get
+        {
+            lock (_stateLock)
+            {
+                return _isMounted;
+            }
+        }
+    }
 
     /// <inheritdoc />
     public string MountPoint { get; private set; } = "";
@@ -47,7 +56,7 @@ internal sealed class FuseMountService : IMountService
     {
         lock (_mountLock)
         {
-            if (_isMounted)
+            if (IsMounted)
                 throw new InvalidOperationException("Already mounted.");
 
             if (!FuseAvailability.Check(out _))
@@ -138,7 +147,7 @@ internal sealed class FuseMountService : IMountService
             }
             finally
             {
-                if (!_isMounted)
+                if (!IsMounted)
                 {
                     StopMount(disposeContainer: true);
                     MountPoint = "";
@@ -152,7 +161,7 @@ internal sealed class FuseMountService : IMountService
     {
         lock (_mountLock)
         {
-            if (!_isMounted) return;
+            if (!IsMounted) return;
 
             _loggingService.Log($"Unmounting {MountPoint} (FUSE)...");
             try
@@ -195,7 +204,6 @@ internal sealed class FuseMountService : IMountService
         var mountedSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         _fileSystem = fileSystem;
-        _mountedSource = mountedSource;
         FileSystemExitCode = -1;
 
         var thread = new Thread(() =>
@@ -204,7 +212,11 @@ internal sealed class FuseMountService : IMountService
             {
                 FileSystemExitCode = fileSystem.Run(mountPoint, debug: false, () =>
                 {
-                    _isMounted = true;
+                    lock (_stateLock)
+                    {
+                        _isMounted = true;
+                    }
+
                     mountedSource.TrySetResult(true);
                 });
             }
@@ -214,7 +226,11 @@ internal sealed class FuseMountService : IMountService
             }
             finally
             {
-                _isMounted = false;
+                lock (_stateLock)
+                {
+                    _isMounted = false;
+                }
+
                 mountedSource.TrySetResult(false);
             }
         })
@@ -234,7 +250,7 @@ internal sealed class FuseMountService : IMountService
             throw new TimeoutException($"Timed out mounting the FUSE volume at {mountPoint}.");
         }
 
-        if (!_isMounted)
+        if (!IsMounted)
             throw new IOException($"FUSE mount failed at {mountPoint} (exit code {FileSystemExitCode}).");
     }
 
@@ -261,8 +277,10 @@ internal sealed class FuseMountService : IMountService
         _mountThread?.Join(TimeSpan.FromSeconds(10));
         _mountThread = null;
         _fileSystem = null;
-        _mountedSource = null;
-        _isMounted = false;
+        lock (_stateLock)
+        {
+            _isMounted = false;
+        }
 
         if (disposeContainer)
         {

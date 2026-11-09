@@ -64,7 +64,7 @@ The same behaviour can be enabled permanently in **Settings** (*Auto-open mounte
 ## Console aliases
 
 The full alias list is in [Console Types](console-types.md). Aliases are case-insensitive and
-resolved by the VideoGameFileSystemParser library, which is the single source of truth.
+resolved by the VideoGameFileSystemParser library, with the CHDMounter-only `cuebin2448` alias added on top.
 
 ## See also
 

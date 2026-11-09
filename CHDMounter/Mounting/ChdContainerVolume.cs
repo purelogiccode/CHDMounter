@@ -1,4 +1,3 @@
-using VideoGameFileSystemParser.Models;
 using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Mounting;

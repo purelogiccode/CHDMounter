@@ -1,6 +1,6 @@
 # What's New
 
-## Unreleased
+## 1.4.0
 
 ### Added
 
@@ -8,13 +8,51 @@
   the 96 bytes of subchannel data stored after each 2352-byte sector, producing full
   2448-byte CD frames. The generated CUE marks audio tracks as `CDG` and data tracks as
   `MODE1/2448`/`MODE2/2448`. The existing 2352/2048 export modes are unchanged.
-- **CHDSharp 1.6.3** - direct dependency for full-frame reads (data + subcode).
+- **38 console/format modes** - the new CD+G mode is available from the console dropdown
+  and as the `cuebin2448` command-line alias.
+- **Direct CHDSharp 1.6.3 dependency** - full-frame reads (sector data plus subcode) and
+  the latest decoder fixes.
+- **Repository automation** - Dependabot, CodeQL, dependency review, release/CI bundle
+  validation, security policy and agent guidance.
 
 ### Changed
 
 - The mount UI, command line and all three mount backends now share a disc-volume
   abstraction, so CHDMounter-specific virtual exports can be mounted alongside parsed
   file systems.
+- NuGet dependencies updated: Avalonia 12.1.5, LibFuseSharp 1.0.1, Meziantou.Analyzer
+  3.0.322, Microsoft.NET.Test.Sdk 18.11.0, System.Security.Cryptography.ProtectedData
+  10.0.14 and winfsp.net 2.2.26286.
+- GitHub Actions workflows updated to the current action major versions.
+
+### Fixed
+
+- **Mounting at an existing file** now reports a clear user error instead of an
+  unhandled `IOException`; WinFsp preparation also rejects existing files.
+- **Console dropdown labels** now show the format display name instead of the record's
+  `ToString()` output.
+- **Disposal and state handling** - parsed containers are disposed when mounting fails,
+  the FUSE mounted flag is synchronized, screenshot bitmaps are disposed on exceptions,
+  and `Path.Join` avoids silently dropping base folders.
+- **Workflow validation and docs cleanup** - the reusable docs job no longer uses an
+  unsupported `timeout-minutes`, and the docs build creates the NuGet cache folder that
+  `setup-dotnet` expects during post-job cleanup.
+- **Code scanning** - fixed the actionable CodeQL findings and scoped analysis to the
+  shipping application; the open alert count is now zero.
+
+### Bundles
+
+| Bundle | Platform | Architecture |
+|--------|----------|--------------|
+| `release_1.4.0_win-x64.zip` | Windows | x64 |
+| `release_1.4.0_win-arm64.zip` | Windows | ARM64 |
+| `release_1.4.0_linux-x64.zip` | Linux | x64 |
+| `release_1.4.0_linux-arm64.zip` | Linux | ARM64 |
+| `release_1.4.0_osx-x64.zip` | macOS | Intel |
+| `release_1.4.0_osx-arm64.zip` | macOS | Apple silicon |
+
+Every bundle contains `CHDMounter` (`CHDMounter.exe` on Windows), `LICENSE.txt`, `README.md` and
+`WhatsNew.md`, and requires the **.NET 10 runtime**.
 
 ## 1.3.1
 

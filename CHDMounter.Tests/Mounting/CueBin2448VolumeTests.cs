@@ -1,7 +1,6 @@
 using CHDMounter.Mounting;
 using CHDMounter.Services;
 using CHDSharp.Encoder;
-using VideoGameFileSystemParser.Models;
 
 namespace CHDMounter.Tests.Mounting;
 
@@ -40,16 +39,16 @@ public sealed class CueBin2448VolumeTests : IDisposable
         using (volume)
         {
             Assert.NotNull(volume);
-            Assert.Equal("disc", volume!.VolumeName);
+            Assert.Equal("disc", volume.VolumeName);
             Assert.Equal((ulong)(Frames * FrameBytes), volume.VolumeSize);
 
             var bin = volume.FindFile("\\disc.bin");
             var cue = volume.FindFile("\\disc.cue");
             Assert.NotNull(bin);
             Assert.NotNull(cue);
-            Assert.Equal((ulong)(Frames * FrameBytes), bin!.Size);
+            Assert.Equal((ulong)(Frames * FrameBytes), bin.Size);
 
-            var cueBytes = new byte[cue!.Size];
+            var cueBytes = new byte[cue.Size];
             var read = volume.ReadFile(cue, 0, cueBytes, 0, cueBytes.Length);
             Assert.Equal(cueBytes.Length, read);
 
@@ -70,11 +69,11 @@ public sealed class CueBin2448VolumeTests : IDisposable
         using (volume)
         {
             Assert.NotNull(volume);
-            var bin = volume!.FindFile("\\disc.bin");
+            var bin = volume.FindFile("\\disc.bin");
             Assert.NotNull(bin);
 
             var actual = new byte[FrameBytes];
-            Assert.Equal(FrameBytes, volume.ReadFile(bin!, 0, actual, 0, actual.Length));
+            Assert.Equal(FrameBytes, volume.ReadFile(bin, 0, actual, 0, actual.Length));
 
             // Audio sector data is little-endian in a BIN file; the subchannel tail is
             // stored verbatim and must not be byte-swapped with the audio samples.
@@ -93,12 +92,12 @@ public sealed class CueBin2448VolumeTests : IDisposable
         using (volume)
         {
             Assert.NotNull(volume);
-            var bin = volume!.FindFile("\\disc.bin");
+            var bin = volume.FindFile("\\disc.bin");
             Assert.NotNull(bin);
 
             const int offset = FrameBytes - 5;
             var buffer = new byte[10];
-            var read = volume.ReadFile(bin!, offset, buffer, 0, buffer.Length);
+            var read = volume.ReadFile(bin, offset, buffer, 0, buffer.Length);
 
             Assert.Equal(buffer.Length, read);
             Assert.Equal(expected[offset..(offset + buffer.Length)], buffer);

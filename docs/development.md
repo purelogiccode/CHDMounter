@@ -106,9 +106,9 @@ It is intentionally not published in releases; build it from source with
 Console file system parsers and the alias registry live in the external
 [VideoGameFileSystemParser](https://github.com/drpetersonfernandes/VideoGameFileSystemParser)
 package — not in this repository. To add a format, contribute the parser there, then bump the
-`VideoGameFileSystemParser` package reference in `CHDMounter/CHDMounter.csproj`. The alias list
-shown in the UI and accepted by `/s:<alias>` updates automatically because it is read from the
-library's `ParserFactory`.
+`VideoGameFileSystemParser` package reference in `CHDMounter/CHDMounter.csproj`. The standard alias
+list shown in the UI and accepted by `/s:<alias>` updates automatically from the library's
+`ConsoleTypeRegistry`; CHDMounter adds the `cuebin2448` CD+G entry locally.
 
 ## Documentation
 

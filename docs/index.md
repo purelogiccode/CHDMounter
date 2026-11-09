@@ -1,7 +1,7 @@
 # CHDMounter
 
 Mount CHD (Compressed Hunks of Data) CD/DVD images as virtual read-only drives on Windows, Linux
-and macOS. CHDMounter supports 37 console/format modes and lets you choose the mount core in
+and macOS. CHDMounter supports 38 console/format modes and lets you choose the mount core in
 Settings: **Dokan** (default) or **WinFsp** on Windows, **FUSE** (libfuse3 / macFUSE) on Linux
 and macOS.
 
@@ -10,7 +10,7 @@ and macOS.
 ## Highlights
 
 - Mount `.chd` images as read-only virtual drives — your files are never modified
-- 37 console/format modes (PlayStation, Sega, Xbox, CD-i, 3DO, PC Engine, and generic
+- 38 console/format modes (PlayStation, Sega, Xbox, CD-i, 3DO, PC Engine, and generic
   CUE/ISO/BIN modes)
 - Virtual CUE/BIN/ISO/WAV export for emulators and burning tools
 - SingleFile ISO passthrough for xemu and RPCS3

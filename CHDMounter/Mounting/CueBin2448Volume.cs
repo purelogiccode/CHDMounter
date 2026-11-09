@@ -1,7 +1,6 @@
 using System.Globalization;
 using CHDSharp;
 using CHDSharp.Models;
-using VideoGameFileSystemParser.Models;
 using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Mounting;
