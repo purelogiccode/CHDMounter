@@ -125,7 +125,6 @@ jobs:
   docs:
     name: Deploy documentation
     needs: test
-    timeout-minutes: 30
     permissions:
       contents: write
       pages: write
