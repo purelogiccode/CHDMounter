@@ -8,7 +8,7 @@ CHDMounter.exe [/l] [/a] [/s:<alias>] <chd_file> [mount_point]
 |----------|-------------|
 | `/l` | Open the mounted drive in the file manager (Explorer/Finder/xdg-open) |
 | `/a` | Auto-select a drive letter, even when a mount point is given |
-| `/s:<alias>` | Select the console/format by alias (e.g. `ps2`, `cuebin2352`) |
+| `/s:<alias>` | Select the console/format by alias (e.g. `ps2`, `cuebin2352`, `cuebin2448`) |
 | `<chd_file>` | Path to the `.chd` file (required) |
 | `[mount_point]` | Drive letter or folder (optional; auto-picks if omitted) |
 
@@ -39,6 +39,9 @@ CHDMounter.exe /l /s:segadreamcast game.chd
 
 :: Mount as a virtual CUE/BIN image (2352-byte sectors)
 CHDMounter.exe /s:cuebin2352 disc.chd
+
+:: Mount a CD+G disc with 2448-byte frames (2352 data + 96 subchannel)
+CHDMounter.exe /s:cuebin2448 karaoke.chd
 
 :: Mount with the generic ISO 9660 parser
 CHDMounter.exe /s:iso9660 data.chd N:

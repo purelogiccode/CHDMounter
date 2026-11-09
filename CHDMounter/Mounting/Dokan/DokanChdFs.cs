@@ -5,7 +5,6 @@ using CHDMounter.Interfaces;
 using CHDMounter.Services;
 using DokanNet;
 using Serilog;
-using VideoGameFileSystemParser.Parsers;
 using DokanFileAccess = DokanNet.FileAccess;
 
 namespace CHDMounter.Mounting.Dokan;
@@ -16,18 +15,18 @@ namespace CHDMounter.Mounting.Dokan;
 [SupportedOSPlatform("windows")]
 internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
 {
-    private readonly ChdContainer _container;
+    private readonly IDiscVolume _volume;
     private readonly ILoggingService _loggingService;
     private bool _disposed;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="ChdFs" /> class.
     /// </summary>
-    /// <param name="container">The parsed CHD container to serve files from.</param>
+    /// <param name="volume">The disc volume to serve files from.</param>
     /// <param name="loggingService">The logging service for recording mount/unmount events.</param>
-    public ChdFs(ChdContainer container, ILoggingService loggingService)
+    public ChdFs(IDiscVolume volume, ILoggingService loggingService)
     {
-        _container = container;
+        _volume = volume;
         _loggingService = loggingService;
     }
 
@@ -42,13 +41,13 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
         if (_disposed) return;
 
         _disposed = true;
-        _container.Dispose();
+        _volume.Dispose();
     }
 
     public NtStatus CreateFile(string fileName, DokanFileAccess access, FileShare share, FileMode mode,
         FileOptions options, FileAttributes attributes, IDokanFileInfo info)
     {
-        var entry = _container.FindFile(fileName);
+        var entry = _volume.FindFile(fileName);
         if (entry is null)
             return DokanResult.FileNotFound;
 
@@ -92,14 +91,14 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
         }
         else
         {
-            var found = _container.FindFile(fileName);
+            var found = _volume.FindFile(fileName);
             if (found is null)
                 return DokanResult.FileNotFound;
 
             entry = found;
         }
 
-        bytesRead = _container.ReadFile(entry, (ulong)offset, buffer, 0, buffer.Length);
+        bytesRead = _volume.ReadFile(entry, (ulong)offset, buffer, 0, buffer.Length);
         return DokanResult.Success;
     }
 
@@ -107,7 +106,7 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
     {
         fileInfo = new FileInformation();
 
-        var entry = _container.FindFile(fileName);
+        var entry = _volume.FindFile(fileName);
         if (entry is null)
             return DokanResult.FileNotFound;
 
@@ -118,11 +117,11 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
 
     public NtStatus FindFiles(string fileName, out IList<FileInformation> files, IDokanFileInfo info)
     {
-        var entries = _container.ListDirectory(fileName).ToList();
+        var entries = _volume.ListDirectory(fileName).ToList();
 
         if (entries.Count == 0)
         {
-            var self = _container.FindFile(fileName);
+            var self = _volume.FindFile(fileName);
             if (self is null)
             {
                 files = Array.Empty<FileInformation>();
@@ -191,7 +190,7 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
     public NtStatus GetVolumeInformation(out string volumeLabel, out FileSystemFeatures features,
         out string fileSystemName, out uint maximumComponentLength, IDokanFileInfo info)
     {
-        volumeLabel = _container.VolumeName;
+        volumeLabel = _volume.VolumeName;
         features = FileSystemFeatures.ReadOnlyVolume | FileSystemFeatures.CasePreservedNames |
                    FileSystemFeatures.UnicodeOnDisk;
         fileSystemName = "CHDFS";
@@ -202,7 +201,7 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
     public NtStatus GetDiskFreeSpace(out long freeBytesAvailable, out long totalNumberOfBytes,
         out long totalNumberOfFreeBytes, IDokanFileInfo info)
     {
-        totalNumberOfBytes = (long)_container.VolumeSize;
+        totalNumberOfBytes = (long)_volume.VolumeSize;
         freeBytesAvailable = 0;
         totalNumberOfFreeBytes = 0;
         return DokanResult.Success;
@@ -297,7 +296,7 @@ internal sealed class ChdFs : IDokanOperations, IDisposable, IAsyncDisposable
     {
         try
         {
-            var entry = _container.FindFile(fileName);
+            var entry = _volume.FindFile(fileName);
             if (entry is null)
             {
                 security = null!;

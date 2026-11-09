@@ -59,6 +59,12 @@ For CUE/BIN/ISO/WAV modes, the container generates virtual entries dynamically:
 - The `.bin`/`.iso` file maps reads to raw sector data (2352 or 2048 bytes per sector).
 - `.wav` files are generated per audio track with standard WAV headers.
 
+The **CUE/BIN RAW 2448** mode (`cuebin2448`) is a CHDMounter extension for CD+G discs. It opens
+the CHD directly, emits a `.cue` whose audio tracks use the `CDG` track type, and serves a `.bin`
+with full 2448-byte frames: each frame is the 2352-byte sector followed by the 96 bytes of
+subchannel data stored in the CHD. The audio samples are byte-swapped to little-endian like a
+normal BIN file, while the subchannel tail is left untouched.
+
 For SingleFile mode, the container serves the entire decompressed CHD image as a single
 `image.iso` file.
 

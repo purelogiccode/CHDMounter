@@ -94,6 +94,25 @@ public class CommandLineParserTests
     }
 
     [Fact]
+    public void SwitchAliasWith2448ModeSetsSubchannelFlag()
+    {
+        var options = CommandLineParser.Parse(["/s:cuebin2448", "disc.chd"]);
+
+        Assert.Equal("disc.chd", options.ChdPath);
+        Assert.Equal(ConsoleType.GenericCueBin2352, options.ConsoleType);
+        Assert.True(options.IncludeSubchannel);
+    }
+
+    [Fact]
+    public void StandardAliasKeepsSubchannelFlagFalse()
+    {
+        var options = CommandLineParser.Parse(["/s:cuebin2352", "disc.chd"]);
+
+        Assert.Equal(ConsoleType.GenericCueBin2352, options.ConsoleType);
+        Assert.False(options.IncludeSubchannel);
+    }
+
+    [Fact]
     public void SwitchAliasTakesPrecedenceOverPositionalAlias()
     {
         var options = CommandLineParser.Parse(["/s:ps1", "game.chd", "ps2"]);

@@ -1,9 +1,9 @@
 # Console Types
 
-Console selection is **alias-only** (case-insensitive). The alias registry lives in the
+Console selection is **alias-only** (case-insensitive). The standard alias registry lives in the
 [VideoGameFileSystemParser](https://github.com/drpetersonfernandes/VideoGameFileSystemParser)
-library and is the single source of truth — the UI dropdown and the `/s:<alias>` command-line
-flag both resolve aliases through it.
+library; CHDMounter adds the `cuebin2448` CD+G export alias on top of it. The UI dropdown and the
+`/s:<alias>` command-line flag both resolve aliases through the same registry.
 
 ## Choosing a type
 
@@ -12,8 +12,11 @@ flag both resolve aliases through it.
 - **Generic data discs** — `iso9660` (with Joliet/Rock Ridge support) is the safe default.
 - **Emulators expecting a plain ISO** — `isoraw2048` or `isoraw2352` expose the whole image as a
   single `image.iso` file (recommended for xemu and RPCS3).
-- **Emulators or burning tools expecting CUE/BIN** — use one of the `cue*` modes; they generate
+- **Emulators or burning tools expecting CUE/BIN** - use one of the `cue*` modes; they generate
   a virtual `.cue` sheet plus `.bin`/`.iso` data and optional per-track `.wav` files.
+- **CD+G / karaoke discs** - `cuebin2448` keeps the 96 bytes of subchannel data that follow each
+  2352-byte sector, so the mounted `.bin` has full 2448-byte CD frames. The generated `.cue`
+  marks audio tracks as `CDG` and data tracks as `MODE1/2448` or `MODE2/2448`.
 - **Not sure at all?** Try the platform-specific alias; if parsing fails, fall back to
   `iso9660`. The parser's error message is shown in the log pane.
 
@@ -28,6 +31,7 @@ flag both resolve aliases through it.
 | CD-i                 | `cdi`           | Green Book              | Interleaved stream support, Path Table             |
 | CUE/BIN RAW 2048     | `cuebin2048`    | Virtual                 | CUE + BIN at 2048 bytes/sector                     |
 | CUE/BIN RAW 2352     | `cuebin2352`    | Virtual                 | CUE + BIN at 2352 bytes/sector                     |
+| CUE/BIN RAW 2448     | `cuebin2448`    | Virtual                 | CUE + BIN at 2448 bytes/sector (2352 data + 96 subchannel, CD+G) |
 | CUE/BIN/WAV RAW 2048 | `cuebinwav2048` | Virtual                 | CUE + BIN + WAV audio tracks (2048-byte data)      |
 | CUE/BIN/WAV RAW 2352 | `cuebinwav2352` | Virtual                 | CUE + BIN + WAV audio tracks (2352-byte data)      |
 | CUE/ISO RAW 2048     | `cueiso2048`    | Virtual                 | CUE sheet + ISO at 2048 bytes/sector               |

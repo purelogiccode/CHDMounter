@@ -1,49 +1,48 @@
 using System.Buffers;
 using FuseSharp;
-using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Mounting.Fuse;
 
 /// <summary>
-///     Adapts a parsed <see cref="ChdContainer" /> to the read-only <see cref="IFuseVolume" />
+///     Adapts a parsed <see cref="IDiscVolume" /> to the read-only <see cref="IFuseVolume" />
 ///     contract used by the FuseSharp mount layer. Paths received from FUSE are POSIX-style;
-///     the container normalizes them to its own backslash-separated, case-insensitive scheme.
+///     the volume normalizes them to its own backslash-separated, case-insensitive scheme.
 /// </summary>
 internal sealed class ChdFuseVolume : IFuseVolume
 {
-    private readonly ChdContainer _container;
+    private readonly IDiscVolume _volume;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="ChdFuseVolume" /> class.
     /// </summary>
-    /// <param name="container">The parsed CHD container to expose.</param>
+    /// <param name="volume">The disc volume to expose.</param>
     /// <param name="creationTime">The volume creation time reported to the operating system.</param>
-    public ChdFuseVolume(ChdContainer container, DateTime creationTime)
+    public ChdFuseVolume(IDiscVolume volume, DateTime creationTime)
     {
-        _container = container;
+        _volume = volume;
         VolumeCreationTime = creationTime;
     }
 
     /// <inheritdoc />
-    public string VolumeLabel => _container.VolumeName;
+    public string VolumeLabel => _volume.VolumeName;
 
     /// <inheritdoc />
     public DateTime VolumeCreationTime { get; }
 
     /// <inheritdoc />
-    public ulong VolumeSize => _container.VolumeSize;
+    public ulong VolumeSize => _volume.VolumeSize;
 
     /// <inheritdoc />
     public IFuseEntry? GetEntry(string path)
     {
-        var entry = _container.FindFile(ToContainerPath(path));
+        var entry = _volume.FindFile(ToContainerPath(path));
         return entry is null ? null : new FuseEntry(entry);
     }
 
     /// <inheritdoc />
     public IEnumerable<IFuseEntry> GetFolderList(string path)
     {
-        foreach (var entry in _container.ListDirectory(ToContainerPath(path)))
+        foreach (var entry in _volume.ListDirectory(ToContainerPath(path)))
             yield return new FuseEntry(entry);
     }
 
@@ -56,7 +55,7 @@ internal sealed class ChdFuseVolume : IFuseVolume
         var readBuffer = ArrayPool<byte>.Shared.Rent(buffer.Length);
         try
         {
-            var read = _container.ReadFile(fuseEntry.Entry, (ulong)offset, readBuffer, 0, buffer.Length);
+            var read = _volume.ReadFile(fuseEntry.Entry, (ulong)offset, readBuffer, 0, buffer.Length);
             readBuffer.AsSpan(0, read).CopyTo(buffer);
             return read;
         }

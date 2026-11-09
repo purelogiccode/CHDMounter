@@ -51,16 +51,15 @@ public static class ServiceProvider
     /// </summary>
     public static void DisposeAllServices()
     {
-        foreach (var kvp in Services)
-            if (kvp.Value is IDisposable disposable)
-                try
-                {
-                    disposable.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "ServiceProvider: Failed to dispose {ServiceType}", kvp.Key.Name);
-                }
+        foreach (var kvp in Services.Where(static kvp => kvp.Value is IDisposable))
+            try
+            {
+                ((IDisposable)kvp.Value).Dispose();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "ServiceProvider: Failed to dispose {ServiceType}", kvp.Key.Name);
+            }
 
         Services.Clear();
     }

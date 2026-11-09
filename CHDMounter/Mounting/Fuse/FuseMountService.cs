@@ -14,7 +14,7 @@ internal sealed class FuseMountService : IMountService
 {
     private readonly ILoggingService _loggingService;
     private readonly Lock _mountLock = new();
-    private ChdContainer? _container;
+    private IDiscVolume? _volume;
     private FuseFileSystem? _fileSystem;
     private Thread? _mountThread;
     private TaskCompletionSource<bool>? _mountedSource;
@@ -43,7 +43,7 @@ internal sealed class FuseMountService : IMountService
     }
 
     /// <inheritdoc />
-    public void Mount(string chdPath, string? mountPoint, ConsoleType consoleType)
+    public void Mount(string chdPath, string? mountPoint, ConsoleType consoleType, bool includeSubchannel = false)
     {
         lock (_mountLock)
         {
@@ -63,18 +63,38 @@ internal sealed class FuseMountService : IMountService
 
             try
             {
-                _container = new ChdContainer(chdPath);
-                if (!_container.MountAndParse(consoleType))
+                IDiscVolume volume;
+                if (includeSubchannel)
                 {
-                    // A parse failure usually means the wrong console type was selected for this
-                    // disc. This is expected user error, not an app bug: log without filing a bug report.
-                    _loggingService.LogUserError(
-                        $"Failed to open or parse CHD as {consoleType}: {_container.LastError ?? "unknown reason"}. " +
-                        "Try a different console type.");
-                    return;
+                    if (!CueBin2448Volume.TryCreate(chdPath, out var subchannelVolume, out var error))
+                    {
+                        _loggingService.LogUserError(
+                            $"Failed to open or parse CHD as {consoleType} (2448-byte CUE/BIN): " +
+                            $"{error ?? "unknown reason"}. Try a different console type.");
+                        return;
+                    }
+
+                    volume = subchannelVolume!;
+                }
+                else
+                {
+                    var container = new ChdContainer(chdPath);
+                    if (!container.MountAndParse(consoleType))
+                    {
+                        // A parse failure usually means the wrong console type was selected for this
+                        // disc. This is expected user error, not an app bug: no bug report.
+                        _loggingService.LogUserError(
+                            $"Failed to open or parse CHD as {consoleType}: {container.LastError ?? "unknown reason"}. " +
+                            "Try a different console type.");
+                        container.Dispose();
+                        return;
+                    }
+
+                    volume = new ChdContainerVolume(container);
                 }
 
-                _loggingService.Log($"Parsing complete. Volume: {_container.VolumeName}");
+                _volume = volume;
+                _loggingService.Log($"Parsing complete. Volume: {volume.VolumeName}");
 
                 var creationTime = MountPathHelper.GetVolumeCreationTime(chdPath);
                 var candidates = ResolveMountCandidates(chdPath, mountPoint);
@@ -161,7 +181,7 @@ internal sealed class FuseMountService : IMountService
     /// <param name="creationTime">The volume creation time.</param>
     private void StartMount(string mountPoint, DateTime creationTime)
     {
-        var volume = new ChdFuseVolume(_container!, creationTime);
+        var volume = new ChdFuseVolume(_volume!, creationTime);
         var fileSystem = new FuseFileSystem(volume);
         var mountedSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -215,8 +235,8 @@ internal sealed class FuseMountService : IMountService
     ///     Requests the FUSE session to exit and releases the mount resources.
     /// </summary>
     /// <param name="disposeContainer">
-    ///     When <c>true</c>, the parsed CHD container is disposed as well. Retried mount
-    ///     candidates keep the container alive.
+    ///     When <c>true</c>, the mounted disc volume is disposed as well. Retried mount
+    ///     candidates keep the volume alive.
     /// </param>
     private void StopMount(bool disposeContainer)
     {
@@ -237,8 +257,8 @@ internal sealed class FuseMountService : IMountService
 
         if (disposeContainer)
         {
-            _container?.Dispose();
-            _container = null;
+            _volume?.Dispose();
+            _volume = null;
         }
     }
 

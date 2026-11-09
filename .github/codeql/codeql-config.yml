@@ -1,0 +1,22 @@
+name: CHDMounter CodeQL configuration
+
+# Only analyze the shipping application. The test project, the Windows-only
+# developer tester and the vendored reference sources are not part of the
+# released product and mostly produce maintainability-only recommendations.
+paths-ignore:
+  - CHDMounter.Tests
+  - CHDMounter_Tester
+  - References
+  - '**/obj/**'
+  - '**/bin/**'
+
+# The application intentionally catches and logs unexpected exceptions at its
+# UI, mount and I/O boundaries, and the Dokan/WinFsp backends must call the
+# native driver APIs. These are design decisions, not defects.
+query-filters:
+  - exclude:
+      id: cs/catch-of-all-exceptions
+  - exclude:
+      id: cs/unmanaged-code
+  - exclude:
+      id: cs/call-to-unmanaged-code

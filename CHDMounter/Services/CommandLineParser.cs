@@ -19,6 +19,7 @@ internal static class CommandLineParser
     internal static CommandLineOptions Parse(string[] args)
     {
         ConsoleType? consoleType = null;
+        var includeSubchannel = false;
         var launchExplorer = false;
         var autoSelectMountPoint = false;
         var positional = new List<string>();
@@ -36,8 +37,11 @@ internal static class CommandLineParser
             }
             else if (normalized.StartsWith("/s:", StringComparison.Ordinal))
             {
-                consoleType = ConsoleTypeRegistry.Parse(normalized[3..]);
-                if (consoleType == ConsoleType.Unknown) consoleType = null;
+                if (MountFormatRegistry.TryParse(normalized[3..], out var format))
+                {
+                    consoleType = format.ConsoleType;
+                    includeSubchannel = format.IncludeSubchannel;
+                }
             }
             else
             {
@@ -52,12 +56,16 @@ internal static class CommandLineParser
         // A leading positional that is a console alias (followed by a path)
         // selects the console type; otherwise the first positional is the
         // CHD path. Console types are resolved exclusively through
-        // ConsoleTypeRegistry - numeric indexes are not supported.
+        // MountFormatRegistry - numeric indexes are not supported.
         if (positional.Count >= 2
-            && ConsoleTypeRegistry.Parse(positional[0]) is var firstType
-            && firstType != ConsoleType.Unknown)
+            && MountFormatRegistry.TryParse(positional[0], out var firstFormat))
         {
-            consoleType ??= firstType;
+            if (consoleType is null)
+            {
+                consoleType = firstFormat.ConsoleType;
+                includeSubchannel = firstFormat.IncludeSubchannel;
+            }
+
             pos++;
         }
 
@@ -69,11 +77,18 @@ internal static class CommandLineParser
 
         if (positional.Count > pos)
         {
-            var ct = ConsoleTypeRegistry.Parse(positional[pos]);
-            if (ct != ConsoleType.Unknown)
-                consoleType ??= ct;
+            if (MountFormatRegistry.TryParse(positional[pos], out var format))
+            {
+                if (consoleType is null)
+                {
+                    consoleType = format.ConsoleType;
+                    includeSubchannel = format.IncludeSubchannel;
+                }
+            }
             else
+            {
                 mountPoint = positional[pos];
+            }
 
             pos++;
         }
@@ -87,6 +102,7 @@ internal static class CommandLineParser
         return new CommandLineOptions
         {
             ConsoleType = consoleType ?? ConsoleType.Unknown,
+            IncludeSubchannel = includeSubchannel,
             ChdPath = chdPath,
             MountPoint = mountPoint,
             LaunchExplorer = launchExplorer,

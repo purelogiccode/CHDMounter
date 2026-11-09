@@ -73,6 +73,7 @@ Mount CHD (Compressed Hunks of Data) CD/DVD images as virtual read-only drives o
 | CD-i                 | `cdi`           | Green Book              | Interleaved stream support, Path Table             |
 | CUE/BIN RAW 2048     | `cuebin2048`    | Virtual                 | CUE + BIN at 2048 bytes/sector                     |
 | CUE/BIN RAW 2352     | `cuebin2352`    | Virtual                 | CUE + BIN at 2352 bytes/sector                     |
+| CUE/BIN RAW 2448     | `cuebin2448`    | Virtual                 | CUE + BIN at 2448 bytes/sector (2352 data + 96 subchannel, CD+G) |
 | CUE/BIN/WAV RAW 2048 | `cuebinwav2048` | Virtual                 | CUE + BIN + WAV audio tracks (2048-byte data)      |
 | CUE/BIN/WAV RAW 2352 | `cuebinwav2352` | Virtual                 | CUE + BIN + WAV audio tracks (2352-byte data)      |
 | CUE/ISO RAW 2048     | `cueiso2048`    | Virtual                 | CUE sheet + ISO at 2048 bytes/sector               |
@@ -170,7 +171,7 @@ CHDMounter.exe [/l] [/a] [/s:<alias>] <chd_file> [mount_point]
 
 ### Console Type Reference
 
-You can specify the console type using a **string alias** (case-insensitive). Numeric indexes are not supported — the alias list below is defined in the [VideoGameFileSystemParser](https://github.com/drpetersonfernandes/VideoGameFileSystemParser) library and is the single source of truth.
+You can specify the console type using a **string alias** (case-insensitive). Numeric indexes are not supported - the standard alias list below is defined in the [VideoGameFileSystemParser](https://github.com/drpetersonfernandes/VideoGameFileSystemParser) library; `cuebin2448` is a CHDMounter extension for CD+G images.
 
 | Console / Format     | CLI Alias       |
 |----------------------|-----------------|
@@ -181,6 +182,7 @@ You can specify the console type using a **string alias** (case-insensitive). Nu
 | CD-i                 | `cdi`           |
 | CUE/BIN RAW 2048     | `cuebin2048`    |
 | CUE/BIN RAW 2352     | `cuebin2352`    |
+| CUE/BIN RAW 2448     | `cuebin2448`    |
 | CUE/BIN/WAV RAW 2048 | `cuebinwav2048` |
 | CUE/BIN/WAV RAW 2352 | `cuebinwav2352` |
 | CUE/ISO RAW 2048     | `cueiso2048`    |

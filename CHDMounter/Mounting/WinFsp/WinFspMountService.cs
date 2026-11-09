@@ -18,7 +18,7 @@ internal sealed class WinFspMountService : IMountService
 {
     private readonly ILoggingService _loggingService;
     private readonly Lock _mountLock = new();
-    private ChdContainer? _container;
+    private IDiscVolume? _volume;
     private ChdFs? _currentFs;
     private FileSystemHost? _host;
 
@@ -44,7 +44,7 @@ internal sealed class WinFspMountService : IMountService
     }
 
     /// <inheritdoc />
-    public void Mount(string chdPath, string? mountPoint, ConsoleType consoleType)
+    public void Mount(string chdPath, string? mountPoint, ConsoleType consoleType, bool includeSubchannel = false)
     {
         lock (_mountLock)
         {
@@ -62,18 +62,38 @@ internal sealed class WinFspMountService : IMountService
 
             try
             {
-                _container = new ChdContainer(chdPath);
-                if (!_container.MountAndParse(consoleType))
+                IDiscVolume volume;
+                if (includeSubchannel)
                 {
-                    // A parse failure usually means the wrong console type was selected for this
-                    // disc. This is expected user error, not an app bug: log without filing a bug report.
-                    _loggingService.LogUserError(
-                        $"Failed to open or parse CHD as {consoleType}: {_container.LastError ?? "unknown reason"}. " +
-                        "Try a different console type.");
-                    return;
+                    if (!CueBin2448Volume.TryCreate(chdPath, out var subchannelVolume, out var error))
+                    {
+                        _loggingService.LogUserError(
+                            $"Failed to open or parse CHD as {consoleType} (2448-byte CUE/BIN): " +
+                            $"{error ?? "unknown reason"}. Try a different console type.");
+                        return;
+                    }
+
+                    volume = subchannelVolume!;
+                }
+                else
+                {
+                    var container = new ChdContainer(chdPath);
+                    if (!container.MountAndParse(consoleType))
+                    {
+                        // A parse failure usually means the wrong console type was selected for this
+                        // disc. This is expected user error, not an app bug: log without filing a bug report.
+                        _loggingService.LogUserError(
+                            $"Failed to open or parse CHD as {consoleType}: {container.LastError ?? "unknown reason"}. " +
+                            "Try a different console type.");
+                        container.Dispose();
+                        return;
+                    }
+
+                    volume = new ChdContainerVolume(container);
                 }
 
-                _loggingService.Log($"Parsing complete. Volume: {_container.VolumeName}");
+                _volume = volume;
+                _loggingService.Log($"Parsing complete. Volume: {volume.VolumeName}");
 
                 var crossIntegrity = IsRunningAsAdministrator();
                 if (crossIntegrity)
@@ -132,7 +152,7 @@ internal sealed class WinFspMountService : IMountService
                 var persistentAcls = crossIntegrity && !isDriveLetter;
                 try
                 {
-                    _currentFs = new ChdFs(_container, MountPathHelper.GetVolumeCreationTime(chdPath),
+                    _currentFs = new ChdFs(_volume, MountPathHelper.GetVolumeCreationTime(chdPath),
                         persistentAcls);
                 }
                 catch (Exception ex)
@@ -214,10 +234,10 @@ internal sealed class WinFspMountService : IMountService
                     }
                     else
                     {
-                        _container?.Dispose();
+                        _volume?.Dispose();
                     }
 
-                    _container = null;
+                    _volume = null;
                     MountPoint = "";
                 }
             }
@@ -256,10 +276,10 @@ internal sealed class WinFspMountService : IMountService
             }
             else
             {
-                _container?.Dispose();
+                _volume?.Dispose();
             }
 
-            _container = null;
+            _volume = null;
             IsMounted = false;
             MountPoint = "";
         }

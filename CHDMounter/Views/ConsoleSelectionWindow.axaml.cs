@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using VideoGameFileSystemParser.Parsers;
+using CHDMounter.Services;
 
 namespace CHDMounter.Views;
 
@@ -16,10 +16,10 @@ public partial class ConsoleSelectionWindow : Window
     {
         InitializeComponent();
 
-        var consoles = ParserFactory.GetAllSupportedConsoles()
-            .OrderBy(static c => c.Name, StringComparer.Ordinal)
+        var formats = MountFormatRegistry.All
+            .OrderBy(static format => format.DisplayName, StringComparer.Ordinal)
             .ToList();
-        ConsoleComboBox.ItemsSource = consoles;
+        ConsoleComboBox.ItemsSource = formats;
         ConsoleComboBox.SelectedIndex = 0;
     }
 
@@ -39,11 +39,17 @@ public partial class ConsoleSelectionWindow : Window
     /// </summary>
     public ConsoleType SelectedConsoleType { get; private set; } = ConsoleType.Unknown;
 
+    /// <summary>
+    ///     Gets a value indicating whether the selected format requests 2448-byte CD frames.
+    /// </summary>
+    internal bool SelectedIncludeSubchannel { get; private set; }
+
     private void Ok_Click(object? sender, RoutedEventArgs e)
     {
-        if (ConsoleComboBox.SelectedItem is ConsoleInfo ci)
+        if (ConsoleComboBox.SelectedItem is MountFormatInfo format)
         {
-            SelectedConsoleType = ci.Type;
+            SelectedConsoleType = format.ConsoleType;
+            SelectedIncludeSubchannel = format.IncludeSubchannel;
             Close(true);
             return;
         }

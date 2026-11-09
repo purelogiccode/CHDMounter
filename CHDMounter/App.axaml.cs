@@ -119,7 +119,7 @@ public class App : Application
             loggingService.Log("Example: CHDMounter /s:ps2 game.chd");
             loggingService.Log("Example: CHDMounter /l /s:segadreamcast game.chd M:");
             loggingService.Log(
-                "Console aliases: see the Console Type Reference in the README (e.g. neogeocd, cuebin2352, cueisowav2352).");
+                "Console aliases: see the Console Type Reference in the README (e.g. neogeocd, cuebin2352, cuebin2448, cueisowav2352).");
             loggingService.Log("Mount cores: Dokan, WinFsp (Windows) or FUSE (Linux/macOS) - selectable in Settings.");
             loggingService.Log("Run without args to open the UI and select filesystem type.");
             loggingService.Log("");

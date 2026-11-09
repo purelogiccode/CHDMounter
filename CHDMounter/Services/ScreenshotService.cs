@@ -46,12 +46,11 @@ public class ScreenshotService : IScreenshotService
                 return;
             }
 
-            var bitmap = new RenderTargetBitmap(new PixelSize(width, height), new Vector(96 * scaling, 96 * scaling));
+            using var bitmap = new RenderTargetBitmap(new PixelSize(width, height), new Vector(96 * scaling, 96 * scaling));
             bitmap.Render(window);
 
             var fileName = $"screenshot_{DateTime.Now:yyyy-MM-dd_HH-mm-ss-fff}.png";
             var savedPath = TrySaveImage(bitmap, fileName);
-            bitmap.Dispose();
 
             if (savedPath is not null)
                 _loggingService.Log($"Screenshot saved: {savedPath}");
@@ -101,7 +100,7 @@ public class ScreenshotService : IScreenshotService
         {
             var screenshotDir = GetPrimaryScreenshotDirectory();
             Directory.CreateDirectory(screenshotDir);
-            var path = Path.Combine(screenshotDir, fileName);
+            var path = Path.Join(screenshotDir, fileName);
             bitmap.Save(path, new PngBitmapEncoderOptions());
             return path;
         }
@@ -115,7 +114,7 @@ public class ScreenshotService : IScreenshotService
         {
             var appDataDir = GetFallbackScreenshotDirectory();
             Directory.CreateDirectory(appDataDir);
-            var path = Path.Combine(appDataDir, fileName);
+            var path = Path.Join(appDataDir, fileName);
             bitmap.Save(path, new PngBitmapEncoderOptions());
             return path;
         }

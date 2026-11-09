@@ -29,7 +29,7 @@ public static class DiagnosticLogger
     /// <returns>The full path to the application data folder.</returns>
     public static string GetAppDataFolder(string appName)
     {
-        return Path.Combine(
+        return Path.Join(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             appName);
     }
@@ -41,9 +41,9 @@ public static class DiagnosticLogger
     public static void Initialize(string appName = "CHDMounter")
     {
         AppDataFolder = GetAppDataFolder(appName);
-        AppDataLogFolder = Path.Combine(AppDataFolder, "logs");
+        AppDataLogFolder = Path.Join(AppDataFolder, "logs");
         Directory.CreateDirectory(AppDataLogFolder);
-        LogFilePath = Path.Combine(AppDataLogFolder, $"debug_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+        LogFilePath = Path.Join(AppDataLogFolder, $"debug_{DateTime.Now:yyyyMMdd_HHmmss}.log");
         AppLogger.Initialize(LogFilePath);
     }
 

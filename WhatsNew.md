@@ -1,5 +1,21 @@
 # What's New
 
+## Unreleased
+
+### Added
+
+- **CUE/BIN RAW 2448 (`cuebin2448`) for CD+G discs** - new virtual export mode that keeps
+  the 96 bytes of subchannel data stored after each 2352-byte sector, producing full
+  2448-byte CD frames. The generated CUE marks audio tracks as `CDG` and data tracks as
+  `MODE1/2448`/`MODE2/2448`. The existing 2352/2048 export modes are unchanged.
+- **CHDSharp 1.6.3** - direct dependency for full-frame reads (data + subcode).
+
+### Changed
+
+- The mount UI, command line and all three mount backends now share a disc-volume
+  abstraction, so CHDMounter-specific virtual exports can be mounted alongside parsed
+  file systems.
+
 ## 1.3.1
 
 ### Fixed

@@ -25,11 +25,11 @@ public partial class App
 
         try
         {
-            var logDir = Path.Combine(
+            var logDir = Path.Join(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "CHDMounter_Tester", "logs");
             Directory.CreateDirectory(logDir);
-            LogFilePath = Path.Combine(logDir, $"tester_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+            LogFilePath = Path.Join(logDir, $"tester_{DateTime.Now:yyyyMMdd_HHmmss}.log");
 
             BugReportClient.IsSendingEnabled = true;
 

@@ -29,9 +29,8 @@ public static class DriveHelper
     public static IEnumerable<string> GetAvailableDriveLetters()
     {
         var drives = DriveInfo.GetDrives().Select(static d => d.Name[0]).ToHashSet();
-        foreach (var c in CandidateLetters())
-            if (!drives.Contains(c))
-                yield return $"{c}:";
+        foreach (var c in CandidateLetters().Where(c => !drives.Contains(c)))
+            yield return $"{c}:";
     }
 
     private static IEnumerable<char> CandidateLetters()

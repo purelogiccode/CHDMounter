@@ -19,9 +19,10 @@ internal sealed class DokanMountService : IMountService
 {
     private readonly ILoggingService _loggingService;
     private readonly Lock _mountLock = new();
-    private ChdContainer? _container;
+    private IDiscVolume? _volume;
     private ChdFs? _currentFs;
     private DokanInstance? _dokanInstance;
+    private DokanDriver? _dokan;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="DokanMountService" /> class.
@@ -45,7 +46,7 @@ internal sealed class DokanMountService : IMountService
     }
 
     /// <inheritdoc />
-    public void Mount(string chdPath, string? mountPoint, ConsoleType consoleType)
+    public void Mount(string chdPath, string? mountPoint, ConsoleType consoleType, bool includeSubchannel = false)
     {
         lock (_mountLock)
         {
@@ -64,19 +65,39 @@ internal sealed class DokanMountService : IMountService
 
             try
             {
-                _container = new ChdContainer(chdPath);
-                if (!_container.MountAndParse(consoleType))
+                IDiscVolume volume;
+                if (includeSubchannel)
                 {
-                    // A parse failure usually means the wrong console type was selected for this
-                    // disc (e.g. trying CDi/ThreeDo/GenericIso9660 on a non-matching image).
-                    // This is expected user error, not an app bug: log without filing a bug report.
-                    _loggingService.LogUserError(
-                        $"Failed to open or parse CHD as {consoleType}: {_container.LastError ?? "unknown reason"}. " +
-                        "Try a different console type.");
-                    return;
+                    if (!CueBin2448Volume.TryCreate(chdPath, out var subchannelVolume, out var error))
+                    {
+                        _loggingService.LogUserError(
+                            $"Failed to open or parse CHD as {consoleType} (2448-byte CUE/BIN): " +
+                            $"{error ?? "unknown reason"}. Try a different console type.");
+                        return;
+                    }
+
+                    volume = subchannelVolume!;
+                }
+                else
+                {
+                    var container = new ChdContainer(chdPath);
+                    if (!container.MountAndParse(consoleType))
+                    {
+                        // A parse failure usually means the wrong console type was selected for this
+                        // disc (e.g. trying CDi/ThreeDo/GenericIso9660 on a non-matching image).
+                        // This is expected user error, not an app bug: log without filing a bug report.
+                        _loggingService.LogUserError(
+                            $"Failed to open or parse CHD as {consoleType}: {container.LastError ?? "unknown reason"}. " +
+                            "Try a different console type.");
+                        container.Dispose();
+                        return;
+                    }
+
+                    volume = new ChdContainerVolume(container);
                 }
 
-                _loggingService.Log($"Parsing complete. Volume: {_container.VolumeName}");
+                _volume = volume;
+                _loggingService.Log($"Parsing complete. Volume: {volume.VolumeName}");
 
                 // Per-session or elevated-session drives can be invisible to
                 // DriveInfo.GetDrives(), so the picked letter may already be in use.
@@ -90,9 +111,10 @@ internal sealed class DokanMountService : IMountService
                         ? [mountPoint, .. DriveHelper.GetAvailableDriveLetters()]
                         : [mountPoint];
 
-                _currentFs = new ChdFs(_container, _loggingService);
+                _currentFs = new ChdFs(_volume, _loggingService);
 
                 var dokan = new DokanDriver(new DokanPrefixedLogger(_loggingService));
+                _dokan = dokan;
                 Exception? lastError = null;
 
                 for (var i = 0; i < candidates.Count; i++)
@@ -119,7 +141,7 @@ internal sealed class DokanMountService : IMountService
 
                         _dokanInstance = builder.Build(_currentFs);
                         IsMounted = true;
-                        _loggingService.Log($"Mounted at {MountPoint}. {_dokanInstance}");
+                        _loggingService.Log($"Mounted at {MountPoint}.");
                         return;
                     }
                     catch (Exception ex) when (candidates.Count > 1)
@@ -143,6 +165,8 @@ internal sealed class DokanMountService : IMountService
                 {
                     _dokanInstance?.Dispose();
                     _dokanInstance = null;
+                    _dokan?.Dispose();
+                    _dokan = null;
 
                     // ChdFs owns and disposes the container: only dispose the container
                     // directly when the wrapper was never created.
@@ -153,10 +177,10 @@ internal sealed class DokanMountService : IMountService
                     }
                     else
                     {
-                        _container?.Dispose();
+                        _volume?.Dispose();
                     }
 
-                    _container = null;
+                    _volume = null;
                     MountPoint = "";
                 }
             }
@@ -183,6 +207,8 @@ internal sealed class DokanMountService : IMountService
                 }
 
             _dokanInstance = null;
+            _dokan?.Dispose();
+            _dokan = null;
 
             // ChdFs owns and disposes the container; only dispose the container directly
             // when the wrapper does not exist.
@@ -193,10 +219,10 @@ internal sealed class DokanMountService : IMountService
             }
             else
             {
-                _container?.Dispose();
+                _volume?.Dispose();
             }
 
-            _container = null;
+            _volume = null;
             IsMounted = false;
             MountPoint = "";
         }

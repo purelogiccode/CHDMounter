@@ -21,10 +21,10 @@ public class SettingsService : ISettingsService
     /// <param name="appName">The application name used to determine the settings folder path.</param>
     public SettingsService(string appName)
     {
-        var folder = Path.Combine(
+        var folder = Path.Join(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             appName);
-        _settingsFilePath = Path.Combine(folder, "settings.dat");
+        _settingsFilePath = Path.Join(folder, "settings.dat");
         Load();
     }
 

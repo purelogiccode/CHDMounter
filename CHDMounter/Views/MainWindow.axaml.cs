@@ -9,7 +9,6 @@ using CHDMounter.Logging;
 using CHDMounter.Models;
 using CHDMounter.Services;
 using Serilog;
-using VideoGameFileSystemParser.Parsers;
 
 namespace CHDMounter.Views;
 
@@ -20,11 +19,12 @@ namespace CHDMounter.Views;
 public partial class MainWindow : Window
 {
     private readonly IScreenshotService _screenshotService;
-    private readonly List<ConsoleInfo> _consoleTypes = [];
+    private readonly List<MountFormatInfo> _consoleTypes = [];
 
     private string? _chdPath;
     private string? _cliMountPoint;
 
+    private bool _includeSubchannel;
     private bool _isClosing;
     private bool _launchExplorer;
     private int _renderedLogEntries;
@@ -113,9 +113,9 @@ public partial class MainWindow : Window
     private void PopulateConsoleTypes()
     {
         _consoleTypes.Clear();
-        _consoleTypes.AddRange(ParserFactory.GetAllSupportedConsoles()
-            .OrderBy(static c => c.Name, StringComparer.Ordinal));
-        _consoleTypes.Insert(0, new ConsoleInfo(ConsoleType.Unknown, "Unknown"));
+        _consoleTypes.AddRange(MountFormatRegistry.All
+            .OrderBy(static c => c.DisplayName, StringComparer.Ordinal));
+        _consoleTypes.Insert(0, MountFormatRegistry.Unknown);
         ConsoleTypeComboBox.ItemsSource = _consoleTypes;
         ConsoleTypeComboBox.SelectedIndex = 0;
     }
@@ -168,7 +168,8 @@ public partial class MainWindow : Window
         if (options.ConsoleType != ConsoleType.Unknown)
         {
             _selectedConsoleType = options.ConsoleType;
-            SelectConsoleTypeInCombo(options.ConsoleType);
+            _includeSubchannel = options.IncludeSubchannel;
+            SelectConsoleTypeInCombo(options.ConsoleType, options.IncludeSubchannel);
         }
 
         ValidateAndEnableMount();
@@ -198,7 +199,8 @@ public partial class MainWindow : Window
             if (await dialog.ShowDialog<bool>(this))
             {
                 _selectedConsoleType = dialog.SelectedConsoleType;
-                SelectConsoleTypeInCombo(dialog.SelectedConsoleType);
+                _includeSubchannel = dialog.SelectedIncludeSubchannel;
+                SelectConsoleTypeInCombo(dialog.SelectedConsoleType, dialog.SelectedIncludeSubchannel);
                 MountDisk();
             }
         }
@@ -208,10 +210,10 @@ public partial class MainWindow : Window
         }
     }
 
-    private void SelectConsoleTypeInCombo(ConsoleType type)
+    private void SelectConsoleTypeInCombo(ConsoleType type, bool includeSubchannel)
     {
         foreach (var item in _consoleTypes)
-            if (item.Type == type)
+            if (item.ConsoleType == type && item.IncludeSubchannel == includeSubchannel)
             {
                 ConsoleTypeComboBox.SelectedItem = item;
                 return;
@@ -220,7 +222,7 @@ public partial class MainWindow : Window
 
     private void ValidateAndEnableMount()
     {
-        var type = ConsoleTypeComboBox.SelectedItem is ConsoleInfo ci ? ci.Type : _selectedConsoleType;
+        var type = ConsoleTypeComboBox.SelectedItem is MountFormatInfo format ? format.ConsoleType : _selectedConsoleType;
         MountButton.IsEnabled = !string.IsNullOrEmpty(_chdPath)
                                 && type != ConsoleType.Unknown
                                 && File.Exists(_chdPath)
@@ -232,7 +234,11 @@ public partial class MainWindow : Window
     /// </summary>
     private void ConsoleType_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (ConsoleTypeComboBox.SelectedItem is ConsoleInfo ci) _selectedConsoleType = ci.Type;
+        if (ConsoleTypeComboBox.SelectedItem is MountFormatInfo format)
+        {
+            _selectedConsoleType = format.ConsoleType;
+            _includeSubchannel = format.IncludeSubchannel;
+        }
 
         ValidateAndEnableMount();
     }
@@ -314,7 +320,12 @@ public partial class MainWindow : Window
         if (string.IsNullOrEmpty(_chdPath)) return;
 
         var type = _selectedConsoleType;
-        if (ConsoleTypeComboBox.SelectedItem is ConsoleInfo sci) type = sci.Type;
+        var includeSubchannel = _includeSubchannel;
+        if (ConsoleTypeComboBox.SelectedItem is MountFormatInfo format)
+        {
+            type = format.ConsoleType;
+            includeSubchannel = format.IncludeSubchannel;
+        }
 
         if (!MountService.CanMount())
         {
@@ -323,7 +334,7 @@ public partial class MainWindow : Window
             // Route through Mount() so the service logs the specific reason
             // (missing driver or outdated Dokan/WinFsp/FUSE) and shows the guidance
             // dialog with the download link.
-            await Task.Run(() => MountService.Mount(_chdPath, _cliMountPoint, type));
+            await Task.Run(() => MountService.Mount(_chdPath, _cliMountPoint, type, includeSubchannel));
             return;
         }
 
@@ -333,7 +344,7 @@ public partial class MainWindow : Window
 
         try
         {
-            await Task.Run(() => MountService.Mount(_chdPath, _cliMountPoint, type));
+            await Task.Run(() => MountService.Mount(_chdPath, _cliMountPoint, type, includeSubchannel));
 
             if (MountService.IsMounted)
             {

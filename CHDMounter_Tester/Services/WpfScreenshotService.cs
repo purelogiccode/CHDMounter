@@ -71,7 +71,7 @@ internal sealed class WpfScreenshotService
         {
             var directory = ScreenshotPaths.GetPrimaryDirectory();
             Directory.CreateDirectory(directory);
-            return SaveImage(bitmap, Path.Combine(directory, fileName));
+            return SaveImage(bitmap, Path.Join(directory, fileName));
         }
         catch (Exception ex)
         {
@@ -82,7 +82,7 @@ internal sealed class WpfScreenshotService
         {
             var directory = ScreenshotPaths.GetFallbackDirectory(AppInfoHelper.GetAppName());
             Directory.CreateDirectory(directory);
-            return SaveImage(bitmap, Path.Combine(directory, fileName));
+            return SaveImage(bitmap, Path.Join(directory, fileName));
         }
         catch (Exception ex)
         {

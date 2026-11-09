@@ -64,7 +64,7 @@ internal sealed class MountService : IMountService
     }
 
     /// <inheritdoc />
-    public void Mount(string chdPath, string? mountPoint, ConsoleType consoleType)
+    public void Mount(string chdPath, string? mountPoint, ConsoleType consoleType, bool includeSubchannel = false)
     {
         lock (_mountLock)
         {
@@ -73,7 +73,7 @@ internal sealed class MountService : IMountService
 
             var backend = GetBackend(SelectedBackend);
             _loggingService.Log($"Mount core: {SelectedBackend}.");
-            backend.Mount(chdPath, mountPoint, consoleType);
+            backend.Mount(chdPath, mountPoint, consoleType, includeSubchannel);
         }
     }
 
@@ -82,9 +82,8 @@ internal sealed class MountService : IMountService
     {
         lock (_mountLock)
         {
-            foreach (var backend in _backends)
-                if (backend.IsMounted)
-                    backend.Unmount();
+            foreach (var backend in _backends.Where(static backend => backend.IsMounted))
+                backend.Unmount();
         }
     }
 

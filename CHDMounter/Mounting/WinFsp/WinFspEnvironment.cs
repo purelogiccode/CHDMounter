@@ -45,7 +45,7 @@ internal static class WinFspEnvironment
                     var binDir = FindWinFspBinDir();
                     if (binDir is not null)
                     {
-                        var verified = Path.Combine(binDir, dllName);
+                        var verified = Path.Join(binDir, dllName);
                         if (File.Exists(verified)) PrependToPath(binDir, currentPath);
                     }
                 }
@@ -67,7 +67,7 @@ internal static class WinFspEnvironment
                 return false;
             }
 
-            var dllPath = Path.Combine(candidateDir, dllName);
+            var dllPath = Path.Join(candidateDir, dllName);
             if (!File.Exists(dllPath))
             {
                 reason = $"WinFsp native DLL not found: {dllPath}. Reinstall WinFsp to mount CHD files.";
@@ -151,7 +151,7 @@ internal static class WinFspEnvironment
         var sxsDir = key.GetValue("SxsDir") as string;
         if (!string.IsNullOrEmpty(sxsDir))
         {
-            var sxsBin = Path.Combine(sxsDir, "bin");
+            var sxsBin = Path.Join(sxsDir, "bin");
             if (Directory.Exists(sxsBin))
                 return sxsBin;
         }
@@ -159,7 +159,7 @@ internal static class WinFspEnvironment
         var installDir = key.GetValue("InstallDir") as string;
         if (!string.IsNullOrEmpty(installDir))
         {
-            var installBin = Path.Combine(installDir, "bin");
+            var installBin = Path.Join(installDir, "bin");
             if (Directory.Exists(installBin))
                 return installBin;
         }
@@ -187,7 +187,7 @@ internal static class WinFspEnvironment
     private static bool IsDllInPath(string path, string dllName)
     {
         foreach (var entry in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
-            if (File.Exists(Path.Combine(entry.Trim('"'), dllName)))
+            if (File.Exists(Path.Join(entry.Trim('"'), dllName)))
                 return true;
 
         return false;

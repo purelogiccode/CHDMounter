@@ -27,7 +27,11 @@ public interface IMountService : IDisposable, IAsyncDisposable
     /// <param name="chdPath">The file path to the CHD image.</param>
     /// <param name="mountPoint">The drive letter or mount point to use, or <c>null</c> to auto-assign.</param>
     /// <param name="consoleType">The console type that determines how the image is parsed.</param>
-    void Mount(string chdPath, string? mountPoint, ConsoleType consoleType);
+    /// <param name="includeSubchannel">
+    ///     <c>true</c> to expose a CUE/BIN pair with full 2448-byte CD frames
+    ///     (2352 data bytes plus 96 subchannel bytes); <c>false</c> for the standard export.
+    /// </param>
+    void Mount(string chdPath, string? mountPoint, ConsoleType consoleType, bool includeSubchannel = false);
 
     /// <summary>
     ///     Unmounts the currently mounted virtual drive.

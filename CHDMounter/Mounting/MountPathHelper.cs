@@ -11,7 +11,7 @@ internal static class MountPathHelper
     ///     Gets the base directory used for automatic folder mount points
     ///     (%LOCALAPPDATA%\CHDMounter\Mounts).
     /// </summary>
-    internal static string MountBaseDirectory { get; } = Path.Combine(
+    internal static string MountBaseDirectory { get; } = Path.Join(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "CHDMounter",
         "Mounts");
@@ -44,7 +44,7 @@ internal static class MountPathHelper
         for (var i = 1; i <= 5; i++)
         {
             var name = i == 1 ? folderName : $"{folderName} ({i})";
-            candidates.Add(Path.Combine(MountBaseDirectory, name));
+            candidates.Add(Path.Join(MountBaseDirectory, name));
         }
 
         return candidates;

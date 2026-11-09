@@ -235,6 +235,6 @@ internal sealed class PdfExportService
             size /= 1024;
         }
 
-        return size == 0 ? "0 B" : $"{size:0.##} {sizes[order]}";
+        return bytes == 0 ? "0 B" : $"{size:0.##} {sizes[order]}";
     }
 }

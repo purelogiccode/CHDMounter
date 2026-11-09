@@ -6,7 +6,6 @@ using CHDMounter.Services;
 using Fsp;
 using Fsp.Interop;
 using Serilog;
-using VideoGameFileSystemParser.Parsers;
 using FileInfo = Fsp.Interop.FileInfo;
 
 namespace CHDMounter.Mounting.WinFsp;
@@ -19,7 +18,7 @@ namespace CHDMounter.Mounting.WinFsp;
 internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
 {
     private static long _nextIndexNumber;
-    private readonly ChdContainer _container;
+    private readonly IDiscVolume _volume;
     private readonly ConcurrentDictionary<string, ulong> _indexNumbers = new(StringComparer.OrdinalIgnoreCase);
     private readonly bool _persistentAcls;
     private readonly DateTime _volumeCreationTime;
@@ -31,12 +30,12 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
     /// <summary>
     ///     Initializes a new instance of the <see cref="ChdFs" /> class.
     /// </summary>
-    /// <param name="container">The parsed CHD container to serve files from.</param>
+    /// <param name="volume">The disc volume to serve files from.</param>
     /// <param name="volumeCreationTime">The volume creation time reported to the operating system.</param>
     /// <param name="persistentAcls">If <c>true</c>, enables persistent ACL support for cross-integrity mounts.</param>
-    public ChdFs(ChdContainer container, DateTime volumeCreationTime, bool persistentAcls = false)
+    public ChdFs(IDiscVolume volume, DateTime volumeCreationTime, bool persistentAcls = false)
     {
-        _container = container;
+        _volume = volume;
         _volumeCreationTime = volumeCreationTime;
         _persistentAcls = persistentAcls;
     }
@@ -52,7 +51,7 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
         if (_disposed) return;
 
         _disposed = true;
-        _container.Dispose();
+        _volume.Dispose();
     }
 
     public override int Init(object host)
@@ -67,7 +66,7 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
             fsHost.PassQueryDirectoryPattern = true;
             fsHost.MaxComponentLength = 255;
             fsHost.SectorSize = 2048;
-            fsHost.FileSystemName = _container.VolumeName;
+            fsHost.FileSystemName = _volume.VolumeName;
             fsHost.VolumeCreationTime = DateTimeToFileTimeUtc(_volumeCreationTime);
             fsHost.VolumeSerialNumber = (uint)Environment.TickCount;
         }
@@ -93,7 +92,7 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
         FileInfo = default;
         NormalizedName = FileName;
 
-        var entry = _container.FindFile(FileName);
+        var entry = _volume.FindFile(FileName);
         if (entry is null)
             return STATUS_OBJECT_NAME_NOT_FOUND;
 
@@ -118,7 +117,7 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
         var readBuffer = ArrayPool<byte>.Shared.Rent((int)Length);
         try
         {
-            var read = _container.ReadFile(entry, Offset, readBuffer, 0, (int)Length);
+            var read = _volume.ReadFile(entry, Offset, readBuffer, 0, (int)Length);
             if (read > 0)
                 Marshal.Copy(readBuffer, 0, Buffer, read);
             BytesTransferred = (uint)read;
@@ -151,7 +150,7 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
         if (FileNode is not FileEntry { IsDirectory: true })
             return STATUS_OBJECT_NAME_NOT_FOUND;
 
-        foreach (var child in _container.ListDirectory(ResolvePath(FileNode)))
+        foreach (var child in _volume.ListDirectory(ResolvePath(FileNode)))
             if (string.Equals(child.Name, FileName, StringComparison.OrdinalIgnoreCase))
             {
                 NormalizedName = child.Name;
@@ -181,7 +180,7 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
         }
         else
         {
-            entries = _container.ListDirectory(ResolvePath(FileNode)).ToList();
+            entries = _volume.ListDirectory(ResolvePath(FileNode)).ToList();
             index = 0;
 
             if (!string.IsNullOrEmpty(Marker))
@@ -236,9 +235,8 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
             Context = (entries, index);
 
             if (!string.IsNullOrEmpty(Pattern) && !string.Equals(Pattern, "*", StringComparison.Ordinal) &&
-                !string.Equals(Pattern, "*.*", StringComparison.Ordinal))
-                if (!MatchesPattern(entry.Name, Pattern))
-                    continue;
+                !string.Equals(Pattern, "*.*", StringComparison.Ordinal) && !MatchesPattern(entry.Name, Pattern))
+                continue;
 
             FileName = entry.Name;
             FileInfo = EntryToFileInfo(entry);
@@ -254,7 +252,7 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
     public override int GetVolumeInfo(out VolumeInfo VolumeInfo)
     {
         VolumeInfo = default;
-        VolumeInfo.TotalSize = _container.VolumeSize;
+        VolumeInfo.TotalSize = _volume.VolumeSize;
         VolumeInfo.FreeSize = 0;
         return STATUS_SUCCESS;
     }
@@ -262,7 +260,7 @@ internal sealed class ChdFs : FileSystemBase, IDisposable, IAsyncDisposable
     public override int GetSecurityByName(string FileName, out uint FileAttributes,
         ref byte[] SecurityDescriptor)
     {
-        var entry = _container.FindFile(FileName);
+        var entry = _volume.FindFile(FileName);
         if (entry is null)
         {
             FileAttributes = 0;

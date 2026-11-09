@@ -20,7 +20,7 @@ internal static class ScreenshotPaths
         if (string.IsNullOrEmpty(executableDirectory))
             executableDirectory = AppContext.BaseDirectory;
 
-        return Path.Combine(executableDirectory, "Screenshot");
+        return Path.Join(executableDirectory, "Screenshot");
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ internal static class ScreenshotPaths
     /// <returns>The full path to the fallback screenshot directory.</returns>
     internal static string GetFallbackDirectory(string applicationName)
     {
-        return Path.Combine(
+        return Path.Join(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             applicationName,
             "Screenshot");

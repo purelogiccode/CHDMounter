@@ -12,6 +12,12 @@ internal sealed class CommandLineOptions
     internal ConsoleType ConsoleType { get; init; } = ConsoleType.Unknown;
 
     /// <summary>
+    ///     Gets a value indicating whether the selected format requests full 2448-byte
+    ///     CD frames (2352 data bytes plus 96 subchannel bytes).
+    /// </summary>
+    internal bool IncludeSubchannel { get; init; }
+
+    /// <summary>
     ///     Gets the path to the CHD file, or <c>null</c> when none was supplied.
     /// </summary>
     internal string? ChdPath { get; init; }
