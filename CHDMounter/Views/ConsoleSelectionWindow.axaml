@@ -1,7 +1,7 @@
 <Window x:Class="CHDMounter.Views.ConsoleSelectionWindow"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vgfsp="clr-namespace:VideoGameFileSystemParser.Models;assembly=VideoGameFileSystemParser"
+        xmlns:services="clr-namespace:CHDMounter.Services"
         Title="Mount CHD Image" Height="240" Width="500"
         CanResize="True"
         WindowStartupLocation="CenterOwner"
@@ -24,8 +24,8 @@
                   Height="35" Margin="0,0,0,15" VerticalAlignment="Top"
                   ToolTip.Tip="Select the video game console filesystem type for this CHD image">
             <ComboBox.ItemTemplate>
-                <DataTemplate x:DataType="vgfsp:ConsoleInfo">
-                    <TextBlock Text="{Binding Name}" ToolTip.Tip="Console type display name" />
+                <DataTemplate x:DataType="services:MountFormatInfo">
+                    <TextBlock Text="{Binding DisplayName}" ToolTip.Tip="Console type display name" />
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
